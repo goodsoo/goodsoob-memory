@@ -42,3 +42,4 @@ dist-ssr
 
 # /start skill — worktree 별 PR intent (worktree 안에서만 의미 있음)
 .pr-intent.md
+.gstack/

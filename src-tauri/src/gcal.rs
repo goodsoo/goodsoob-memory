@@ -24,7 +24,7 @@ const SCOPE: &str = "https://www.googleapis.com/auth/calendar.app.created";
 const AUTH_ENDPOINT: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
 const CALENDAR_BASE: &str = "https://www.googleapis.com/calendar/v3";
-const KEYRING_SERVICE: &str = "com.goodsoob.work.gcal";
+const KEYRING_SERVICE: &str = "com.goodsoob.goodsoob-work.gcal";
 const KEYRING_ACCOUNT: &str = "refresh_token";
 // access token 만료 직전 갱신 (clock skew + 호출 지연 여유).
 const EXPIRY_SKEW: Duration = Duration::from_secs(60);

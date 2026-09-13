@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "짱수",
   "version": "0.1.0",
-  "identifier": "com.goodsoob.work",
+  "identifier": "com.goodsoob.goodsoob-work",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:7030",

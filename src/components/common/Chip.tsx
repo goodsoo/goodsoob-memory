@@ -36,18 +36,18 @@ export function Chip({
     variant === "outline"
       ? {
           backgroundColor: "transparent",
-          color: "var(--text-secondary)",
-          border: "1px solid var(--border-default)",
+          color: "var(--sub)",
+          border: "1px solid var(--line)",
         }
       : variant === "accent"
         ? {
-            backgroundColor: "var(--bg-base)",
-            color: "var(--text-secondary)",
-            border: "1px solid var(--border-default)",
+            backgroundColor: "var(--bg)",
+            color: "var(--sub)",
+            border: "1px solid var(--line)",
           }
         : {
-            backgroundColor: "var(--bg-surface-hover)",
-            color: "var(--text-secondary)",
+            backgroundColor: "var(--surface-2)",
+            color: "var(--sub)",
           };
 
   return (

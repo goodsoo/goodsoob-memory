@@ -78,7 +78,7 @@ export function MoveFolderModal({
     <Modal open={open} onClose={onClose} size="sm" ariaLabel="폴더로 이동">
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        style={{ borderBottom: "1px solid var(--line-2)" }}
       >
           <div className="min-w-0">
             <Text variant="body" weight="semibold" as="div">
@@ -98,7 +98,7 @@ export function MoveFolderModal({
             variant="icon"
             onClick={onClose}
             aria-label="닫기"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -115,21 +115,21 @@ export function MoveFolderModal({
                 disabled={isCurrent || submitting}
                 className="w-full justify-start gap-2 px-3 py-2 disabled:opacity-50"
                 style={{
-                  color: "var(--text-primary)",
+                  color: "var(--ink)",
                   backgroundColor: isCurrent
-                    ? "var(--bg-surface-active)"
+                    ? "var(--surface-3)"
                     : undefined,
                 }}
               >
                 {f === "" ? (
                   <FolderRoot
                     className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--text-muted)" }}
+                    style={{ color: "var(--faint)" }}
                   />
                 ) : (
                   <Folder
                     className="h-3.5 w-3.5 shrink-0"
-                    style={{ color: "var(--text-muted)" }}
+                    style={{ color: "var(--faint)" }}
                   />
                 )}
                 <span className="truncate">
@@ -152,12 +152,12 @@ export function MoveFolderModal({
 
         <div
           className="space-y-2 px-3 py-3"
-          style={{ borderTop: "1px solid var(--border-subtle)" }}
+          style={{ borderTop: "1px solid var(--line-2)" }}
         >
           <div className="flex items-center gap-2">
             <Plus
               className="h-3.5 w-3.5 shrink-0"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             />
             <input
               ref={inputRef}
@@ -174,9 +174,9 @@ export function MoveFolderModal({
               disabled={submitting}
               className="flex-1 rounded-md px-2 py-1.5 text-sm outline-none"
               style={{
-                backgroundColor: "var(--bg-base)",
-                border: "1px solid var(--border-default)",
-                color: "var(--text-primary)",
+                backgroundColor: "var(--bg)",
+                border: "1px solid var(--line)",
+                color: "var(--ink)",
               }}
             />
             <Button
@@ -195,9 +195,9 @@ export function MoveFolderModal({
               as="div"
               className="rounded px-2 py-1"
               style={{
-                borderLeft: "2px solid var(--accent-red)",
-                backgroundColor: "var(--accent-red-bg)",
-                color: "var(--accent-red-text)",
+                borderLeft: "2px solid var(--down)",
+                backgroundColor: "var(--down-soft)",
+                color: "var(--down-ink)",
               }}
             >
               {error}

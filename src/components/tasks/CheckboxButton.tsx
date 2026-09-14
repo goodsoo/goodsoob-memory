@@ -1,5 +1,5 @@
 // 체크박스 button — pending / done / cancelled 3 state. pending 은 회색 테두리
-// (--text-muted). done/cancelled 는 완료/취소가 의미 우선. e.stopPropagation 내장
+// (--faint). done/cancelled 는 완료/취소가 의미 우선. e.stopPropagation 내장
 // — 부모 행의 click navigate 와 충돌 없음.
 // hit zone: 시각은 18x18 이지만 button 자체는 p-1.5 + -m-1.5 로 30x30 클릭 영역.
 // negative margin 으로 layout footprint 는 18x18 유지 → 행 높이/간격 변동 0,
@@ -15,7 +15,7 @@ export function CheckboxButton({
   shape?: "square" | "circle";
   onClick: () => void;
 }) {
-  const pendingBorder = "var(--text-muted)";
+  const pendingBorder = "var(--faint)";
   const pendingFill = "transparent";
   return (
     <button
@@ -39,9 +39,9 @@ export function CheckboxButton({
           shape === "circle" ? "rounded-full" : "rounded-md"
         } ${
           status === "done"
-            ? "bg-[var(--text-secondary)]"
+            ? "bg-[var(--sub)]"
             : status === "cancelled"
-              ? "border-[var(--border-default)] bg-[var(--bg-surface)]"
+              ? "border-[var(--line)] bg-[var(--surface)]"
               : "group-hover/check:brightness-95"
         }`}
         style={{
@@ -51,7 +51,7 @@ export function CheckboxButton({
             status === "pending"
               ? pendingBorder
               : status === "done"
-                ? "var(--text-secondary)"
+                ? "var(--sub)"
                 : undefined,
           borderWidth: status === "pending" ? 1.5 : undefined,
           backgroundColor: status === "pending" ? pendingFill : undefined,
@@ -78,7 +78,7 @@ export function CheckboxButton({
           viewBox="0 0 16 16"
           fill="none"
           className="h-3 w-3"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
           aria-hidden
         >
           <path
@@ -93,7 +93,7 @@ export function CheckboxButton({
           viewBox="0 0 16 16"
           fill="none"
           className="h-3 w-3 opacity-0 transition-opacity group-hover/check:opacity-50"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
           aria-hidden
         >
           <path

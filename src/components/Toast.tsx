@@ -82,14 +82,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 backgroundColor: "var(--surface-frost)",
                 border: "1px solid var(--surface-frost-border)",
                 boxShadow: "var(--surface-frost-shadow)",
-                color: "var(--text-primary)",
+                color: "var(--ink)",
               }}
             >
               <div className="flex items-center gap-2">
                 {t.kind === "error" ? (
                   <Ban
                     className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--accent-red)" }}
+                    style={{ color: "var(--down)" }}
                   />
                 ) : t.kind === "info" ? (
                   <Info
@@ -108,7 +108,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   title="닫기"
                   aria-label="닫기"
                   className="shrink-0 p-0.5"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>

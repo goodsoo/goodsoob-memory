@@ -67,9 +67,9 @@ export function ScreenshotDropzone({ prSlug, existing, label }: Props) {
       }}
       className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed px-3 py-3 text-xs transition"
       style={{
-        borderColor: dragOver ? "var(--accent-blue)" : "var(--border-default)",
-        backgroundColor: dragOver ? "var(--accent-blue-bg)" : "transparent",
-        color: "var(--text-secondary)",
+        borderColor: dragOver ? "var(--accent)" : "var(--line)",
+        backgroundColor: dragOver ? "var(--accent-soft)" : "transparent",
+        color: "var(--sub)",
       }}
     >
       <input
@@ -95,7 +95,7 @@ export function ScreenshotDropzone({ prSlug, existing, label }: Props) {
           : "이미지 드롭/클릭"}
       </span>
       {error ? (
-        <span style={{ color: "var(--accent-red-text)" }}>{error}</span>
+        <span style={{ color: "var(--down-ink)" }}>{error}</span>
       ) : null}
     </label>
   );

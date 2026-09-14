@@ -37,7 +37,7 @@ export function PageHeaderBar({
         height: "var(--page-header-h)",
         gridTemplateColumns: "minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr)",
         backgroundColor: "var(--bg-overlay)",
-        borderBottom: "1px solid var(--border-subtle)",
+        borderBottom: "1px solid var(--line-2)",
       }}
     >
       <div className="flex shrink-0 items-center gap-2 justify-self-start">
@@ -50,7 +50,7 @@ export function PageHeaderBar({
             title={sidebarToggle.collapsed ? "사이드바 열기 (⌘\\)" : "사이드바 닫기 (⌘\\)"}
             aria-label={sidebarToggle.collapsed ? "사이드바 열기" : "사이드바 닫기"}
             className="hidden lg:inline-flex"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             {sidebarToggle.collapsed ? (
               <PanelLeftOpen className="h-4 w-4" />

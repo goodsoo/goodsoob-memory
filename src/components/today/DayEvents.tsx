@@ -72,15 +72,15 @@ function EventRow({ event }: { event: ScheduleEvent }) {
             setEditing(true);
           }
         }}
-        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--bg-surface-hover)]"
+        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--surface-2)]"
       >
         {/* 내용-날짜-시간 순으로 통일(할일·노트와 동일): 제목 먼저, 시각·범위는 우측. */}
-        <span className="min-w-0 flex-1 truncate" style={{ color: "var(--text-primary)" }}>
+        <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink)" }}>
           {event.text}
         </span>
         <span
           className="flex shrink-0 items-center gap-1.5 text-[11px] tabular-nums"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           {range ? <span>{range.trim()}</span> : null}
           {event.time ? <span>{event.time}</span> : null}
@@ -92,18 +92,18 @@ function EventRow({ event }: { event: ScheduleEvent }) {
   return (
     <div
       className="rounded-md px-2 py-2"
-      style={{ backgroundColor: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+      style={{ backgroundColor: "var(--surface)", border: "1px solid var(--line)" }}
     >
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="일정 내용"
         className="mb-2 w-full bg-transparent text-sm outline-none"
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       />
       <div
         className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
-        style={{ color: "var(--text-secondary)" }}
+        style={{ color: "var(--sub)" }}
       >
         <span className="inline-flex items-center gap-1">
           <span aria-hidden className="opacity-60">~</span>
@@ -116,7 +116,7 @@ function EventRow({ event }: { event: ScheduleEvent }) {
             size="sm"
             onClick={() => deleteEvent.mutate(event.id)}
             title="일정 삭제"
-            style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+            style={{ color: "var(--sub)", border: "1px solid var(--line-2)" }}
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -160,8 +160,8 @@ function AddEventForm({ date }: { date: string }) {
     <div
       className="mb-2 rounded-md px-2 py-2"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       <input
@@ -175,11 +175,11 @@ function AddEventForm({ date }: { date: string }) {
         }}
         placeholder="일정 추가"
         className="mb-2 w-full bg-transparent text-sm outline-none"
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       />
       <div
         className="flex items-center gap-x-3 text-xs"
-        style={{ color: "var(--text-secondary)" }}
+        style={{ color: "var(--sub)" }}
       >
         <span className="inline-flex items-center gap-1">
           <Calendar className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
@@ -195,7 +195,7 @@ function AddEventForm({ date }: { date: string }) {
           size="sm"
           onClick={add}
           title="일정 추가"
-          style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+          style={{ color: "var(--sub)", border: "1px solid var(--line-2)" }}
           leftIcon={<Plus className="h-3 w-3" />}
         >
           추가

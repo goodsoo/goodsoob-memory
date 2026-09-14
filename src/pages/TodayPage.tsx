@@ -138,12 +138,12 @@ export function TodayPage({
               type="button"
               onClick={onReturnToday}
               title="오늘로"
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 transition hover:bg-[var(--bg-surface-hover)]"
-              style={{ color: "var(--text-primary)" }}
+              className="flex items-center gap-1.5 rounded-md px-2 py-1 transition hover:bg-[var(--surface-2)]"
+              style={{ color: "var(--ink)" }}
             >
               <CornerUpLeft
                 className="h-4 w-4 shrink-0"
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
                 aria-hidden
               />
               <Text variant="h4" as="span">
@@ -168,8 +168,8 @@ export function TodayPage({
                 <div
                   className="mb-2 rounded-md px-2 py-2"
                   style={{
-                    backgroundColor: "var(--bg-surface)",
-                    border: "1px solid var(--border-default)",
+                    backgroundColor: "var(--surface)",
+                    border: "1px solid var(--line)",
                   }}
                 >
                   <input
@@ -183,11 +183,11 @@ export function TodayPage({
                     }}
                     placeholder={isTodayView ? "오늘 할 일 추가" : "이 날 할 일 추가"}
                     className="mb-2 w-full bg-transparent text-sm outline-none"
-                    style={{ color: "var(--text-primary)" }}
+                    style={{ color: "var(--ink)" }}
                   />
                   <div
                     className="flex items-center gap-x-3 text-xs"
-                    style={{ color: "var(--text-secondary)" }}
+                    style={{ color: "var(--sub)" }}
                   >
                     <span className="inline-flex items-center gap-1">
                       <CalendarIcon className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
@@ -204,7 +204,7 @@ export function TodayPage({
                       size="sm"
                       onClick={handleQuickAdd}
                       title="할 일 추가"
-                      style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+                      style={{ color: "var(--sub)", border: "1px solid var(--line-2)" }}
                       leftIcon={<Plus className="h-3 w-3" />}
                     >
                       추가
@@ -228,7 +228,7 @@ export function TodayPage({
                         <span
                           className={`min-w-0 flex-1 truncate ${t.done ? "line-through" : ""}`}
                           style={{
-                            color: t.done ? "var(--text-muted)" : "var(--text-primary)",
+                            color: t.done ? "var(--faint)" : "var(--ink)",
                           }}
                         >
                           {t.title}
@@ -238,15 +238,15 @@ export function TodayPage({
                             <span
                               style={{
                                 color: overdue
-                                  ? "var(--accent-red-text)"
-                                  : "var(--text-muted)",
+                                  ? "var(--down-ink)"
+                                  : "var(--faint)",
                               }}
                             >
                               {formatDisplayDate(t.due_date)}
                             </span>
                           ) : null}
                           {t.due_time ? (
-                            <span style={{ color: "var(--text-muted)" }}>
+                            <span style={{ color: "var(--faint)" }}>
                               {t.due_time}
                             </span>
                           ) : null}
@@ -278,7 +278,7 @@ export function TodayPage({
                       onClick={onCreateNote}
                       title="새 노트"
                       aria-label="새 노트"
-                      style={{ color: "var(--text-secondary)" }}
+                      style={{ color: "var(--sub)" }}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -294,18 +294,18 @@ export function TodayPage({
                     <Row key={m.uid} onClick={() => onOpenMeeting(m.uid)}>
                       <FileText
                         className="h-3.5 w-3.5 shrink-0"
-                        style={{ color: "var(--accent-blue)" }}
+                        style={{ color: "var(--accent)" }}
                       />
                       <span
                         className="min-w-0 flex-1 truncate"
-                        style={{ color: "var(--text-primary)" }}
+                        style={{ color: "var(--ink)" }}
                       >
                         {m.title?.trim() || "(제목 없음)"}
                       </span>
                       {isTodayView ? (
                         <span
                           className="shrink-0 text-[11px]"
-                          style={{ color: "var(--text-muted)" }}
+                          style={{ color: "var(--faint)" }}
                         >
                           {relativeDateLabel(todayIso(new Date(m.mtime)))}
                         </span>
@@ -363,9 +363,9 @@ function Section({
     <section>
       <div
         className="mb-1.5 flex items-center gap-2"
-        style={{ color: "var(--text-secondary)" }}
+        style={{ color: "var(--sub)" }}
       >
-        <span className="shrink-0" style={{ color: "var(--text-muted)" }}>
+        <span className="shrink-0" style={{ color: "var(--faint)" }}>
           {icon}
         </span>
         <Text variant="body" weight="semibold" as="h3">
@@ -374,7 +374,7 @@ function Section({
         {typeof count === "number" && count > 0 ? (
           <span
             className="text-[12px] tabular-nums"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             {count}
           </span>
@@ -405,7 +405,7 @@ function Row({
           onClick();
         }
       }}
-      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--bg-surface-hover)]"
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--surface-2)]"
     >
       {children}
     </div>

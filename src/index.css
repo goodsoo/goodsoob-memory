@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Class-based dark mode for Tailwind v4 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Attribute-based dark mode for Tailwind v4 (canonical: [data-theme=dark]) */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
 /* DESIGN-SYSTEM:tokens-theme START — managed by goodsoob-design-system, do not edit */
@@ -31,35 +31,35 @@
   :root {
     color-scheme: light;
 
-    /* Background — 통합 팔레트(tower 앵커, 쿨 블루그레이). 단 --bg-base(캔버스)는
+    /* Background — 통합 팔레트(tower 앵커, 쿨 블루그레이). 단 --bg(캔버스)는
        흰색 유지: work 은 카드형이 아니라 본문이 캔버스에 직접 얹혀서 (docs/palette-unification.md) */
-    --bg-base: #ffffff;
-    --bg-surface: #f7f9fc;
-    --bg-surface-hover: #eef1f6;
-    --bg-surface-active: #d9deea;
+    --bg: #ffffff;
+    --surface: #f7f9fc;
+    --surface-2: #eef1f6;
+    --surface-3: #d9deea;
     --bg-overlay: rgba(255, 255, 255, 0.92);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
 
     /* Text — 통합 팔레트 */
-    --text-primary: #1d1d1f;
-    --text-secondary: #5c5f68;
-    --text-muted: #868a94;
+    --ink: #1d1d1f;
+    --sub: #5c5f68;
+    --faint: #868a94;
     --text-inverse: #ffffff;
 
     /* Border — 통합 팔레트 */
-    --border-default: #e4e8f1;
-    --border-subtle: #eef1f7;
+    --line: #e4e8f1;
+    --line-2: #eef1f7;
 
     /* Accent — 통합 팔레트(애플블루). red/green 은 상태색(tower down/ok) */
-    --accent-red: #d33a2f;
-    --accent-red-bg: #fbe9e7;
-    --accent-red-text: #991b1b;
-    --accent-blue: #0071e3;
-    --accent-blue-bg: #e8f1fd;
-    --accent-blue-text: #005bbf;
-    --accent-green: #248a3d;
+    --down: #d33a2f;
+    --down-soft: #fbe9e7;
+    --down-ink: #991b1b;
+    --accent: #0071e3;
+    --accent-soft: #e8f1fd;
+    --accent-ink: #005bbf;
+    --ok: #248a3d;
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
     --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
 
@@ -79,7 +79,7 @@
        팔레트: 적힌 순서대로 i%10 배정 → 한 회의 안 10명까지 색 안 겹침. accent 레시피
        동일 (라이트=연한 tint bg + 진한 글자). 순서는 hue 휠 순이 아니라 연속 색이
        최대한 멀어지게 점프 (대부분 2-4명 → 앞 색이 제일 많이 쓰임. 앞 4개=파랑·주황·
-       초록·분홍 보색 쌍, d3/Tableau10 방식). 색 자체 바꾸면 .dark 블록도 같이 수정. */
+       초록·분홍 보색 쌍, d3/Tableau10 방식). 색 자체 바꾸면 [data-theme=dark] 블록도 같이 수정. */
     --speaker-0-bg: #e0f2fe; --speaker-0-text: #0369a1; /* sky */
     --speaker-1-bg: #ffedd5; --speaker-1-text: #c2410c; /* orange */
     --speaker-2-bg: #d1fae5; --speaker-2-text: #047857; /* emerald */
@@ -149,37 +149,37 @@
     --titlebar-traffic-inset: 80px;
   }
 
-  .dark {
+  :root[data-theme="dark"] {
     color-scheme: dark;
 
     /* Background — 통합 팔레트 다크(tower 앵커, 딥네이비). 다크는 캔버스도 통일. */
-    --bg-base: #0c0f16;
-    --bg-surface: #161b24;
-    --bg-surface-hover: #1c222d;
-    --bg-surface-active: #252d3a;
+    --bg: #0c0f16;
+    --surface: #161b24;
+    --surface-2: #1c222d;
+    --surface-3: #252d3a;
     --bg-overlay: rgba(12, 15, 22, 0.92);
     --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
 
     /* Text — 통합 팔레트 다크 */
-    --text-primary: #eef1f6;
-    --text-secondary: #b0b8c4;
-    --text-muted: #7c8592;
+    --ink: #eef1f6;
+    --sub: #b0b8c4;
+    --faint: #7c8592;
     --text-inverse: #1d1d1f;
 
     /* Border — 통합 팔레트 다크 */
-    --border-default: #2b3441;
-    --border-subtle: #232b36;
+    --line: #2b3441;
+    --line-2: #232b36;
 
     /* Accent (desaturated for dark) — 통합 팔레트 */
-    --accent-red: #ff5a4d;
-    --accent-red-bg: rgba(255, 90, 77, 0.1);
-    --accent-red-text: #fca5a5;
-    --accent-blue: #2f8fff;
-    --accent-blue-bg: rgba(47, 143, 255, 0.1);
-    --accent-blue-text: #7fbcff;
-    --accent-green: #3fbf5f;
+    --down: #ff5a4d;
+    --down-soft: rgba(255, 90, 77, 0.1);
+    --down-ink: #fca5a5;
+    --accent: #2f8fff;
+    --accent-soft: rgba(47, 143, 255, 0.1);
+    --accent-ink: #7fbcff;
+    --ok: #3fbf5f;
     --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
     --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
 
@@ -270,8 +270,8 @@
   }
 
   body {
-    background-color: var(--bg-base);
-    color: var(--text-primary);
+    background-color: var(--bg);
+    color: var(--ink);
     font-family: var(--font-sans);
     font-feature-settings: "ss10";
     -webkit-font-smoothing: antialiased;
@@ -302,7 +302,7 @@
      .meta-input::placeholder 등 명시 클래스는 specificity 가 높아 그대로 유지. */
   input::placeholder,
   textarea::placeholder {
-    color: var(--text-muted);
+    color: var(--faint);
     opacity: 1;
   }
 
@@ -310,13 +310,13 @@
   .guide-body {
     font-size: 12px;
     line-height: 1.6;
-    color: var(--text-secondary);
+    color: var(--sub);
   }
   .guide-body p { margin: 0 0 0.5rem; }
   .guide-body p:last-child { margin-bottom: 0; }
-  .guide-body p.muted { color: var(--text-muted); font-size: 11px; }
-  .guide-body strong { color: var(--text-primary); font-weight: 600; }
-  .guide-body em { color: var(--text-primary); font-style: italic; }
+  .guide-body p.muted { color: var(--faint); font-size: 11px; }
+  .guide-body strong { color: var(--ink); font-weight: 600; }
+  .guide-body em { color: var(--ink); font-style: italic; }
   .guide-body ul, .guide-body ol {
     margin: 0.5rem 0;
     padding-left: 1.25rem;
@@ -345,7 +345,7 @@
      데스크탑 전용 전환 (V0.6) 이후 명분 사라져 제거. 모바일 부활 시 필요한
      곳만 컴포넌트 단에서 min-h-11 박는 방향. */
   button:not(:disabled):not([aria-current="page"]):hover {
-    background-color: var(--bg-surface-hover);
+    background-color: var(--surface-2);
   }
 
   /* ── Form elements (token-based) ── */
@@ -357,34 +357,34 @@
     background-position: right 6px center;
     padding-right: 22px !important;
     border-radius: 6px;
-    border: 1px solid var(--border-default);
+    border: 1px solid var(--line);
     padding: 4px 22px 4px 8px;
     font-size: 13px;
-    color: var(--text-primary);
-    background-color: var(--bg-surface);
+    color: var(--ink);
+    background-color: var(--surface);
     transition: border-color 0.15s;
     min-height: 0;
   }
   select:focus {
     outline: none;
-    border-color: var(--text-muted);
+    border-color: var(--faint);
   }
 
   input[type="date"],
   input[type="time"] {
     border-radius: 6px;
-    border: 1px solid var(--border-default);
+    border: 1px solid var(--line);
     padding: 4px 8px;
     font-size: 13px;
-    color: var(--text-primary);
-    background-color: var(--bg-surface);
+    color: var(--ink);
+    background-color: var(--surface);
     transition: border-color 0.15s;
     min-height: 0;
   }
   input[type="date"]:focus,
   input[type="time"]:focus {
     outline: none;
-    border-color: var(--text-muted);
+    border-color: var(--faint);
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -429,7 +429,7 @@
      flash 끝나면 class 제거 — enter animation 은 이미 끝났으니 재실행 X. */
   @keyframes taskCardFlash {
     0%, 100% { background-color: transparent; }
-    25%, 75% { background-color: var(--accent-blue-bg); }
+    25%, 75% { background-color: var(--accent-soft); }
   }
   .task-card-flash { animation: taskCardFlash 600ms ease; }
 
@@ -445,11 +445,11 @@
     margin: 0;
     font-size: 0.875rem;
     line-height: 1.625rem;
-    color: var(--text-primary);
+    color: var(--ink);
     font-family: inherit;
     min-width: 0;
   }
-  .meta-input::placeholder { color: var(--text-muted); }
+  .meta-input::placeholder { color: var(--faint); }
 
   /* meta row focus-within 강조 — 옵시디안 properties 의 row hover 패턴 */
   .meta-row {
@@ -457,8 +457,8 @@
     transition: background-color 120ms ease;
   }
   .meta-row:focus-within {
-    background-color: var(--bg-surface);
-    box-shadow: inset 0 0 0 1px var(--border-default);
+    background-color: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
   }
 }
 

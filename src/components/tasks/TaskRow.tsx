@@ -213,10 +213,10 @@ export function TaskRow({
       onClick={() => {
         if (!editing) setEditing(true);
       }}
-      className={`rounded-lg border transition ${editing ? "" : "cursor-pointer hover:bg-[var(--bg-surface)]"} ${flashing ? "task-card-flash" : "task-card-enter"}`}
+      className={`rounded-lg border transition ${editing ? "" : "cursor-pointer hover:bg-[var(--surface)]"} ${flashing ? "task-card-flash" : "task-card-enter"}`}
       style={{
-        borderColor: editing ? "var(--border-default)" : "var(--border-subtle)",
-        backgroundColor: editing ? "var(--bg-surface)" : undefined,
+        borderColor: editing ? "var(--line)" : "var(--line-2)",
+        backgroundColor: editing ? "var(--surface)" : undefined,
       }}
     >
       {editing ? (
@@ -254,7 +254,7 @@ export function TaskRow({
               placeholder="제목"
               maxLength={200}
               className="min-w-0 flex-1 bg-transparent text-base outline-none"
-              style={{ color: "var(--text-primary)" }}
+              style={{ color: "var(--ink)" }}
             />
           </div>
 
@@ -265,7 +265,7 @@ export function TaskRow({
           >
             <div
               className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               <span className="inline-flex shrink-0 items-center gap-1">
                 <CalendarIcon className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
@@ -302,9 +302,9 @@ export function TaskRow({
                 title={draft.cancelled ? "취소 해제" : "할 일 취소"}
                 style={{
                   color: draft.cancelled
-                    ? "var(--text-primary)"
-                    : "var(--text-secondary)",
-                  border: `1px solid ${draft.cancelled ? "var(--text-muted)" : "var(--border-subtle)"}`,
+                    ? "var(--ink)"
+                    : "var(--sub)",
+                  border: `1px solid ${draft.cancelled ? "var(--faint)" : "var(--line-2)"}`,
                 }}
               >
                 {draft.cancelled ? "✗ 취소됨" : "취소"}
@@ -315,8 +315,8 @@ export function TaskRow({
                 onClick={handleDeleteWithFade}
                 title="할 일 삭제"
                 style={{
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--border-subtle)",
+                  color: "var(--sub)",
+                  border: "1px solid var(--line-2)",
                 }}
               >
                 삭제
@@ -350,8 +350,8 @@ export function TaskRow({
               style={{
                 color:
                   task.done || task.cancelled
-                    ? "var(--text-muted)"
-                    : "var(--text-primary)",
+                    ? "var(--faint)"
+                    : "var(--ink)",
               }}
             >
               {task.title || (
@@ -388,7 +388,7 @@ function GcalAction({ task }: { task: Task }) {
       title="다음 동기화 때 캘린더에 올라갑니다"
       aria-label="동기화 대기"
     >
-      <CircleDashed className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+      <CircleDashed className="h-3.5 w-3.5" style={{ color: "var(--faint)" }} />
     </span>
   );
 }
@@ -408,7 +408,7 @@ function DueChip({ task }: { task: Task }) {
       <span
         className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold"
         style={{
-          backgroundColor: "var(--accent-red)",
+          backgroundColor: "var(--down)",
           color: "var(--text-inverse)",
         }}
       >
@@ -421,8 +421,8 @@ function DueChip({ task }: { task: Task }) {
       <span
         className={base}
         style={{
-          color: "var(--accent-red-text)",
-          border: "1px solid var(--accent-red)",
+          color: "var(--down-ink)",
+          border: "1px solid var(--down)",
         }}
       >
         D+{-diff}
@@ -434,8 +434,8 @@ function DueChip({ task }: { task: Task }) {
       <span
         className={base}
         style={{
-          color: "var(--text-secondary)",
-          border: "1px solid var(--border-default)",
+          color: "var(--sub)",
+          border: "1px solid var(--line)",
         }}
       >
         {diff === 1 ? "내일" : `D-${diff}`}
@@ -460,7 +460,7 @@ function ReadOnlyMeta({
   return (
     <div
       className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
-      style={{ color: "var(--text-secondary)" }}
+      style={{ color: "var(--sub)" }}
     >
       {hasDate ? <span>{formatDisplayDate(task.due_date)}</span> : null}
       {hasTime ? <span>{task.due_time}</span> : null}
@@ -508,8 +508,8 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
       className="relative inline-flex"
       panelClassName="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-md shadow-md"
       panelStyle={{
-        backgroundColor: "var(--bg-base)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--bg)",
+        border: "1px solid var(--line)",
       }}
       trigger={
         <Button
@@ -520,7 +520,7 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
             setOpen((v) => !v);
           }}
           className={`max-w-[12rem] truncate underline-offset-2 px-0 py-0 ${disconnected ? "" : "hover:underline"}`}
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
           aria-haspopup="menu"
           aria-expanded={open}
           leftIcon={<FileText className="h-3 w-3 shrink-0 opacity-70" aria-hidden />}
@@ -535,7 +535,7 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
             color="secondary"
             as="div"
             className="px-3 py-2"
-            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            style={{ borderBottom: "1px solid var(--line-2)" }}
           >
             <Text variant="caption" color="muted" as="div">
               연결된 메모
@@ -603,8 +603,8 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
                 disconnected
                   ? {
                       backgroundColor: "transparent",
-                      color: "var(--accent-red)",
-                      border: "1px solid var(--accent-red)",
+                      color: "var(--down)",
+                      border: "1px solid var(--down)",
                     }
                   : undefined
               }

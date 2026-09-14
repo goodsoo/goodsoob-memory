@@ -239,14 +239,14 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
         {/* 헤더 */}
         <div
           className="flex items-center gap-3 border-b px-5 py-3"
-          style={{ borderColor: "var(--border-subtle)" }}
+          style={{ borderColor: "var(--line-2)" }}
         >
           <Text
             variant="caption"
             color="secondary"
             as="span"
             className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5"
-            style={{ backgroundColor: "var(--bg-surface-hover)" }}
+            style={{ backgroundColor: "var(--surface-2)" }}
           >
             <span
               className="h-1.5 w-1.5 rounded-full"
@@ -276,8 +276,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   size="sm"
                   onClick={handleCancelEdit}
                   style={{
-                    backgroundColor: "var(--bg-surface-hover)",
-                    color: "var(--text-primary)",
+                    backgroundColor: "var(--surface-2)",
+                    color: "var(--ink)",
                   }}
                   title="변경 버리기 (ESC)"
                 >
@@ -291,8 +291,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                 onClick={handleEnterEdit}
                 leftIcon={<Pencil className="h-3.5 w-3.5" />}
                 style={{
-                  backgroundColor: "var(--bg-surface-hover)",
-                  color: "var(--text-primary)",
+                  backgroundColor: "var(--surface-2)",
+                  color: "var(--ink)",
                 }}
                 title="편집 모드 진입"
               >
@@ -303,7 +303,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
               variant="icon"
               onClick={handleClose}
               title="닫기 (ESC)"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -315,12 +315,12 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
           {/* 좌측: 스크린샷 viewer — scroll content + sticky dropzone footer */}
           <div
             className="flex min-h-0 flex-col overflow-hidden border-b md:border-b-0 md:border-r"
-            style={{ borderColor: "var(--border-subtle)" }}
+            style={{ borderColor: "var(--line-2)" }}
           >
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
             <div
               className="relative flex min-h-[280px] flex-1 items-center justify-center overflow-hidden rounded-lg"
-              style={{ backgroundColor: "var(--bg-surface-hover)" }}
+              style={{ backgroundColor: "var(--surface-2)" }}
             >
               {currentShot ? (
                 <>
@@ -338,7 +338,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                           className="absolute left-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full"
                           style={{
                             backgroundColor: "var(--bg-overlay)",
-                            color: "var(--text-primary)",
+                            color: "var(--ink)",
                           }}
                           title="이전 (←)"
                         >
@@ -352,7 +352,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                           className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full"
                           style={{
                             backgroundColor: "var(--bg-overlay)",
-                            color: "var(--text-primary)",
+                            color: "var(--ink)",
                           }}
                           title="다음 (→)"
                         >
@@ -385,7 +385,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
               ) : (
                 <div
                   className="flex flex-col items-center gap-2"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   <GitBranch className="h-6 w-6" strokeWidth={1.5} />
                   <Text variant="caption" as="span">
@@ -407,8 +407,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                     style={{
                       border:
                         i === activeShot
-                          ? "2px solid var(--text-primary)"
-                          : "1px solid var(--border-default)",
+                          ? "2px solid var(--ink)"
+                          : "1px solid var(--line)",
                     }}
                     title={s.caption || s.path}
                   >
@@ -428,7 +428,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                 업로드는 즉시 vault 적용 (편집 모드 / 취소와 무관). */}
             <div
               className="flex shrink-0 gap-2 border-t px-4 py-3"
-              style={{ borderColor: "var(--border-subtle)" }}
+              style={{ borderColor: "var(--line-2)" }}
             >
               <div className="flex-1">
                 <ScreenshotDropzone
@@ -459,9 +459,9 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   maxLength={60}
                   className="w-full rounded-md px-2 py-1.5 text-sm font-semibold"
                   style={{
-                    backgroundColor: "var(--bg-surface)",
-                    border: "1px solid var(--border-default)",
-                    color: "var(--text-primary)",
+                    backgroundColor: "var(--surface)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink)",
                   }}
                 />
               ) : (
@@ -472,8 +472,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   className="break-words"
                   style={{
                     color: fm.impact_summary
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
+                      ? "var(--ink)"
+                      : "var(--faint)",
                     fontStyle: fm.impact_summary ? "normal" : "italic",
                   }}
                 >
@@ -497,7 +497,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] transition hover:underline"
-                    style={{ color: "var(--text-secondary)" }}
+                    style={{ color: "var(--sub)" }}
                     title={fm.github_pr_url}
                   >
                     <ExternalLink className="h-3 w-3" />
@@ -518,7 +518,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   variant="body"
                   as="div"
                   className="inline-flex items-center gap-1.5 rounded-md px-2 py-1"
-                  style={{ backgroundColor: "var(--bg-surface-hover)" }}
+                  style={{ backgroundColor: "var(--surface-2)" }}
                 >
                   <span
                     className="h-1.5 w-1.5 rounded-full"
@@ -575,8 +575,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                     as="div"
                     className="rounded-md px-2.5 py-1.5 text-[11px]"
                     style={{
-                      backgroundColor: "var(--accent-red-bg)",
-                      color: "var(--accent-red-text)",
+                      backgroundColor: "var(--down-soft)",
+                      color: "var(--down-ink)",
                     }}
                   >
                     {requestError}
@@ -587,8 +587,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   <div
                     className="flex flex-col gap-2 rounded-md p-3"
                     style={{
-                      backgroundColor: "var(--bg-surface-hover)",
-                      border: "1px solid var(--border-default)",
+                      backgroundColor: "var(--surface-2)",
+                      border: "1px solid var(--line)",
                     }}
                   >
                     <Text
@@ -610,7 +610,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                     <div className="flex items-center gap-2">
                       <Chip
                         dot={lookupCategoryColor(suggestion.category)}
-                        style={{ backgroundColor: "var(--bg-surface)" }}
+                        style={{ backgroundColor: "var(--surface)" }}
                       >
                         {lookupCategoryLabel(suggestion.category)}
                       </Chip>
@@ -639,7 +639,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                         variant="icon"
                         onClick={() => setSuggestion(null)}
                         className="ml-auto"
-                        style={{ color: "var(--text-muted)" }}
+                        style={{ color: "var(--faint)" }}
                         title="제안 닫기"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -667,7 +667,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
               color="muted"
               as="div"
               className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t pt-3 text-[11px]"
-              style={{ borderColor: "var(--border-subtle)" }}
+              style={{ borderColor: "var(--line-2)" }}
             >
               <span>변경:</span>
               <span>
@@ -686,7 +686,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
           {/* footer — scroll 밖, 항상 보임. solid 스타일 (Claude 요청 버튼 계열과 통일). */}
           <div
             className="flex shrink-0 items-center justify-end gap-2 border-t px-4 py-3"
-            style={{ borderColor: "var(--border-subtle)" }}
+            style={{ borderColor: "var(--line-2)" }}
           >
             <Button
               variant="secondary"
@@ -700,8 +700,8 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                 )
               }
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                color: "var(--text-primary)",
+                backgroundColor: "var(--surface-2)",
+                color: "var(--ink)",
               }}
               title={fm.included ? "평가 자료에서 제외" : "평가 자료에 포함"}
             >
@@ -713,9 +713,9 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
               onClick={handleDelete}
               leftIcon={<Trash2 className="h-3.5 w-3.5" />}
               style={{
-                backgroundColor: "var(--accent-red-bg)",
-                color: "var(--accent-red-text)",
-                border: "1px solid var(--accent-red)",
+                backgroundColor: "var(--down-soft)",
+                color: "var(--down-ink)",
+                border: "1px solid var(--down)",
               }}
               title="휴지통으로 보내기"
             >

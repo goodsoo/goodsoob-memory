@@ -102,7 +102,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
       // index.css 의 `.font-serif { font-weight: 600 }` base 룰 가로채기 — 일기처럼
       // wrapper 가 font-serif 일 때 본문도 600 으로 끌려가는 footgun 차단.
       // h1-h6 / strong / em 자체 weight 는 각 컴포넌트 className 이 덮어씀.
-      style={{ color: "var(--text-primary)", fontWeight: 400 }}
+      style={{ color: "var(--ink)", fontWeight: 400 }}
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -130,7 +130,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
           h5: ({ children }) => (
             <h5
               className="mt-3 mb-1.5 font-serif text-sm font-semibold uppercase tracking-wide first:mt-0"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               {children}
             </h5>
@@ -138,7 +138,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
           h6: ({ children }) => (
             <h6
               className="mt-3 mb-1.5 font-serif text-xs font-semibold uppercase tracking-wide first:mt-0"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             >
               {children}
             </h6>
@@ -211,7 +211,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: "0.25rem",
-                      color: "var(--text-secondary)",
+                      color: "var(--sub)",
                     }}
                   >
                     <Plus size={14} strokeWidth={2} aria-hidden />
@@ -229,13 +229,13 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
                   className={`mt-[5px] h-4 w-4 flex-shrink-0 ${
                     clickable ? "cursor-pointer" : ""
                   }`}
-                  style={{ accentColor: "var(--accent-red)" }}
+                  style={{ accentColor: "var(--down)" }}
                 />
                 <span
                   className="flex-1"
                   style={
                     checked
-                      ? { color: "var(--text-muted)", textDecoration: "line-through" }
+                      ? { color: "var(--faint)", textDecoration: "line-through" }
                       : undefined
                   }
                 >
@@ -250,7 +250,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
               target="_blank"
               rel="noreferrer"
               className="underline underline-offset-2"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               {children}
             </a>
@@ -267,7 +267,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
                 title={title}
                 loading="lazy"
                 className="my-3 block max-w-full rounded"
-                style={{ border: "1px solid var(--border-subtle)" }}
+                style={{ border: "1px solid var(--line-2)" }}
               />
             );
           },
@@ -279,7 +279,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
           sup: ({ children, className }) => (
             <sup
               className={className}
-              style={{ fontSize: "0.75em", color: "var(--text-secondary)" }}
+              style={{ fontSize: "0.75em", color: "var(--sub)" }}
             >
               {children}
             </sup>
@@ -294,8 +294,8 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
               <section
                 className="mt-8 pt-3 text-sm"
                 style={{
-                  borderTop: "1px solid var(--border-default)",
-                  color: "var(--text-secondary)",
+                  borderTop: "1px solid var(--line)",
+                  color: "var(--sub)",
                 }}
               >
                 {children}
@@ -319,8 +319,8 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
                 style={{
                   // surface-active — light/dark 모두 surface (모달 배경) 보다 한 단계 진함.
                   // 모달 안 (bg-surface) 위에서도, 메모장 main (bg-base) 위에서도 가시성.
-                  backgroundColor: "var(--bg-surface-hover)",
-                  color: "var(--text-primary)",
+                  backgroundColor: "var(--surface-2)",
+                  color: "var(--ink)",
                 }}
               >
                 {children}
@@ -331,7 +331,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
             <InsidePreContext.Provider value={true}>
               <pre
                 className="my-3 overflow-auto rounded p-3 font-mono text-sm whitespace-pre"
-                style={{ backgroundColor: "var(--bg-surface-hover)" }}
+                style={{ backgroundColor: "var(--surface-2)" }}
               >
                 {children}
               </pre>
@@ -341,8 +341,8 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
             <blockquote
               className="my-3 pl-4 italic"
               style={{
-                borderLeft: "2px solid var(--border-default)",
-                color: "var(--text-secondary)",
+                borderLeft: "2px solid var(--line)",
+                color: "var(--sub)",
               }}
             >
               {children}
@@ -351,7 +351,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
           hr: () => (
             <hr
               className="my-6"
-              style={{ borderColor: "var(--border-default)" }}
+              style={{ borderColor: "var(--line)" }}
             />
           ),
           table: ({ children }) => (
@@ -367,9 +367,9 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
               <th
                 className="px-2 py-1.5 font-semibold"
                 style={{
-                  borderBottom: "1px solid var(--border-default)",
+                  borderBottom: "1px solid var(--line)",
                   // code/pre 와 같은 톤 — 모달 (surface) 위에서도 base 위에서도 분간.
-                  backgroundColor: "var(--bg-surface-hover)",
+                  backgroundColor: "var(--surface-2)",
                   textAlign: (align as "left" | "center" | "right" | undefined) ?? "left",
                 }}
               >
@@ -383,7 +383,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
               <td
                 className="px-2 py-1.5"
                 style={{
-                  borderBottom: "1px solid var(--border-default)",
+                  borderBottom: "1px solid var(--line)",
                   textAlign: align as "left" | "center" | "right" | undefined,
                 }}
               >
@@ -398,7 +398,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
           del: ({ children }) => (
             <del
               className="line-through"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             >
               {children}
             </del>

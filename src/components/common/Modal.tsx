@@ -103,8 +103,8 @@ export function Modal({
         aria-labelledby={ariaLabelledBy}
         className={`w-full overflow-hidden shadow-xl ${maxWidth ?? cfg.maxW} ${cfg.radius} ${flexClass}`}
         style={{
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--line)",
           ...(cfg.height ? { height: cfg.height } : {}),
         }}
       >

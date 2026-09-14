@@ -129,15 +129,15 @@ export function AttendeeTagInput({
           onKeyDown={onKeyDown}
           placeholder={tags.length === 0 ? placeholder ?? "이름 입력 후 Enter" : ""}
           className="min-w-[6em] flex-1 bg-transparent text-sm outline-none"
-          style={{ color: "var(--text-primary)", minHeight: 0, padding: 0 }}
+          style={{ color: "var(--ink)", minHeight: 0, padding: 0 }}
         />
       </div>
       {open && filtered.length > 0 ? (
         <ul
           className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-auto rounded-lg shadow-md"
           style={{
-            border: "1px solid var(--border-default)",
-            backgroundColor: "var(--bg-base)",
+            border: "1px solid var(--line)",
+            backgroundColor: "var(--bg)",
           }}
           role="listbox"
         >
@@ -152,8 +152,8 @@ export function AttendeeTagInput({
                 onMouseEnter={() => setHighlight(i)}
                 className="w-full justify-start rounded-none px-3 py-1.5 font-normal"
                 style={{
-                  backgroundColor: i === highlight ? "var(--bg-surface)" : undefined,
-                  color: i === highlight ? "var(--text-primary)" : "var(--text-secondary)",
+                  backgroundColor: i === highlight ? "var(--surface)" : undefined,
+                  color: i === highlight ? "var(--ink)" : "var(--sub)",
                 }}
               >
                 {s}

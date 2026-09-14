@@ -37,8 +37,8 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
       <aside
           className="flex w-44 shrink-0 flex-col"
           style={{
-            background: "var(--bg-base)",
-            borderRight: "1px solid var(--border-default)",
+            background: "var(--bg)",
+            borderRight: "1px solid var(--line)",
           }}
         >
           <Text
@@ -46,7 +46,7 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
             weight="semibold"
             as="div"
             className="flex h-12 shrink-0 items-center px-4"
-            style={{ borderBottom: "1px solid var(--border-default)" }}
+            style={{ borderBottom: "1px solid var(--line)" }}
           >
             설정
           </Text>
@@ -61,8 +61,8 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
                   aria-current={active ? "page" : undefined}
                   className="w-full justify-start gap-2 rounded-none px-4 py-2"
                   style={{
-                    background: active ? "var(--bg-surface)" : "transparent",
-                    color: active ? "var(--text-primary)" : "var(--text-secondary)",
+                    background: active ? "var(--surface)" : "transparent",
+                    color: active ? "var(--ink)" : "var(--sub)",
                     fontWeight: active ? 500 : 400,
                   }}
                 >
@@ -77,7 +77,7 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
         <section className="flex min-w-0 flex-1 flex-col">
           <header
             className="flex h-12 shrink-0 items-center justify-between px-5"
-            style={{ borderBottom: "1px solid var(--border-default)" }}
+            style={{ borderBottom: "1px solid var(--line)" }}
           >
             <Text variant="body" weight="semibold" as="h2">
               {SECTIONS.find((s) => s.id === section)?.label}
@@ -87,7 +87,7 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
               onClick={onClose}
               aria-label="닫기"
               title="닫기  ESC"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             >
               <X className="h-4 w-4" />
             </Button>

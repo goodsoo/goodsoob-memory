@@ -945,7 +945,7 @@ function MeetingsEmpty({ count, loading }: { count: number; loading: boolean }) 
             style={{
               width: "11rem",
               height: "11rem",
-              backgroundColor: "var(--border-default)",
+              backgroundColor: "var(--line)",
               WebkitMaskImage: "url(/favicon.svg)",
               maskImage: "url(/favicon.svg)",
               WebkitMaskRepeat: "no-repeat",

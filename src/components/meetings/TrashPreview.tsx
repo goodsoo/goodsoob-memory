@@ -44,7 +44,7 @@ export function TrashPreview({ selectedId }: { selectedId: string | null }) {
           color="muted"
           as="div"
           className="mb-4 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1"
-          style={{ backgroundColor: "var(--bg-surface)" }}
+          style={{ backgroundColor: "var(--surface)" }}
         >
           <Trash2 className="h-3 w-3" />
           휴지통 미리보기 · 읽기 전용
@@ -65,7 +65,7 @@ export function TrashPreview({ selectedId }: { selectedId: string | null }) {
 
         <hr
           className="my-6"
-          style={{ borderColor: "var(--border-subtle)" }}
+          style={{ borderColor: "var(--line-2)" }}
         />
 
         {meeting.content?.trim() ? (
@@ -88,8 +88,8 @@ export function TrashPreview({ selectedId }: { selectedId: string | null }) {
             <pre
               className="whitespace-pre-wrap rounded-lg px-4 py-3 text-sm"
               style={{
-                backgroundColor: "var(--bg-surface)",
-                color: "var(--text-primary)",
+                backgroundColor: "var(--surface)",
+                color: "var(--ink)",
                 fontFamily: "inherit",
               }}
             >
@@ -111,7 +111,7 @@ export function TrashPreview({ selectedId }: { selectedId: string | null }) {
             </Text>
             <div
               className="rounded-lg px-4 py-3"
-              style={{ backgroundColor: "var(--bg-surface)" }}
+              style={{ backgroundColor: "var(--surface)" }}
             >
               <MarkdownView content={meeting.summary} />
             </div>

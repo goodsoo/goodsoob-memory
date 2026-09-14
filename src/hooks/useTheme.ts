@@ -9,17 +9,22 @@ type ToggleOptions = { origin?: Origin };
 
 const STORAGE_KEY = "goodsoob-theme";
 
-// 디자인 토큰 `--bg-base` 의 light/dark 값과 동기. overlay 가 새 테마 색이어야
-// wipe 끝 시점에 실제 theme class toggle 해도 사용자 시점에서 깜빡임 0.
+// 디자인 토큰 `--bg` 의 light/dark 값과 동기. overlay 가 새 테마 색이어야
+// wipe 끝 시점에 실제 data-theme 전환해도 사용자 시점에서 깜빡임 0.
 const BG_BASE: Record<Theme, string> = {
   light: "#ffffff",
-  dark: "#1a1a1a",
+  dark: "#0c0f16",
 };
 
 const WIPE_MS = 350;
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
+  // canonical: :root = 라이트 기본, 다크일 때만 data-theme="dark" 세팅(라이트는 속성 제거).
+  if (theme === "dark") {
+    document.documentElement.dataset.theme = "dark";
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
 }
 
 function radiusFrom(origin: Origin): number {

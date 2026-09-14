@@ -92,16 +92,16 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
     >
       <aside
           className="flex min-h-0 flex-1 flex-col"
-          style={{ background: "var(--bg-base)" }}
+          style={{ background: "var(--bg)" }}
         >
           <div
             className="flex h-12 shrink-0 items-center gap-2 px-4 text-sm font-semibold"
             style={{
-              color: "var(--text-primary)",
-              borderBottom: "1px solid var(--border-default)",
+              color: "var(--ink)",
+              borderBottom: "1px solid var(--line)",
             }}
           >
-            <Trash2 className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+            <Trash2 className="h-4 w-4" style={{ color: "var(--sub)" }} />
             휴지통
             {data && data.length > 0 ? (
               <Text
@@ -126,9 +126,9 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
                   title="휴지통 비우기"
                   className="font-normal"
                   style={{
-                    backgroundColor: "var(--accent-red-bg)",
-                    color: "var(--accent-red-text)",
-                    border: "1px solid var(--accent-red)",
+                    backgroundColor: "var(--down-soft)",
+                    color: "var(--down-ink)",
+                    border: "1px solid var(--down)",
                   }}
                 >
                   비우기
@@ -139,7 +139,7 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
                 onClick={onClose}
                 title="닫기  ESC"
                 aria-label="닫기"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -152,9 +152,9 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
               as="div"
               className="mx-3 mt-2 rounded px-2 py-1"
               style={{
-                borderLeft: "2px solid var(--accent-red)",
-                backgroundColor: "var(--accent-red-bg)",
-                color: "var(--accent-red-text)",
+                borderLeft: "2px solid var(--down)",
+                backgroundColor: "var(--down-soft)",
+                color: "var(--down-ink)",
               }}
             >
               {error}
@@ -167,9 +167,9 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
               as="div"
               className="mx-3 mt-2 rounded-md px-2 py-1.5 text-[11px] leading-relaxed"
               style={{
-                backgroundColor: "var(--accent-blue-bg)",
-                color: "var(--accent-blue-text)",
-                border: "1px solid var(--accent-blue)",
+                backgroundColor: "var(--accent-soft)",
+                color: "var(--accent-ink)",
+                border: "1px solid var(--accent)",
               }}
             >
               여기 있는 카드는 <strong>전체 동기화</strong> 시 같은 PR 로 다시
@@ -186,7 +186,7 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
                   <div
                     key={i}
                     className="h-12 animate-pulse rounded-md"
-                    style={{ backgroundColor: "var(--bg-surface)" }}
+                    style={{ backgroundColor: "var(--surface)" }}
                   />
                 ))}
               </div>
@@ -269,15 +269,15 @@ function TrashListItem({
     <li
       className="flex items-center gap-3 rounded-md px-3 py-2"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       <div
         className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md"
         style={{
-          backgroundColor: "var(--bg-surface-hover)",
-          border: "1px solid var(--border-subtle)",
+          backgroundColor: "var(--surface-2)",
+          border: "1px solid var(--line-2)",
         }}
       >
         {firstShot ? (
@@ -291,7 +291,7 @@ function TrashListItem({
           <GitBranch
             className="h-4 w-4"
             strokeWidth={1.5}
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         )}
       </div>
@@ -329,8 +329,8 @@ function TrashListItem({
           disabled={busy}
           leftIcon={<RotateCcw className="h-3.5 w-3.5" />}
           style={{
-            backgroundColor: "var(--bg-surface-hover)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface-2)",
+            color: "var(--ink)",
           }}
           title="미사용 자리로 복원 (평가 자료에는 포함 안 됨)"
         >
@@ -343,9 +343,9 @@ function TrashListItem({
           disabled={busy}
           leftIcon={<Trash2 className="h-3.5 w-3.5" />}
           style={{
-            backgroundColor: "var(--accent-red-bg)",
-            color: "var(--accent-red-text)",
-            border: "1px solid var(--accent-red)",
+            backgroundColor: "var(--down-soft)",
+            color: "var(--down-ink)",
+            border: "1px solid var(--down)",
           }}
           title="영구 삭제"
         >

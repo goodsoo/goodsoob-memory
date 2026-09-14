@@ -36,11 +36,11 @@ export function AuthGuideModal({
       {/* 헤더 */}
       <div
         className="flex shrink-0 items-center gap-2 px-5 py-3"
-        style={{ borderBottom: "1px solid var(--border-default)" }}
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
         <KeyRound
           className="h-4 w-4"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         />
         <Text variant="body" weight="semibold" as="h2">
           GitHub 로그인
@@ -51,7 +51,7 @@ export function AuthGuideModal({
           title="닫기  ESC"
           aria-label="닫기"
           className="ml-auto"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -134,7 +134,7 @@ export function AuthGuideModal({
       {/* footer */}
       <div
         className="flex shrink-0 items-center justify-end gap-2 px-5 py-3"
-        style={{ borderTop: "1px solid var(--border-default)" }}
+        style={{ borderTop: "1px solid var(--line)" }}
       >
         <Button variant="secondary" onClick={onClose}>
           닫기
@@ -167,8 +167,8 @@ function Section({
         <span
           className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
           style={{
-            backgroundColor: "var(--bg-surface-active)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface-3)",
+            color: "var(--ink)",
           }}
         >
           {stepNumber}

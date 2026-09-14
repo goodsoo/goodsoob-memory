@@ -51,13 +51,13 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
   return (
     <main
       className="flex min-h-svh items-center justify-center px-6"
-      style={{ background: "var(--bg-base)" }}
+      style={{ background: "var(--bg)" }}
     >
       <div
         className="w-full max-w-md rounded-xl p-6"
         style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          background: "var(--surface)",
+          border: "1px solid var(--line)",
         }}
       >
         <Text variant="h2" weight="bold" as="h1" className="mb-2">
@@ -82,8 +82,8 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
             <ul
               className="rounded"
               style={{
-                background: "var(--bg-base)",
-                border: "1px solid var(--border-subtle)",
+                background: "var(--bg)",
+                border: "1px solid var(--line-2)",
               }}
             >
               {vaults.map((v, i) => (
@@ -91,19 +91,19 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
                   key={v.id}
                   style={{
                     borderTop:
-                      i === 0 ? undefined : "1px solid var(--border-subtle)",
+                      i === 0 ? undefined : "1px solid var(--line-2)",
                   }}
                 >
                   <button
                     type="button"
                     onClick={() => useExisting(v.id)}
                     disabled={busy}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[var(--bg-surface-hover)] disabled:opacity-50"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[var(--surface-2)] disabled:opacity-50"
                     title={v.path}
                   >
                     <Check
                       className="h-3.5 w-3.5 shrink-0"
-                      style={{ color: "var(--text-secondary)" }}
+                      style={{ color: "var(--sub)" }}
                     />
                     <div className="min-w-0 flex-1">
                       <Text
@@ -141,8 +141,8 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
             as="div"
             className="mb-4 rounded px-3 py-2"
             style={{
-              background: "var(--bg-base)",
-              border: "1px solid var(--border-default)",
+              background: "var(--bg)",
+              border: "1px solid var(--line)",
             }}
           >
             현재: <span className="font-mono">{initialPath}</span>
@@ -171,7 +171,7 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
             variant="ghost"
             onClick={onCancel}
             className="mt-2 w-full px-4 py-2 font-normal"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             취소
           </Button>
@@ -183,9 +183,9 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
             as="div"
             className="mt-3 rounded px-3 py-2"
             style={{
-              color: "var(--accent-red)",
-              background: "var(--bg-base)",
-              border: "1px solid var(--accent-red)",
+              color: "var(--down)",
+              background: "var(--bg)",
+              border: "1px solid var(--down)",
             }}
           >
             {error}

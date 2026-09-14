@@ -67,8 +67,8 @@ export function ManualPasteFallback({
           }
           className="self-start px-2.5 py-1 disabled:opacity-50"
           style={{
-            backgroundColor: "var(--bg-surface-hover)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface-2)",
+            color: "var(--ink)",
           }}
         >
           {promptCopied ? "복사됨" : "프롬프트 복사"}

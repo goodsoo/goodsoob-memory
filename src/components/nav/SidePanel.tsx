@@ -397,12 +397,12 @@ export function MeetingsSidePanel({
         className="flex shrink-0 items-center justify-between px-4"
         style={{
           height: "var(--page-header-h)",
-          borderBottom: "1px solid var(--border-default)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         <h2
           className="font-serif text-sm font-medium"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           메모장
         </h2>
@@ -414,7 +414,7 @@ export function MeetingsSidePanel({
             disabled={createFolderMutation.isPending}
             title="새 폴더"
             className="disabled:opacity-50"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <FolderPlus className="h-4 w-4" />
           </Button>
@@ -424,7 +424,7 @@ export function MeetingsSidePanel({
             disabled={createMutation.isPending}
             title="새 메모장"
             className="disabled:opacity-50"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -445,7 +445,7 @@ export function MeetingsSidePanel({
               <div
                 key={i}
                 className="h-12 animate-pulse rounded-md"
-                style={{ backgroundColor: "var(--bg-surface)" }}
+                style={{ backgroundColor: "var(--surface)" }}
               />
             ))}
           </div>
@@ -590,7 +590,7 @@ export function MeetingsSidePanel({
               {deleteFolderTarget.pinned > 0 ? (
                 <p
                   className="font-medium"
-                  style={{ color: "var(--accent-red-text)" }}
+                  style={{ color: "var(--down-ink)" }}
                 >
                   이 폴더에 고정한 메모 {deleteFolderTarget.pinned}개가 있어요.
                 </p>
@@ -643,10 +643,10 @@ function PinnedSection({
   onUnpin: (uid: string) => void;
 }) {
   return (
-    <div className="border-b" style={{ borderColor: "var(--border-subtle)" }}>
+    <div className="border-b" style={{ borderColor: "var(--line-2)" }}>
       <div
         className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         고정됨
       </div>
@@ -664,8 +664,8 @@ function PinnedSection({
               style={{
                 paddingLeft: "8px",
                 backgroundColor:
-                  m.uid === selectedUid ? "var(--bg-surface-active)" : undefined,
-                color: "var(--text-primary)",
+                  m.uid === selectedUid ? "var(--surface-3)" : undefined,
+                color: "var(--ink)",
                 boxShadow:
                   m.id === contextMeetingId
                     ? "inset 0 0 0 1.5px var(--focus-ring)"
@@ -691,7 +691,7 @@ function PinnedSection({
                   onUnpin(m.uid);
                 }}
                 className="hidden h-4 w-4 shrink-0 items-center justify-center rounded group-hover:inline-flex"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 <X className="h-3 w-3" />
               </span>
@@ -726,8 +726,8 @@ function FolderContextMenu({
       style={{
         left,
         top,
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
         minWidth: MENU_W,
       }}
       onMouseDown={(e) => e.stopPropagation()}
@@ -739,10 +739,10 @@ function FolderContextMenu({
         leftIcon={
           <Pencil
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         }
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       >
         이름 변경...
       </Button>
@@ -751,7 +751,7 @@ function FolderContextMenu({
         onClick={onDelete}
         className="w-full justify-start gap-2 rounded-none px-3 py-2"
         leftIcon={<Trash2 className="h-3.5 w-3.5 shrink-0" />}
-        style={{ color: "var(--accent-red)" }}
+        style={{ color: "var(--down)" }}
       >
         폴더 삭제...
       </Button>
@@ -793,8 +793,8 @@ function MeetingContextMenu({
       style={{
         left,
         top,
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
         minWidth: MENU_W,
       }}
       // mousedown 으로 메뉴 자체 클릭이 outside-close trigger 되지 않도록 막음
@@ -831,8 +831,8 @@ export function MeetingsSidePanelFooter({
         title={markdownHelpOpen ? "도움말 닫기" : "마크다운 도움말"}
         aria-label={markdownHelpOpen ? "도움말 닫기" : "마크다운 도움말"}
         style={{
-          color: markdownHelpOpen ? "var(--text-primary)" : "var(--text-muted)",
-          backgroundColor: markdownHelpOpen ? "var(--bg-surface-active)" : undefined,
+          color: markdownHelpOpen ? "var(--ink)" : "var(--faint)",
+          backgroundColor: markdownHelpOpen ? "var(--surface-3)" : undefined,
         }}
       >
         {markdownHelpOpen ? (
@@ -846,7 +846,7 @@ export function MeetingsSidePanelFooter({
         onClick={onTrashOpen}
         title="휴지통"
         aria-label="휴지통"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -870,7 +870,7 @@ export function PortfolioSidePanelFooter({
         onClick={onTrashOpen}
         title="포트폴리오 휴지통"
         aria-label="포트폴리오 휴지통"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -879,7 +879,7 @@ export function PortfolioSidePanelFooter({
         onClick={onGuideOpen}
         title="가이드북"
         aria-label="가이드북"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <BookOpen className="h-3.5 w-3.5" />
       </Button>
@@ -901,11 +901,11 @@ function MarkdownHelpPanel({ onClose }: { onClose: () => void }) {
   return (
     <div
       className="absolute inset-0 z-30 flex flex-col overflow-y-auto"
-      style={{ backgroundColor: "var(--bg-surface)" }}
+      style={{ backgroundColor: "var(--surface)" }}
     >
       <div
         className="flex shrink-0 items-center px-4"
-        style={{ height: "var(--page-header-h)", borderBottom: "1px solid var(--border-default)" }}
+        style={{ height: "var(--page-header-h)", borderBottom: "1px solid var(--line)" }}
       >
         <Text variant="body" weight="semibold" as="span">
           마크다운 문법
@@ -914,21 +914,21 @@ function MarkdownHelpPanel({ onClose }: { onClose: () => void }) {
       {/* 정렬 2열 grid: 칩(auto)·설명(1fr) 한 column 으로 가지런히. 섹션 라벨은 full-span row. */}
       <div
         className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 px-4 py-4 text-sm"
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       >
         {MARKDOWN_HINTS.map((h, i) => (
           <Fragment key={i}>
             {h.section ? (
               <div
                 className="col-span-2 mb-0.5 mt-3 text-[10px] font-semibold uppercase tracking-wider first:mt-0"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 {h.section}
               </div>
             ) : null}
             <code
               className="whitespace-nowrap rounded px-1.5 py-0.5 text-left font-mono text-[11px]"
-              style={{ backgroundColor: "var(--bg-surface-active)", color: "var(--text-secondary)" }}
+              style={{ backgroundColor: "var(--surface-3)", color: "var(--sub)" }}
             >
               {h.syntax}
             </code>
@@ -962,8 +962,8 @@ function SortMenu({
       className="relative"
       panelClassName="absolute right-0 top-full z-30 mt-1 min-w-[120px] overflow-hidden rounded-md shadow-md"
       panelStyle={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
       trigger={
         <Button
@@ -974,8 +974,8 @@ function SortMenu({
           aria-haspopup="menu"
           aria-expanded={open}
           style={{
-            color: "var(--text-secondary)",
-            backgroundColor: open ? "var(--bg-surface-active)" : undefined,
+            color: "var(--sub)",
+            backgroundColor: open ? "var(--surface-3)" : undefined,
           }}
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
@@ -998,13 +998,13 @@ function SortMenu({
               }}
               className="w-full justify-between rounded-none px-3 py-1.5"
               style={{
-                color: active ? "var(--text-primary)" : "var(--text-secondary)",
-                backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+                color: active ? "var(--ink)" : "var(--sub)",
+                backgroundColor: active ? "var(--surface-3)" : undefined,
               }}
             >
               <span>{opt.label}</span>
               {active ? (
-                <Check className="h-3 w-3" style={{ color: "var(--text-secondary)" }} />
+                <Check className="h-3 w-3" style={{ color: "var(--sub)" }} />
               ) : null}
             </Button>
           );
@@ -1052,7 +1052,7 @@ function SectionChildren({ children }: { children: ReactNode }) {
       <div
         aria-hidden
         className="pointer-events-none absolute top-0 bottom-0 w-px"
-        style={{ left: "14px", backgroundColor: "var(--border-default)" }}
+        style={{ left: "14px", backgroundColor: "var(--line)" }}
       />
       {children}
     </div>
@@ -1081,7 +1081,7 @@ function SidePanelSectionHeader({
         variant="ghost"
         onClick={onToggle}
         className="flex-1 justify-between gap-1.5 rounded-none py-1 pr-2 text-[13px] font-normal"
-        style={{ paddingLeft: "8px", color: "var(--text-secondary)" }}
+        style={{ paddingLeft: "8px", color: "var(--sub)" }}
       >
         <span className="inline-flex items-center gap-1.5">
           {collapsed ? (
@@ -1094,7 +1094,7 @@ function SidePanelSectionHeader({
         {typeof count === "number" ? (
           <span
             className="text-[11px] tabular-nums"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             {count}
           </span>
@@ -1196,12 +1196,12 @@ export function TodosSidePanel({
         className="flex shrink-0 items-center justify-between px-4"
         style={{
           height: "var(--page-header-h)",
-          borderBottom: "1px solid var(--border-default)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         <h2
           className="font-serif text-sm font-medium"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           할 일
         </h2>
@@ -1222,7 +1222,7 @@ export function TodosSidePanel({
               )
             }
             title="새 할 일"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -1261,7 +1261,7 @@ export function TodosSidePanel({
                 }}
                 title="새 프로젝트"
                 aria-label="새 프로젝트"
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
               >
                 <FolderPlus className="h-3.5 w-3.5" />
               </Button>
@@ -1304,9 +1304,9 @@ export function TodosSidePanel({
                   placeholder="프로젝트 이름"
                   className="mx-2 my-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-[13px] outline-none"
                   style={{
-                    backgroundColor: "var(--bg-surface)",
-                    border: "1px solid var(--border-default)",
-                    color: "var(--text-primary)",
+                    backgroundColor: "var(--surface)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink)",
                   }}
                 />
               ) : null}
@@ -1317,7 +1317,7 @@ export function TodosSidePanel({
             (헤더 chevron 위치 8px 와 align). 좌우 padding 1 = 메모장 트리 root 와 동일. */}
         <div
           className="px-1 py-2"
-          style={{ borderTop: "1px solid var(--border-default)" }}
+          style={{ borderTop: "1px solid var(--line)" }}
         >
           <FilterItem
             label="취소됨"
@@ -1326,7 +1326,7 @@ export function TodosSidePanel({
               <XCircle
                 className="h-3 w-3"
                 strokeWidth={1.75}
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
               />
             }
             active={statusFilter === "cancelled"}
@@ -1373,21 +1373,21 @@ function ProjectItem({
 }) {
   return (
     <div
-      className="group flex items-center rounded-md transition hover:bg-[var(--bg-surface-hover)]"
-      style={{ backgroundColor: active ? "var(--bg-surface-active)" : undefined }}
+      className="group flex items-center rounded-md transition hover:bg-[var(--surface-2)]"
+      style={{ backgroundColor: active ? "var(--surface-3)" : undefined }}
     >
       <button
         type="button"
         onClick={onSelect}
         className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-[13px]"
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       >
         <Folder className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
         <span className="min-w-0 flex-1 truncate">{project.name}</span>
         {count > 0 ? (
           <span
             className="shrink-0 text-[11px] tabular-nums"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             {count}
           </span>
@@ -1403,7 +1403,7 @@ function ProjectItem({
           title="프로젝트 삭제"
           aria-label={`${project.name} 삭제`}
           className="shrink-0 px-1.5 opacity-0 transition group-hover:opacity-100"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <Trash2 className="h-3 w-3" />
         </button>
@@ -1440,9 +1440,9 @@ function RoutineSidebarItem({
           onSelect();
         }
       }}
-      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--bg-surface-hover)]"
+      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--surface-2)]"
       style={{
-        backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: active ? "var(--surface-3)" : undefined,
       }}
     >
       <CheckboxButton
@@ -1453,7 +1453,7 @@ function RoutineSidebarItem({
       <span
         className={`min-w-0 flex-1 truncate ${done ? "line-through" : ""}`}
         style={{
-          color: done ? "var(--text-muted)" : "var(--text-primary)",
+          color: done ? "var(--faint)" : "var(--ink)",
         }}
       >
         {routine.name}
@@ -1461,7 +1461,7 @@ function RoutineSidebarItem({
       {routine.frontmatter.time ? (
         <span
           className="shrink-0 text-[11px] tabular-nums"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           {routine.frontmatter.time}
         </span>
@@ -1493,21 +1493,21 @@ function ArchivedRoutineSidebarItem({
           onSelect();
         }
       }}
-      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--bg-surface-hover)]"
+      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--surface-2)]"
       style={{
-        backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: active ? "var(--surface-3)" : undefined,
       }}
     >
       <span
         className="min-w-0 flex-1 truncate"
-        style={{ color: "var(--text-secondary)" }}
+        style={{ color: "var(--sub)" }}
       >
         {routine.name}
       </span>
       {ends ? (
         <span
           className="shrink-0 text-[11px] tabular-nums"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
           title={`종료일 ${ends}`}
         >
           ~{ends.slice(5)}
@@ -1531,7 +1531,7 @@ export function TodosSidePanelFooter({
         onClick={onTrashOpen}
         title="휴지통"
         aria-label="휴지통"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -1568,12 +1568,12 @@ export function RoutinesSidePanel({
         className="flex shrink-0 items-center justify-between px-4"
         style={{
           height: "var(--page-header-h)",
-          borderBottom: "1px solid var(--border-default)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         <h2
           className="font-serif text-sm font-medium"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           루틴
         </h2>
@@ -1586,7 +1586,7 @@ export function RoutinesSidePanel({
           }
           title="새 루틴"
           aria-label="새 루틴"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -1657,7 +1657,7 @@ export function RoutinesSidePanelFooter({
         onClick={onTrashOpen}
         title="휴지통"
         aria-label="휴지통"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>

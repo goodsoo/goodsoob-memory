@@ -46,11 +46,11 @@ export function PortfolioGuideModal({
         {/* 헤더 */}
         <div
           className="flex shrink-0 items-center gap-2 px-5 py-3"
-          style={{ borderBottom: "1px solid var(--border-default)" }}
+          style={{ borderBottom: "1px solid var(--line)" }}
         >
           <BookOpen
             className="h-4 w-4"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           />
           <Text variant="body" weight="semibold" as="h2">
             포트폴리오 가이드북
@@ -61,7 +61,7 @@ export function PortfolioGuideModal({
             title="닫기  ESC"
             aria-label="닫기"
             className="ml-auto"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -123,8 +123,8 @@ export function PortfolioGuideModal({
             <div
               className="mt-3 flex flex-col gap-2 rounded-md p-3"
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                border: "1px solid var(--border-default)",
+                backgroundColor: "var(--surface-2)",
+                border: "1px solid var(--line)",
               }}
             >
               <div className="flex items-center gap-2">
@@ -176,9 +176,9 @@ export function PortfolioGuideModal({
             <div
               className="mt-3 rounded-md p-3 text-[11px] leading-relaxed"
               style={{
-                backgroundColor: "var(--accent-blue-bg)",
-                color: "var(--accent-blue-text)",
-                border: "1px solid var(--accent-blue)",
+                backgroundColor: "var(--accent-soft)",
+                color: "var(--accent-ink)",
+                border: "1px solid var(--accent)",
               }}
             >
               <strong>휴지통 vs 미사용 — 부활 동작 차이</strong>
@@ -325,8 +325,8 @@ function Code({ children }: { children: React.ReactNode }) {
     <code
       className="rounded px-1 py-px font-mono text-[11px]"
       style={{
-        backgroundColor: "var(--bg-surface-hover)",
-        color: "var(--text-secondary)",
+        backgroundColor: "var(--surface-2)",
+        color: "var(--sub)",
       }}
     >
       {children}

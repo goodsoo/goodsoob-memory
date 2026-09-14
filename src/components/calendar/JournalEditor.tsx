@@ -66,8 +66,8 @@ export function JournalEditor({
     <div
       className="rounded-md px-3 py-2 font-serif text-[14px]"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
         minHeight: "7rem",
       }}
       onClick={() => taRef.current?.focus()}

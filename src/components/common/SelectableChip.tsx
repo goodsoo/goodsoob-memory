@@ -34,10 +34,10 @@ export function SelectableChip({
   className = "",
 }: Props) {
   // color 있을 땐 카테고리 패턴 (tint + ring), 없을 땐 일반 border accent.
-  const accent = color ?? "var(--text-secondary)";
+  const accent = color ?? "var(--sub)";
   const tintBg = color
-    ? `color-mix(in srgb, ${color} 14%, var(--bg-surface))`
-    : "var(--bg-surface-active)";
+    ? `color-mix(in srgb, ${color} 14%, var(--surface))`
+    : "var(--surface-3)";
 
   return (
     <Chip
@@ -56,8 +56,8 @@ export function SelectableChip({
       title={title}
       className={`cursor-pointer select-none ${className}`}
       style={{
-        backgroundColor: active ? tintBg : "var(--bg-surface-hover)",
-        color: active ? "var(--text-primary)" : "var(--text-secondary)",
+        backgroundColor: active ? tintBg : "var(--surface-2)",
+        color: active ? "var(--ink)" : "var(--sub)",
         boxShadow: active ? `inset 0 0 0 1px ${accent}` : undefined,
         opacity: count === 0 && !active ? 0.45 : 1,
       }}

@@ -160,9 +160,9 @@ export function GlobalTooltip() {
         transform: containerTransform,
         zIndex: 1000,
         pointerEvents: "none",
-        backgroundColor: "var(--bg-surface-active)",
-        color: "var(--text-primary)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface-3)",
+        color: "var(--ink)",
+        border: "1px solid var(--line)",
         borderRadius: "0.375rem",
         padding: "0.25rem 0.5rem",
         fontSize: "0.75rem",
@@ -182,7 +182,7 @@ export function GlobalTooltip() {
 }
 
 function arrowStyle(placement: Placement): React.CSSProperties {
-  const c = "var(--bg-surface-active)";
+  const c = "var(--surface-3)";
   const base: React.CSSProperties = {
     position: "absolute",
     width: 0,

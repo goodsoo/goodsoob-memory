@@ -115,12 +115,12 @@ export function JournalOverlay({ open, date, onClose }: Props) {
           className="flex shrink-0 items-center justify-between gap-3 px-5"
           style={{
             height: "3rem",
-            borderBottom: "1px solid var(--border-default)",
+            borderBottom: "1px solid var(--line)",
           }}
         >
           <h2
             className="font-serif text-sm font-medium"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: "var(--ink)" }}
           >
             {formatDateLong(date)} 일기
           </h2>
@@ -136,7 +136,7 @@ export function JournalOverlay({ open, date, onClose }: Props) {
               onClick={handleClose}
               aria-label="닫기"
               title="닫기  ESC"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             >
               <X className="h-4 w-4" />
             </Button>

@@ -237,7 +237,7 @@ function CategoryChipRow({
     <div
       className="shrink-0 px-6 py-2 backdrop-blur"
       style={{
-        borderBottom: "1px solid var(--border-subtle)",
+        borderBottom: "1px solid var(--line-2)",
         backgroundColor: "var(--bg-overlay)",
       }}
     >
@@ -295,7 +295,7 @@ function SkeletonGrid({ count }: { count: number }) {
             key={i}
             className="rounded-lg"
             style={{
-              backgroundColor: "var(--bg-surface-hover)",
+              backgroundColor: "var(--surface-2)",
               height: "240px",
             }}
           />
@@ -319,7 +319,7 @@ function EmptyVault({
         <LayoutGrid
           className="h-12 w-12"
           strokeWidth={1.25}
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         />
       }
       title="아직 PR이 없어요"

@@ -56,12 +56,12 @@ const variantDefaultAs: Record<Variant, ElementType> = {
 };
 
 const colorVar: Record<Color, string | undefined> = {
-  primary: "var(--text-primary)",
-  secondary: "var(--text-secondary)",
-  muted: "var(--text-muted)",
+  primary: "var(--ink)",
+  secondary: "var(--sub)",
+  muted: "var(--faint)",
   inverse: "var(--text-inverse)",
-  danger: "var(--accent-red-text)",
-  info: "var(--accent-blue-text)",
+  danger: "var(--down-ink)",
+  info: "var(--accent-ink)",
   inherit: undefined,
 };
 

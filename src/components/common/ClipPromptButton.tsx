@@ -56,8 +56,8 @@ export function ClipPromptButton({
         }
         className="font-normal"
         style={{
-          backgroundColor: "var(--bg-surface-hover)",
-          color: "var(--text-secondary)",
+          backgroundColor: "var(--surface-2)",
+          color: "var(--sub)",
         }}
       >
         {copied ? "복사됨" : label}

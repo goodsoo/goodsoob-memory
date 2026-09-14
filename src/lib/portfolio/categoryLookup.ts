@@ -2,7 +2,7 @@
 // 발생. master list 가 없으므로 label = slug 그대로, color = 단일 회색 chip.
 // 색 욕구가 생기면 별도 colors.md 도입 (지금은 X).
 
-export const CATEGORY_CHIP_COLOR = "var(--text-muted)";
+export const CATEGORY_CHIP_COLOR = "var(--faint)";
 
 export function categoryLabel(slug: string): string {
   return slug;

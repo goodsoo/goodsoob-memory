@@ -136,16 +136,16 @@ export function TodosTrashModal({ open, onClose }: Props) {
     >
       <aside
         className="flex min-h-0 flex-1 flex-col"
-        style={{ background: "var(--bg-base)" }}
+        style={{ background: "var(--bg)" }}
       >
         <div
           className="flex h-12 shrink-0 items-center gap-2 px-4 text-sm font-semibold"
           style={{
-            color: "var(--text-primary)",
-            borderBottom: "1px solid var(--border-default)",
+            color: "var(--ink)",
+            borderBottom: "1px solid var(--line)",
           }}
         >
-          <Trash2 className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+          <Trash2 className="h-4 w-4" style={{ color: "var(--sub)" }} />
           <h2 id="trash-title">휴지통</h2>
           {totalCount > 0 ? (
             <Text variant="caption" color="muted" as="span" weight="normal">
@@ -164,9 +164,9 @@ export function TodosTrashModal({ open, onClose }: Props) {
                 title="휴지통 비우기"
                 className="font-normal"
                 style={{
-                  backgroundColor: "var(--accent-red-bg)",
-                  color: "var(--accent-red-text)",
-                  border: "1px solid var(--accent-red)",
+                  backgroundColor: "var(--down-soft)",
+                  color: "var(--down-ink)",
+                  border: "1px solid var(--down)",
                 }}
               >
                 비우기
@@ -177,7 +177,7 @@ export function TodosTrashModal({ open, onClose }: Props) {
               onClick={onClose}
               title="닫기  ESC"
               aria-label="닫기"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -190,9 +190,9 @@ export function TodosTrashModal({ open, onClose }: Props) {
             as="div"
             className="mx-3 mt-2 rounded px-2 py-1"
             style={{
-              borderLeft: "2px solid var(--accent-red)",
-              backgroundColor: "var(--accent-red-bg)",
-              color: "var(--accent-red-text)",
+              borderLeft: "2px solid var(--down)",
+              backgroundColor: "var(--down-soft)",
+              color: "var(--down-ink)",
             }}
           >
             {error}
@@ -299,8 +299,8 @@ function TaskRow({
     <li
       className="flex items-center gap-3 rounded-md px-3 py-2"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       <TypeIcon kind="task" />
@@ -347,8 +347,8 @@ function RoutineRow({
     <li
       className="flex items-center gap-3 rounded-md px-3 py-2"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       <TypeIcon kind="routine" />
@@ -367,7 +367,7 @@ function RoutineRow({
         </div>
         <div
           className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           {time ? <span>{time}</span> : null}
           <span>
@@ -388,14 +388,14 @@ function TypeIcon({ kind }: { kind: "task" | "routine" }) {
     <div
       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
       style={{
-        backgroundColor: "var(--bg-surface-hover)",
-        border: "1px solid var(--border-subtle)",
+        backgroundColor: "var(--surface-2)",
+        border: "1px solid var(--line-2)",
       }}
     >
       <Icon
         className="h-4 w-4"
         strokeWidth={1.5}
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       />
     </div>
   );
@@ -427,7 +427,7 @@ function RowActions({
         disabled={disabled}
         title="영구 삭제"
         aria-label="영구 삭제"
-        style={{ color: "var(--accent-red)" }}
+        style={{ color: "var(--down)" }}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
@@ -446,7 +446,7 @@ function TaskMeta({
   return (
     <div
       className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]"
-      style={{ color: "var(--text-muted)" }}
+      style={{ color: "var(--faint)" }}
     >
       {hasDate ? <span>{formatDisplayDate(task.due_date)}</span> : null}
       {hasTime ? <span>{task.due_time}</span> : null}

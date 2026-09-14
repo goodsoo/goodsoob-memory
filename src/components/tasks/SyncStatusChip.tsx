@@ -57,7 +57,7 @@ export function SyncStatusChip() {
         title={buttonTitle}
         aria-label="지금 동기화"
         className="rounded-md px-1.5 py-1 disabled:opacity-50"
-        style={{ color: problem ? "var(--accent-red)" : "var(--text-secondary)" }}
+        style={{ color: problem ? "var(--down)" : "var(--sub)" }}
       >
         {syncing ? <Spinner size="sm" /> : <RefreshCw className="h-3.5 w-3.5" />}
       </Button>

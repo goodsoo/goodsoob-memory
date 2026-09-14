@@ -221,7 +221,7 @@ export function RoutineDetail({ name, onClose }: Props) {
         <div className="mx-auto w-full max-w-xl px-5 pt-6">
           <div
             className="h-32 animate-pulse rounded-lg"
-            style={{ backgroundColor: "var(--bg-surface)" }}
+            style={{ backgroundColor: "var(--surface)" }}
           />
         </div>
       </>
@@ -241,7 +241,7 @@ export function RoutineDetail({ name, onClose }: Props) {
             variant="icon"
             onClick={() => void handleDelete()}
             title="루틴 삭제"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -255,12 +255,12 @@ export function RoutineDetail({ name, onClose }: Props) {
           onClick={() => {
             if (!editing) setEditing(true);
           }}
-          className={`rounded-lg border transition ${editing ? "" : "cursor-pointer hover:bg-[var(--bg-surface)]"}`}
+          className={`rounded-lg border transition ${editing ? "" : "cursor-pointer hover:bg-[var(--surface)]"}`}
           style={{
             borderColor: editing
-              ? "var(--border-default)"
-              : "var(--border-subtle)",
-            backgroundColor: editing ? "var(--bg-surface)" : undefined,
+              ? "var(--line)"
+              : "var(--line-2)",
+            backgroundColor: editing ? "var(--surface)" : undefined,
           }}
           aria-label={editing ? undefined : "루틴 편집"}
           role={editing ? undefined : "button"}
@@ -277,14 +277,14 @@ export function RoutineDetail({ name, onClose }: Props) {
                 placeholder="이름"
                 maxLength={100}
                 className="w-full min-w-0 bg-transparent text-base outline-none"
-                style={{ color: "var(--text-primary)" }}
+                style={{ color: "var(--ink)" }}
               />
 
               {/* 아랫줄: meta cluster (시간 · 시작일 · ~ 종료일) */}
               <div
                 className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"
                 onClick={(e) => e.stopPropagation()}
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
               >
                 <span className="inline-flex shrink-0 items-center gap-1">
                   <Clock
@@ -327,7 +327,7 @@ export function RoutineDetail({ name, onClose }: Props) {
                 weight="normal"
                 as="div"
                 className="min-w-0 break-words"
-                style={{ color: "var(--text-primary)" }}
+                style={{ color: "var(--ink)" }}
               >
                 {routine.name || (
                   <Text variant="body" color="muted" as="span">
@@ -367,7 +367,7 @@ function RoutineReadMeta({
   return (
     <div
       className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
-      style={{ color: "var(--text-secondary)" }}
+      style={{ color: "var(--sub)" }}
     >
       {time ? (
         <span className="inline-flex items-center gap-1">

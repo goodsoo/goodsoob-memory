@@ -32,12 +32,12 @@ export function FilterItem({
         active ? "font-medium" : ""
       }`}
       style={{
-        backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: active ? "var(--surface-3)" : undefined,
         color: muted
-          ? "var(--text-muted)"
+          ? "var(--faint)"
           : active
-            ? "var(--text-primary)"
-            : "var(--text-secondary)",
+            ? "var(--ink)"
+            : "var(--sub)",
       }}
     >
       <span className="inline-flex min-w-0 items-center gap-2">
@@ -55,7 +55,7 @@ export function FilterItem({
         <span
           className="text-[11px] tabular-nums"
           style={{
-            color: active ? "var(--text-secondary)" : "var(--text-muted)",
+            color: active ? "var(--sub)" : "var(--faint)",
           }}
         >
           {count}

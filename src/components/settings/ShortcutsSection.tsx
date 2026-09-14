@@ -92,8 +92,8 @@ export function ShortcutsSection() {
           as="p"
           className="rounded px-3 py-2"
           style={{
-            background: "var(--bg-base)",
-            border: "1px solid var(--border-subtle)",
+            background: "var(--bg)",
+            border: "1px solid var(--line-2)",
           }}
         >
           단축키는 데스크탑 앱 (Tauri) 전용. 브라우저에선 시스템 단축키와 충돌해 동작하지 않아요.
@@ -115,7 +115,7 @@ export function ShortcutsSection() {
               <li
                 key={s.label}
                 className="flex items-center gap-3 py-2"
-                style={{ borderBottom: "1px solid var(--border-default)" }}
+                style={{ borderBottom: "1px solid var(--line)" }}
               >
                 <div className="min-w-0 flex-1">
                   <Text variant="body" as="span">
@@ -138,8 +138,8 @@ export function ShortcutsSection() {
                       key={i}
                       className="h-6 min-w-[1.5rem] px-1.5 text-xs"
                       style={{
-                        backgroundColor: "var(--bg-base)",
-                        color: "var(--text-secondary)",
+                        backgroundColor: "var(--bg)",
+                        color: "var(--sub)",
                       }}
                     >
                       {k}

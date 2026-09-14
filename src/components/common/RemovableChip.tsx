@@ -19,8 +19,8 @@ export function RemovableChip({ children, onRemove, ariaLabel }: Props) {
     <span
       className="inline-flex h-5 shrink-0 items-center gap-0.5 rounded pl-1.5 pr-0.5 text-[12px] leading-none"
       style={{
-        backgroundColor: "var(--bg-surface-hover)",
-        color: "var(--text-primary)",
+        backgroundColor: "var(--surface-2)",
+        color: "var(--ink)",
       }}
     >
       <span className="whitespace-nowrap">{children}</span>
@@ -35,8 +35,8 @@ export function RemovableChip({ children, onRemove, ariaLabel }: Props) {
         }}
         aria-label={ariaLabel}
         // hover/hit 영역을 보이는 icon 크기와 같게 — 박스 12px, icon 10px (살짝 inset).
-        className="inline-flex h-3 w-3 shrink-0 items-center justify-center rounded-sm transition-colors hover:bg-[var(--bg-surface-active)]"
-        style={{ color: "var(--text-muted)" }}
+        className="inline-flex h-3 w-3 shrink-0 items-center justify-center rounded-sm transition-colors hover:bg-[var(--surface-3)]"
+        style={{ color: "var(--faint)" }}
       >
         <X className="h-2.5 w-2.5" />
       </button>

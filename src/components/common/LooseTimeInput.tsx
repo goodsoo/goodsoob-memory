@@ -88,7 +88,7 @@ export function LooseTimeInput({
       maxLength={11}
       className={`m-0 appearance-none border-0 bg-transparent p-0 leading-none outline-none ${compact ? "text-xs" : "text-sm"}`}
       style={{
-        color: "var(--text-primary)",
+        color: "var(--ink)",
         width: fullWidth ? "100%" : `${Math.max(draft.length, 5)}ch`,
       }}
     />

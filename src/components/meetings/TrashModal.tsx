@@ -120,18 +120,18 @@ export function TrashModal({ open, onClose }: Props) {
         <aside
           className="flex w-72 shrink-0 flex-col"
           style={{
-            background: "var(--bg-base)",
-            borderRight: "1px solid var(--border-default)",
+            background: "var(--bg)",
+            borderRight: "1px solid var(--line)",
           }}
         >
           <div
             className="flex h-12 shrink-0 items-center gap-2 px-4 text-sm font-semibold"
             style={{
-              color: "var(--text-primary)",
-              borderBottom: "1px solid var(--border-default)",
+              color: "var(--ink)",
+              borderBottom: "1px solid var(--line)",
             }}
           >
-            <Trash2 className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+            <Trash2 className="h-4 w-4" style={{ color: "var(--sub)" }} />
             휴지통
             {data && data.length > 0 ? (
               <>
@@ -155,8 +155,8 @@ export function TrashModal({ open, onClose }: Props) {
                   title="휴지통 비우기"
                   className="font-normal"
                   style={{
-                    color: "var(--accent-red)",
-                    border: "1px solid var(--border-default)",
+                    color: "var(--down)",
+                    border: "1px solid var(--line)",
                   }}
                 >
                   비우기
@@ -171,9 +171,9 @@ export function TrashModal({ open, onClose }: Props) {
               as="div"
               className="mx-3 mt-2 rounded px-2 py-1"
               style={{
-                borderLeft: "2px solid var(--accent-red)",
-                backgroundColor: "var(--accent-red-bg)",
-                color: "var(--accent-red-text)",
+                borderLeft: "2px solid var(--down)",
+                backgroundColor: "var(--down-soft)",
+                color: "var(--down-ink)",
               }}
             >
               {error}
@@ -187,7 +187,7 @@ export function TrashModal({ open, onClose }: Props) {
                   <div
                     key={i}
                     className="h-12 animate-pulse rounded-md"
-                    style={{ backgroundColor: "var(--bg-surface)" }}
+                    style={{ backgroundColor: "var(--surface)" }}
                   />
                 ))}
               </div>
@@ -219,7 +219,7 @@ export function TrashModal({ open, onClose }: Props) {
         <section className="flex min-w-0 flex-1 flex-col">
           <header
             className="flex h-12 shrink-0 items-center justify-between gap-2 px-5"
-            style={{ borderBottom: "1px solid var(--border-default)" }}
+            style={{ borderBottom: "1px solid var(--line)" }}
           >
             <Text variant="body" weight="semibold" as="h2" truncate>
               {selected
@@ -248,7 +248,7 @@ export function TrashModal({ open, onClose }: Props) {
                     title="영구 삭제"
                     aria-label="영구 삭제"
                     leftIcon={<Trash2 className="h-3.5 w-3.5" />}
-                    style={{ color: "var(--accent-red)" }}
+                    style={{ color: "var(--down)" }}
                   >
                     영구 삭제
                   </Button>
@@ -259,7 +259,7 @@ export function TrashModal({ open, onClose }: Props) {
                 onClick={onClose}
                 aria-label="닫기"
                 title="닫기  ESC"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -315,8 +315,8 @@ function DeletedMeetingItem({
         onClick={onSelect}
         className="w-full flex-col items-start gap-0 px-3 py-2 text-left"
         style={{
-          backgroundColor: selected ? "var(--bg-surface-active)" : undefined,
-          color: selected ? "var(--text-primary)" : "var(--text-secondary)",
+          backgroundColor: selected ? "var(--surface-3)" : undefined,
+          color: selected ? "var(--ink)" : "var(--sub)",
         }}
       >
         <Text variant="body" weight="medium" as="div" truncate className="w-full">

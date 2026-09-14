@@ -41,10 +41,10 @@ const COLOR_GROUPS: ColorGroup[] = [
     id: "bg",
     title: "1.1 Background",
     tokens: [
-      { name: "--bg-base", usage: "body, main, modal inner" },
-      { name: "--bg-surface", usage: "card, sidebar, input" },
-      { name: "--bg-surface-hover", usage: "hover 상태" },
-      { name: "--bg-surface-active", usage: "선택 / 활성" },
+      { name: "--bg", usage: "body, main, modal inner" },
+      { name: "--surface", usage: "card, sidebar, input" },
+      { name: "--surface-2", usage: "hover 상태" },
+      { name: "--surface-3", usage: "선택 / 활성" },
       { name: "--bg-overlay", usage: "header backdrop, modal overlay" },
     ],
   },
@@ -60,9 +60,9 @@ const COLOR_GROUPS: ColorGroup[] = [
     id: "text",
     title: "1.3 Text",
     tokens: [
-      { name: "--text-primary", usage: "본문 텍스트" },
-      { name: "--text-secondary", usage: "라벨, 메타데이터" },
-      { name: "--text-muted", usage: "placeholder, 비활성 아이콘" },
+      { name: "--ink", usage: "본문 텍스트" },
+      { name: "--sub", usage: "라벨, 메타데이터" },
+      { name: "--faint", usage: "placeholder, 비활성 아이콘" },
       { name: "--text-inverse", usage: "btn-primary 위 텍스트" },
     ],
   },
@@ -70,21 +70,21 @@ const COLOR_GROUPS: ColorGroup[] = [
     id: "border",
     title: "1.4 Border",
     tokens: [
-      { name: "--border-default", usage: "일반 구분선" },
-      { name: "--border-subtle", usage: "약한 구분 (캘린더 셀)" },
+      { name: "--line", usage: "일반 구분선" },
+      { name: "--line-2", usage: "약한 구분 (캘린더 셀)" },
     ],
   },
   {
     id: "accent",
     title: "1.5 Accent",
     tokens: [
-      { name: "--accent-red", usage: "에러, 오늘 마커, destructive" },
-      { name: "--accent-red-bg", usage: "에러 박스 배경" },
-      { name: "--accent-red-text", usage: "에러 박스 텍스트" },
-      { name: "--accent-blue", usage: "primary 액션, 편집 모드" },
-      { name: "--accent-blue-bg", usage: "편집 모드 배경" },
-      { name: "--accent-blue-text", usage: "편집 모드/info 텍스트" },
-      { name: "--accent-green", usage: "성공 상태 (Check)" },
+      { name: "--down", usage: "에러, 오늘 마커, destructive" },
+      { name: "--down-soft", usage: "에러 박스 배경" },
+      { name: "--down-ink", usage: "에러 박스 텍스트" },
+      { name: "--accent", usage: "primary 액션, 편집 모드" },
+      { name: "--accent-soft", usage: "편집 모드 배경" },
+      { name: "--accent-ink", usage: "편집 모드/info 텍스트" },
+      { name: "--ok", usage: "성공 상태 (Check)" },
     ],
   },
   {
@@ -338,8 +338,8 @@ function TocSidebar() {
                   e.preventDefault();
                   scrollToSection(item.id);
                 }}
-                className="block rounded-md px-2 py-1 text-sm transition hover:bg-[var(--bg-surface-hover)]"
-                style={{ color: "var(--text-secondary)" }}
+                className="block rounded-md px-2 py-1 text-sm transition hover:bg-[var(--surface-2)]"
+                style={{ color: "var(--sub)" }}
               >
                 {item.label}
               </a>
@@ -382,7 +382,7 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
   return (
     <div
       className={`rounded-lg p-4 ${className}`}
-      style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)" }}
+      style={{ background: "var(--surface)", border: "1px solid var(--line)" }}
     >
       {children}
     </div>
@@ -396,7 +396,7 @@ function ColorSwatch({ name, usage }: ColorToken) {
         className="h-16 rounded-md"
         style={{
           background: `var(${name})`,
-          border: "1px solid var(--border-default)",
+          border: "1px solid var(--line)",
         }}
       />
       <div className="flex flex-col gap-0.5">
@@ -424,8 +424,8 @@ export function StyleguidePage() {
   return (
     <div
       style={{
-        background: "var(--bg-base)",
-        color: "var(--text-primary)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         height: "100vh",
         overflowY: "auto",
         scrollPaddingTop: "calc(var(--titlebar-inset) + 1.5rem)",
@@ -437,7 +437,7 @@ export function StyleguidePage() {
         className="sticky top-0 z-20"
         style={{
           height: "var(--titlebar-inset)",
-          background: "var(--bg-base)",
+          background: "var(--bg)",
         }}
       />
       <div className="mx-auto flex max-w-6xl gap-8 px-6 py-10">
@@ -446,7 +446,7 @@ export function StyleguidePage() {
         {/* 헤더 */}
         <header
           className="mb-12 flex flex-wrap items-start justify-between gap-4 border-b pb-6"
-          style={{ borderColor: "var(--border-default)" }}
+          style={{ borderColor: "var(--line)" }}
         >
           <div>
             <Text variant="display" as="h1" className="mb-2">
@@ -526,7 +526,7 @@ export function StyleguidePage() {
                 <div
                   key={s.className}
                   className="flex flex-wrap items-baseline gap-4 border-b pb-3 last:border-b-0 last:pb-0"
-                  style={{ borderColor: "var(--border-subtle)" }}
+                  style={{ borderColor: "var(--line-2)" }}
                 >
                   <span className={s.className} style={{ minWidth: "12rem" }}>
                     {s.sample}
@@ -583,8 +583,8 @@ export function StyleguidePage() {
                   <div
                     className={`h-16 w-16 ${r.tw}`}
                     style={{
-                      background: "var(--bg-surface-active)",
-                      border: "1px solid var(--border-default)",
+                      background: "var(--surface-3)",
+                      border: "1px solid var(--line)",
                     }}
                   />
                   <Text variant="caption" className="font-mono">
@@ -611,7 +611,7 @@ export function StyleguidePage() {
                 <div
                   className="mb-3 h-16 rounded-md"
                   style={{
-                    background: "var(--bg-base)",
+                    background: "var(--bg)",
                     boxShadow: `var(${s.name})`,
                   }}
                 />
@@ -733,7 +733,7 @@ export function StyleguidePage() {
                 <div className="flex items-center gap-3">
                   <Icon
                     className="h-5 w-5 shrink-0"
-                    style={{ color: "var(--text-primary)" }}
+                    style={{ color: "var(--ink)" }}
                   />
                   <Text variant="caption" color="secondary">
                     {meaning}
@@ -884,9 +884,9 @@ export function StyleguidePage() {
           <Card>
             <div className="flex flex-wrap items-center gap-2">
               <Kbd>Cmd</Kbd>
-              <span style={{ color: "var(--text-muted)" }}>+</span>
+              <span style={{ color: "var(--faint)" }}>+</span>
               <Kbd>Shift</Kbd>
-              <span style={{ color: "var(--text-muted)" }}>+</span>
+              <span style={{ color: "var(--faint)" }}>+</span>
               <Kbd>E</Kbd>
               <Text variant="caption" color="muted" className="ml-2">
                 편집 / 보기 토글
@@ -899,19 +899,19 @@ export function StyleguidePage() {
           <Card>
             <div className="flex flex-wrap items-center gap-6">
               <div className="flex items-center gap-2">
-                <Spinner size="xs" style={{ color: "var(--text-secondary)" }} />
+                <Spinner size="xs" style={{ color: "var(--sub)" }} />
                 <Text variant="caption" color="muted">
                   xs
                 </Text>
               </div>
               <div className="flex items-center gap-2">
-                <Spinner size="sm" style={{ color: "var(--text-secondary)" }} />
+                <Spinner size="sm" style={{ color: "var(--sub)" }} />
                 <Text variant="caption" color="muted">
                   sm
                 </Text>
               </div>
               <div className="flex items-center gap-2">
-                <Spinner size="md" style={{ color: "var(--text-secondary)" }} />
+                <Spinner size="md" style={{ color: "var(--sub)" }} />
                 <Text variant="caption" color="muted">
                   md (default)
                 </Text>
@@ -940,9 +940,9 @@ export function StyleguidePage() {
             <div
               className="w-full max-w-md rounded-xl p-6"
               style={{
-                background: "var(--bg-base)",
+                background: "var(--bg)",
                 boxShadow: "var(--shadow-modal)",
-                border: "1px solid var(--border-default)",
+                border: "1px solid var(--line)",
               }}
             >
               <Text variant="h3" as="h2" className="mb-2">
@@ -981,24 +981,24 @@ export function StyleguidePage() {
                 }
                 panelClassName="absolute left-0 top-full mt-1 w-44 rounded-md p-1"
                 panelStyle={{
-                  background: "var(--bg-base)",
-                  border: "1px solid var(--border-default)",
+                  background: "var(--bg)",
+                  border: "1px solid var(--line)",
                   boxShadow: "var(--shadow-popover)",
                   zIndex: "var(--z-popover)" as unknown as number,
                 }}
               >
                 <button
                   type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)]"
-                  style={{ color: "var(--text-primary)" }}
+                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+                  style={{ color: "var(--ink)" }}
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 1
                 </button>
                 <button
                   type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)]"
-                  style={{ color: "var(--text-primary)" }}
+                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+                  style={{ color: "var(--ink)" }}
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 2
@@ -1017,7 +1017,7 @@ export function StyleguidePage() {
               icon={
                 <BookOpen
                   className="h-12 w-12"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                   strokeWidth={1.25}
                 />
               }
@@ -1050,7 +1050,7 @@ export function StyleguidePage() {
               style={{
                 background: "var(--surface-frost)",
                 border: "1px solid var(--surface-frost-border)",
-                color: "var(--text-primary)",
+                color: "var(--ink)",
                 backdropFilter: "blur(12px)",
               }}
             >
@@ -1072,7 +1072,7 @@ export function StyleguidePage() {
               icon={
                 <AlertCircle
                   className="h-12 w-12"
-                  style={{ color: "var(--accent-red)" }}
+                  style={{ color: "var(--down)" }}
                   strokeWidth={1.25}
                 />
               }
@@ -1087,20 +1087,20 @@ export function StyleguidePage() {
               (c) Danger zone (destructive 영역)
             </Text>
             <Text variant="caption" color="muted" as="p" className="mb-3">
-              `1px solid var(--accent-red)` 전체 border + 텍스트 `--accent-red`.
+              `1px solid var(--down)` 전체 border + 텍스트 `--down`.
               자리: `VaultSection` disconnect, `BackupSection` wipe.
             </Text>
             <div
               className="rounded-md p-3"
               style={{
-                border: "1px solid var(--accent-red)",
-                color: "var(--accent-red)",
+                border: "1px solid var(--down)",
+                color: "var(--down)",
               }}
             >
-              <Text variant="caption" weight="semibold" as="p" className="mb-1" style={{ color: "var(--accent-red)" }}>
+              <Text variant="caption" weight="semibold" as="p" className="mb-1" style={{ color: "var(--down)" }}>
                 Vault 연결 해제
               </Text>
-              <Text variant="caption" as="p" style={{ color: "var(--accent-red)" }}>
+              <Text variant="caption" as="p" style={{ color: "var(--down)" }}>
                 연결을 끊으면 다시 폴더를 선택해야 합니다.
               </Text>
             </div>
@@ -1110,7 +1110,7 @@ export function StyleguidePage() {
           <SubTitle>10.10 Toggle</SubTitle>
           <Text variant="body" color="secondary" as="p" className="mb-4">
             on/off 스위치. `role="switch"` + 키보드(Space/Enter). on=`--btn-primary`
-            트랙, knob 은 `--bg-surface` + 그림자. 설정의 on/off 항목에 사용.
+            트랙, knob 은 `--surface` + 그림자. 설정의 on/off 항목에 사용.
           </Text>
           <Card>
             <div className="flex flex-wrap items-center gap-6">
@@ -1160,14 +1160,14 @@ export function StyleguidePage() {
                   <div
                     className="rounded-md p-3"
                     style={{
-                      background: "var(--bg-base)",
-                      border: "1px solid var(--border-default)",
+                      background: "var(--bg)",
+                      border: "1px solid var(--line)",
                     }}
                   >
                     <div className="mb-1 flex items-center gap-1.5">
                       <span
                         className="h-1.5 w-1.5 rounded-full"
-                        style={{ background: "var(--accent-green)" }}
+                        style={{ background: "var(--ok)" }}
                       />
                       <Text variant="caption" weight="semibold" color="secondary" as="span">
                         권장
@@ -1180,14 +1180,14 @@ export function StyleguidePage() {
                   <div
                     className="rounded-md p-3"
                     style={{
-                      background: "var(--bg-base)",
-                      border: "1px solid var(--border-default)",
+                      background: "var(--bg)",
+                      border: "1px solid var(--line)",
                     }}
                   >
                     <div className="mb-1 flex items-center gap-1.5">
                       <span
                         className="h-1.5 w-1.5 rounded-full"
-                        style={{ background: "var(--text-muted)" }}
+                        style={{ background: "var(--faint)" }}
                       />
                       <Text variant="caption" weight="semibold" color="muted" as="span">
                         회피
@@ -1206,7 +1206,7 @@ export function StyleguidePage() {
         {/* Footer */}
         <footer
           className="border-t pt-6"
-          style={{ borderColor: "var(--border-default)" }}
+          style={{ borderColor: "var(--line)" }}
         >
           <Text variant="caption" color="muted" as="p">
             정의 source: <code className="font-mono">src/index.css</code> ·{" "}

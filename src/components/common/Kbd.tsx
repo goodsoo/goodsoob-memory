@@ -11,9 +11,9 @@ export function Kbd({ children, className = "", style, ...rest }: Props) {
     <kbd
       className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded px-1 py-px font-mono text-[11px] font-medium leading-none ${className}`}
       style={{
-        backgroundColor: "var(--bg-surface-hover)",
-        color: "var(--text-primary)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface-2)",
+        color: "var(--ink)",
+        border: "1px solid var(--line)",
         ...style,
       }}
       {...rest}

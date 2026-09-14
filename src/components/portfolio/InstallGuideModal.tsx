@@ -26,11 +26,11 @@ export function InstallGuideModal({
       {/* 헤더 */}
       <div
         className="flex shrink-0 items-center gap-2 px-5 py-3"
-        style={{ borderBottom: "1px solid var(--border-default)" }}
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
         <Download
           className="h-4 w-4"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         />
         <Text variant="body" weight="semibold" as="h2">
           GitHub CLI 설치
@@ -41,7 +41,7 @@ export function InstallGuideModal({
           title="닫기  ESC"
           aria-label="닫기"
           className="ml-auto"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -54,8 +54,8 @@ export function InstallGuideModal({
           <code
             className="rounded px-1 py-px font-mono text-[11px]"
             style={{
-              backgroundColor: "var(--bg-surface-hover)",
-              color: "var(--text-secondary)",
+              backgroundColor: "var(--surface-2)",
+              color: "var(--sub)",
             }}
           >
             gh
@@ -76,7 +76,7 @@ export function InstallGuideModal({
               href="https://brew.sh"
               target="_blank"
               rel="noreferrer"
-              style={{ color: "var(--accent-blue)" }}
+              style={{ color: "var(--accent)" }}
             >
               brew.sh
             </a>{" "}
@@ -96,8 +96,8 @@ export function InstallGuideModal({
             <code
               className="rounded px-1 py-px font-mono text-[11px]"
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                color: "var(--text-secondary)",
+                backgroundColor: "var(--surface-2)",
+                color: "var(--sub)",
               }}
             >
               scoop install gh
@@ -118,8 +118,8 @@ export function InstallGuideModal({
             <code
               className="rounded px-1 py-px font-mono text-[11px]"
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                color: "var(--text-secondary)",
+                backgroundColor: "var(--surface-2)",
+                color: "var(--sub)",
               }}
             >
               sudo dnf install gh
@@ -129,7 +129,7 @@ export function InstallGuideModal({
               href="https://github.com/cli/cli#installation"
               target="_blank"
               rel="noreferrer"
-              style={{ color: "var(--accent-blue)" }}
+              style={{ color: "var(--accent)" }}
             >
               공식 설치 가이드
             </a>{" "}
@@ -157,9 +157,9 @@ export function InstallGuideModal({
         <section
           className="mt-4 rounded-md p-3 text-[11px] leading-relaxed"
           style={{
-            backgroundColor: "var(--accent-blue-bg)",
-            color: "var(--accent-blue-text)",
-            border: "1px solid var(--accent-blue)",
+            backgroundColor: "var(--accent-soft)",
+            color: "var(--accent-ink)",
+            border: "1px solid var(--accent)",
           }}
         >
           <strong>이미 설치돼있는데도 안 잡힘?</strong>
@@ -179,7 +179,7 @@ export function InstallGuideModal({
       {/* footer */}
       <div
         className="flex shrink-0 items-center justify-end gap-2 px-5 py-3"
-        style={{ borderTop: "1px solid var(--border-default)" }}
+        style={{ borderTop: "1px solid var(--line)" }}
       >
         <Button variant="secondary" onClick={onClose}>
           닫기

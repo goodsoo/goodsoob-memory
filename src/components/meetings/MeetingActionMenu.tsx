@@ -110,9 +110,9 @@ export function MeetingActionMenu({
         aria-expanded={open}
         className="px-1.5 py-1"
         style={{
-          border: "1px solid var(--border-subtle)",
-          color: copied ? "var(--accent-red)" : "var(--text-muted)",
-          backgroundColor: open ? "var(--bg-surface-active)" : undefined,
+          border: "1px solid var(--line-2)",
+          color: copied ? "var(--down)" : "var(--faint)",
+          backgroundColor: open ? "var(--surface-3)" : undefined,
         }}
       >
         {copied ? (
@@ -132,8 +132,8 @@ export function MeetingActionMenu({
                 top: pos.top,
                 right: pos.right,
                 width: MENU_WIDTH,
-                backgroundColor: "var(--bg-surface)",
-                border: "1px solid var(--border-default)",
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--line)",
               }}
             >
               <MeetingMenuItems

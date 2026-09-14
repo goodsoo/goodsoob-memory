@@ -148,7 +148,7 @@ function MonthBlock({
           <span
             key={i}
             className="text-center text-[10px] leading-none"
-            style={{ color: "var(--text-muted)", width: CELL }}
+            style={{ color: "var(--faint)", width: CELL }}
           >
             {w}
           </span>
@@ -218,21 +218,21 @@ function cellStyle(k: CellKind): React.CSSProperties {
     case "done":
       return { backgroundColor: "var(--btn-primary)" };
     case "miss":
-      return { backgroundColor: "var(--bg-surface-active)" };
+      return { backgroundColor: "var(--surface-3)" };
     case "today-pending":
       return {
-        backgroundColor: "var(--bg-surface-active)",
+        backgroundColor: "var(--surface-3)",
         boxShadow: "inset 0 0 0 1.5px var(--btn-primary)",
       };
     case "future":
       return {
         backgroundColor: "transparent",
-        boxShadow: "inset 0 0 0 1px var(--border-default)",
+        boxShadow: "inset 0 0 0 1px var(--line)",
       };
     case "out-of-window":
       return {
         backgroundColor: "transparent",
-        boxShadow: "inset 0 0 0 1px var(--border-subtle)",
+        boxShadow: "inset 0 0 0 1px var(--line-2)",
       };
   }
 }

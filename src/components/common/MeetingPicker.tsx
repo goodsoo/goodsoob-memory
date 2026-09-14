@@ -59,8 +59,8 @@ export function MeetingPicker({ value, onChange }: Props) {
       className="relative inline-flex items-center"
       panelClassName="absolute left-0 top-full z-30 mt-1 w-72 overflow-hidden rounded-md shadow-md"
       panelStyle={{
-        backgroundColor: "var(--bg-base)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--bg)",
+        border: "1px solid var(--line)",
       }}
       trigger={
         <Button
@@ -71,7 +71,7 @@ export function MeetingPicker({ value, onChange }: Props) {
             setOpen((v) => !v);
           }}
           className="max-w-[12rem] px-2 py-0.5 font-normal"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
           aria-haspopup="listbox"
           aria-expanded={open}
           leftIcon={
@@ -85,11 +85,11 @@ export function MeetingPicker({ value, onChange }: Props) {
       <div onClick={(e) => e.stopPropagation()}>
           <div
             className="flex items-center gap-1.5 px-2.5 py-1.5"
-            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            style={{ borderBottom: "1px solid var(--line-2)" }}
           >
             <Search
               className="h-3 w-3 shrink-0"
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
               aria-hidden
             />
             <input
@@ -99,7 +99,7 @@ export function MeetingPicker({ value, onChange }: Props) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="메모 검색"
               className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-              style={{ color: "var(--text-primary)" }}
+              style={{ color: "var(--ink)" }}
             />
             {value ? (
               <Button
@@ -110,7 +110,7 @@ export function MeetingPicker({ value, onChange }: Props) {
                   setOpen(false);
                 }}
                 className="shrink-0 px-1.5 py-0.5 text-[11px] font-normal"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 연결 해제
               </Button>
@@ -141,11 +141,11 @@ export function MeetingPicker({ value, onChange }: Props) {
                       className="w-full justify-start gap-2 rounded-none px-3 py-1.5 font-normal"
                       style={{
                         backgroundColor: active
-                          ? "var(--bg-surface-active)"
+                          ? "var(--surface-3)"
                           : undefined,
                         color: active
-                          ? "var(--text-primary)"
-                          : "var(--text-secondary)",
+                          ? "var(--ink)"
+                          : "var(--sub)",
                       }}
                     >
                       <span className="min-w-0 flex-1 truncate">

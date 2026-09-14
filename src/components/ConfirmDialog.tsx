@@ -65,7 +65,7 @@ export function ConfirmDialog({
           ) : (
             <div
               className="mt-2 text-sm"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               {message}
             </div>

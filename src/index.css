@@ -106,6 +106,35 @@
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
 
+    /* ── Spacing scale ── 값기반 네이밍(이름 = px 값). 하드코딩 px 금지, 전부 이 토큰.
+       4/8/12/16/24 = tower·work·growth 만장일치 · 6 = 조밀 컨트롤(버튼·칩) · 20 = 데이터상
+       tower 27회로 24(18회)보다 빈번 · 32 = 레이아웃/모달 거터. semantic 별칭 안 만들고 직접 참조. */
+    --space-4: 4px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+    --space-32: 32px;
+
+    /* ── Radius scale ── 4는 쳐냄(growth focus-outline 단독→6 흡수), 10도 쳐냄(8과 2px차→8 통합). */
+    --radius-6: 6px;        /* 버튼·인풋 */
+    --radius-8: 8px;        /* 카드 (작은·중간 공통) */
+    --radius-16: 16px;      /* 큰 카드·모달 패널 (growth 모달 14 → 16 흡수) */
+    --radius-full: 9999px;  /* pill — 칩·태그 (growth pill 20 → full 흡수) */
+
+    /* ── Icon 글리프 크기 ── */
+    --icon-12: 12px;  /* 칩·배지 내 인라인 (work h-3 최다) */
+    --icon-14: 14px;  /* 컨트롤 내 아이콘 (버튼 라벨 동반) */
+    --icon-16: 16px;  /* 아이콘 전용 버튼 */
+    --icon-20: 20px;  /* 기본 */
+    --icon-24: 24px;  /* 큰 아이콘 */
+
+    /* ── Control height (responsive) ── var(--ctl-h) 쓰는 버튼·아이콘버튼은
+       데스크탑 28 / 터치 44 로 자동 적응. 하단 @media (pointer: coarse) 참조. */
+    --ctl-h: 28px;
+
     /* ── 시맨틱 토큰 (raw 자리 var() 참조용) ──
        @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
        scale 을 교체해 raw 자리 깨짐. :root 로 옮겨 default utility 보존 + 시맨틱
@@ -210,6 +239,13 @@
   @media (min-width: 640px) {
     :root {
       --app-header-h: 0px;
+    }
+  }
+
+  /* 터치 기기 = 컨트롤 높이를 44 로. Apple HIG 최소 터치 타깃. */
+  @media (pointer: coarse) {
+    :root {
+      --ctl-h: 44px;
     }
   }
 /* DESIGN-SYSTEM:tokens END */

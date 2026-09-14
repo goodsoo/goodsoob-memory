@@ -31,34 +31,35 @@
   :root {
     color-scheme: light;
 
-    /* Background */
+    /* Background — 통합 팔레트(tower 앵커, 쿨 블루그레이). 단 --bg-base(캔버스)는
+       흰색 유지: work 은 카드형이 아니라 본문이 캔버스에 직접 얹혀서 (docs/palette-unification.md) */
     --bg-base: #ffffff;
-    --bg-surface: #fafafa;
-    --bg-surface-hover: #f4f4f5;
-    --bg-surface-active: #e4e4e7;
+    --bg-surface: #f7f9fc;
+    --bg-surface-hover: #eef1f6;
+    --bg-surface-active: #d9deea;
     --bg-overlay: rgba(255, 255, 255, 0.92);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
 
-    /* Text */
-    --text-primary: #18181b;
-    --text-secondary: #71717a;
-    --text-muted: #a1a1aa;
+    /* Text — 통합 팔레트 */
+    --text-primary: #1d1d1f;
+    --text-secondary: #5c5f68;
+    --text-muted: #868a94;
     --text-inverse: #ffffff;
 
-    /* Border */
-    --border-default: #e4e4e7;
-    --border-subtle: #f4f4f5;
+    /* Border — 통합 팔레트 */
+    --border-default: #e4e8f1;
+    --border-subtle: #eef1f7;
 
-    /* Accent */
-    --accent-red: #dc2626;
-    --accent-red-bg: #fef2f2;
+    /* Accent — 통합 팔레트(애플블루). red/green 은 상태색(tower down/ok) */
+    --accent-red: #d33a2f;
+    --accent-red-bg: #fbe9e7;
     --accent-red-text: #991b1b;
-    --accent-blue: #2563eb;
-    --accent-blue-bg: #eff6ff;
-    --accent-blue-text: #1d4ed8;
-    --accent-green: #16a34a;
+    --accent-blue: #0071e3;
+    --accent-blue-bg: #e8f1fd;
+    --accent-blue-text: #005bbf;
+    --accent-green: #248a3d;
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
     --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
 
@@ -91,9 +92,9 @@
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
 
     /* Interactive */
-    --btn-primary: #18181b;
+    --btn-primary: #1d1d1f;
     --btn-primary-text: #ffffff;
-    --focus-ring: #3b82f6;
+    --focus-ring: #0071e3;
 
     /* Layout */
     --safe-top: env(safe-area-inset-top);
@@ -151,34 +152,34 @@
   .dark {
     color-scheme: dark;
 
-    /* Background */
-    --bg-base: #1a1a1a;
-    --bg-surface: #242424;
-    --bg-surface-hover: #2a2a2a;
-    --bg-surface-active: #333333;
-    --bg-overlay: rgba(26, 26, 26, 0.92);
-    --surface-frost: rgba(30, 30, 30, 0.65);
+    /* Background — 통합 팔레트 다크(tower 앵커, 딥네이비). 다크는 캔버스도 통일. */
+    --bg-base: #0c0f16;
+    --bg-surface: #161b24;
+    --bg-surface-hover: #1c222d;
+    --bg-surface-active: #252d3a;
+    --bg-overlay: rgba(12, 15, 22, 0.92);
+    --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
 
-    /* Text */
-    --text-primary: #e4e4e7;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
-    --text-inverse: #18181b;
+    /* Text — 통합 팔레트 다크 */
+    --text-primary: #eef1f6;
+    --text-secondary: #b0b8c4;
+    --text-muted: #7c8592;
+    --text-inverse: #1d1d1f;
 
-    /* Border */
-    --border-default: #3f3f46;
-    --border-subtle: #2a2a2a;
+    /* Border — 통합 팔레트 다크 */
+    --border-default: #2b3441;
+    --border-subtle: #232b36;
 
-    /* Accent (desaturated for dark) */
-    --accent-red: #f87171;
-    --accent-red-bg: rgba(248, 113, 113, 0.1);
+    /* Accent (desaturated for dark) — 통합 팔레트 */
+    --accent-red: #ff5a4d;
+    --accent-red-bg: rgba(255, 90, 77, 0.1);
     --accent-red-text: #fca5a5;
-    --accent-blue: #60a5fa;
-    --accent-blue-bg: rgba(96, 165, 250, 0.1);
-    --accent-blue-text: #93c5fd;
-    --accent-green: #4ade80;
+    --accent-blue: #2f8fff;
+    --accent-blue-bg: rgba(47, 143, 255, 0.1);
+    --accent-blue-text: #7fbcff;
+    --accent-green: #3fbf5f;
     --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
     --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
 

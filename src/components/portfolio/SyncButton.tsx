@@ -21,7 +21,7 @@ export function SyncButton({ state, onRun, onCancel }: Props) {
         color="secondary"
         as="div"
         className="flex flex-col gap-1.5 rounded-md px-3 py-2"
-        style={{ backgroundColor: "var(--bg-surface-active)" }}
+        style={{ backgroundColor: "var(--surface-3)" }}
       >
         <div className="flex items-center justify-between">
           <span>동기화 중...</span>
@@ -36,8 +36,8 @@ export function SyncButton({ state, onRun, onCancel }: Props) {
               aria-label="동기화 취소"
               className="rounded-sm p-1"
               style={{
-                color: "var(--text-primary)",
-                backgroundColor: "var(--bg-surface)",
+                color: "var(--ink)",
+                backgroundColor: "var(--surface)",
                 minHeight: 0,
               }}
             >
@@ -47,7 +47,7 @@ export function SyncButton({ state, onRun, onCancel }: Props) {
         </div>
         <div
           className="relative h-1 overflow-hidden rounded-full"
-          style={{ backgroundColor: "var(--bg-surface-hover)" }}
+          style={{ backgroundColor: "var(--surface-2)" }}
         >
           <div
             className="absolute inset-y-0 left-0 transition-[width]"

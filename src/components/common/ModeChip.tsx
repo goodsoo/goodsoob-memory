@@ -19,16 +19,16 @@ export function ModeChip({
       aria-label="편집·보기 전환"
       className="inline-flex items-center gap-0.5 rounded-md p-0.5"
       style={{
-        border: "1px solid var(--border-subtle)",
-        backgroundColor: "var(--bg-surface)",
+        border: "1px solid var(--line-2)",
+        backgroundColor: "var(--surface)",
       }}
     >
       <ModeSegment
         label="편집"
         icon={<Pencil className="h-3 w-3" />}
         active={isEdit}
-        activeBg="var(--accent-blue-bg)"
-        activeText="var(--accent-blue-text)"
+        activeBg="var(--accent-soft)"
+        activeText="var(--accent-ink)"
         onClick={() => {
           if (!isEdit) onToggle();
         }}
@@ -37,8 +37,8 @@ export function ModeChip({
         label="보기"
         icon={<Eye className="h-3 w-3" />}
         active={!isEdit}
-        activeBg="var(--bg-surface-active)"
-        activeText="var(--text-primary)"
+        activeBg="var(--surface-3)"
+        activeText="var(--ink)"
         onClick={() => {
           if (isEdit) onToggle();
         }}
@@ -75,7 +75,7 @@ function ModeSegment({
       className="rounded px-1.5 py-0.5"
       style={{
         backgroundColor: active ? activeBg : "transparent",
-        color: active ? activeText : "var(--text-muted)",
+        color: active ? activeText : "var(--faint)",
         cursor: active ? "default" : "pointer",
       }}
     />

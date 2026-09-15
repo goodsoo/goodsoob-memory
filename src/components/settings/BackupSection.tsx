@@ -175,7 +175,7 @@ export function BackupSection() {
               onClick={handleOpenFolder}
               leftIcon={<FolderOpen className="h-4 w-4" />}
               className="rounded-lg px-3 py-2"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               백업 폴더 열기
             </Button>
@@ -184,8 +184,8 @@ export function BackupSection() {
         <div
           className="space-y-1 rounded-lg px-3 py-2"
           style={{
-            background: "var(--bg-base)",
-            border: "1px solid var(--border-subtle)",
+            background: "var(--bg)",
+            border: "1px solid var(--line-2)",
           }}
         >
           <Text variant="caption" color="muted" as="div">
@@ -218,7 +218,7 @@ export function BackupSection() {
         >
           자동 백업
         </Text>
-        <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: "var(--text-primary)" }}>
+        <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: "var(--ink)" }}>
           <input
             type="checkbox"
             checked={cfg.enabled}
@@ -239,9 +239,9 @@ export function BackupSection() {
                 onChange={(e) => updateConfig({ intervalDays: Number(e.target.value) })}
                 className="cursor-pointer rounded px-2 py-1 text-sm"
                 style={{
-                  background: "var(--bg-base)",
-                  border: "1px solid var(--border-default)",
-                  color: "var(--text-primary)",
+                  background: "var(--bg)",
+                  border: "1px solid var(--line)",
+                  color: "var(--ink)",
                 }}
               >
                 <option value={0.5}>12시간</option>
@@ -261,9 +261,9 @@ export function BackupSection() {
                 onChange={(e) => updateConfig({ keepCount: Number(e.target.value) })}
                 className="cursor-pointer rounded px-2 py-1 text-sm"
                 style={{
-                  background: "var(--bg-base)",
-                  border: "1px solid var(--border-default)",
-                  color: "var(--text-primary)",
+                  background: "var(--bg)",
+                  border: "1px solid var(--line)",
+                  color: "var(--ink)",
                 }}
               >
                 {KEEP_COUNT_OPTIONS.map((n) => (
@@ -326,7 +326,7 @@ export function BackupSection() {
                   aria-label="삭제"
                   title="삭제"
                   className="shrink-0"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -342,9 +342,9 @@ export function BackupSection() {
           as="div"
           className="rounded px-3 py-2"
           style={{
-            color: "var(--accent-red)",
-            background: "var(--bg-base)",
-            border: "1px solid var(--accent-red)",
+            color: "var(--down)",
+            background: "var(--bg)",
+            border: "1px solid var(--down)",
           }}
         >
           {error}
@@ -423,8 +423,8 @@ function BackupConfirmModal({
           as="ul"
           className="mb-4 max-h-40 space-y-0.5 overflow-y-auto rounded px-3 py-2"
           style={{
-            background: "var(--bg-base)",
-            border: "1px solid var(--border-subtle)",
+            background: "var(--bg)",
+            border: "1px solid var(--line-2)",
           }}
         >
           {candidates.map((c) => (
@@ -437,7 +437,7 @@ function BackupConfirmModal({
             onClick={onCancel}
             disabled={running}
             className="px-3 py-1.5"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             취소
           </Button>

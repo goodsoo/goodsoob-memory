@@ -27,8 +27,8 @@ export function TaskSortMenu({ value, onChange }: Props) {
       className="relative"
       panelClassName="absolute right-0 top-full z-30 mt-1 min-w-[120px] overflow-hidden rounded-md shadow-md"
       panelStyle={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
       trigger={
         <Button
@@ -39,8 +39,8 @@ export function TaskSortMenu({ value, onChange }: Props) {
           aria-haspopup="menu"
           aria-expanded={open}
           style={{
-            color: "var(--text-secondary)",
-            backgroundColor: open ? "var(--bg-surface-active)" : undefined,
+            color: "var(--sub)",
+            backgroundColor: open ? "var(--surface-3)" : undefined,
           }}
         >
           <ArrowUpDown className="h-3.5 w-3.5" />
@@ -63,15 +63,15 @@ export function TaskSortMenu({ value, onChange }: Props) {
               }}
               className="w-full justify-between rounded-none px-3 py-1.5"
               style={{
-                color: active ? "var(--text-primary)" : "var(--text-secondary)",
-                backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+                color: active ? "var(--ink)" : "var(--sub)",
+                backgroundColor: active ? "var(--surface-3)" : undefined,
               }}
             >
               <span className="whitespace-nowrap">{opt.label}</span>
               {active ? (
                 <Check
                   className="h-3 w-3"
-                  style={{ color: "var(--text-secondary)" }}
+                  style={{ color: "var(--sub)" }}
                 />
               ) : null}
             </Button>

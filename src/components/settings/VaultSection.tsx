@@ -106,8 +106,8 @@ export function VaultSection({ onAfterSwitch }: Props) {
         <ul
           className="rounded"
           style={{
-            background: "var(--bg-base)",
-            border: "1px solid var(--border-subtle)",
+            background: "var(--bg)",
+            border: "1px solid var(--line-2)",
           }}
         >
           {vaults.length === 0 && (
@@ -126,7 +126,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                 className="flex items-center gap-2 px-3 py-2"
                 style={{
                   borderTop:
-                    i === 0 ? undefined : "1px solid var(--border-subtle)",
+                    i === 0 ? undefined : "1px solid var(--line-2)",
                 }}
               >
                 <button
@@ -143,7 +143,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                     minWidth: 18,
                     borderColor: isActive
                       ? "var(--btn-primary)"
-                      : "var(--border-default)",
+                      : "var(--line)",
                     borderWidth: isActive ? 1.5 : 1,
                     backgroundColor: isActive
                       ? "color-mix(in srgb, var(--btn-primary) 6%, transparent)"
@@ -174,9 +174,9 @@ export function VaultSection({ onAfterSwitch }: Props) {
                       }}
                       className="w-full rounded px-1.5 py-0.5 text-sm"
                       style={{
-                        background: "var(--bg-surface)",
-                        color: "var(--text-primary)",
-                        border: "1px solid var(--border-default)",
+                        background: "var(--surface)",
+                        color: "var(--ink)",
+                        border: "1px solid var(--line)",
                       }}
                     />
                   ) : (
@@ -218,7 +218,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                     title="별칭 변경 (표시명만, 폴더는 그대로)"
                     aria-label="별칭 변경"
                     className="h-7 w-7"
-                    style={{ color: "var(--text-secondary)" }}
+                    style={{ color: "var(--sub)" }}
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
@@ -229,7 +229,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                   title="목록에서 제거"
                   aria-label="목록에서 제거"
                   className="h-7 w-7"
-                  style={{ color: "var(--text-secondary)" }}
+                  style={{ color: "var(--sub)" }}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -259,7 +259,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
               onClick={() => setConfirmDisconnect(true)}
               leftIcon={<Unlink className="h-4 w-4" />}
               className="rounded-lg px-3 py-2 active:opacity-80 disabled:opacity-50"
-              style={{ background: "var(--bg-base)" }}
+              style={{ background: "var(--bg)" }}
             >
               연결 해제
             </Button>
@@ -276,9 +276,9 @@ export function VaultSection({ onAfterSwitch }: Props) {
             as="div"
             className="rounded px-3 py-2"
             style={{
-              color: "var(--accent-red)",
-              background: "var(--bg-base)",
-              border: "1px solid var(--accent-red)",
+              color: "var(--down)",
+              background: "var(--bg)",
+              border: "1px solid var(--down)",
             }}
           >
             {error}
@@ -329,7 +329,7 @@ function DisconnectConfirmModal({
             variant="ghost"
             onClick={onCancel}
             className="px-3 py-1.5"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             취소
           </Button>
@@ -373,7 +373,7 @@ function RemoveVaultConfirmModal({
             variant="ghost"
             onClick={onCancel}
             className="px-3 py-1.5"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             취소
           </Button>

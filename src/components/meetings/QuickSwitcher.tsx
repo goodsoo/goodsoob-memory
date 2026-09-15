@@ -103,18 +103,18 @@ export function QuickSwitcher({ open, onClose, onSelect }: Props) {
           // overflow-y-auto 가 흡수해 list 비어도/길어도 모달 자체는 흔들림 X.
           width: "min(640px, calc(100vw - 32px))",
           height: "min(560px, calc(100vh - 24vh))",
-          backgroundColor: "var(--bg-base)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--bg)",
+          border: "1px solid var(--line)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
           className="flex shrink-0 items-center gap-2 px-3 py-2"
-          style={{ borderBottom: "1px solid var(--border-default)" }}
+          style={{ borderBottom: "1px solid var(--line)" }}
         >
           <Search
             className="h-4 w-4 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
           <input
             ref={inputRef}
@@ -123,14 +123,14 @@ export function QuickSwitcher({ open, onClose, onSelect }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="메모 · 할 일 · 포트폴리오 · 일기 검색..."
             className="flex-1 bg-transparent text-sm outline-none"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: "var(--ink)" }}
           />
           <kbd
-            className="rounded px-1.5 py-0.5 text-[10px]"
+            className="rounded px-1.5 py-0.5 text-3xs"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              color: "var(--text-muted)",
-              border: "1px solid var(--border-subtle)",
+              backgroundColor: "var(--surface)",
+              color: "var(--faint)",
+              border: "1px solid var(--line-2)",
             }}
           >
             ESC
@@ -195,7 +195,7 @@ function ResultRow({
       onMouseEnter={onHover}
       className="flex w-full items-start gap-2 px-3 py-2 text-left"
       style={{
-        backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: active ? "var(--surface-3)" : undefined,
       }}
     >
       <Icon
@@ -213,14 +213,14 @@ function ResultRow({
               variant="caption"
               color="muted"
               as="span"
-              className="shrink-0 text-[11px] tabular-nums"
+              className="shrink-0 text-2xs tabular-nums"
             >
               {entry.metaLabel}
             </Text>
           ) : null}
           {/* 도메인 chip 은 항상 행 가장 우측 — 모든 행 통일 위치로 시각 anchor */}
           <span
-            className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-3xs"
             style={{
               backgroundColor: meta.bg,
               color: meta.color,
@@ -264,7 +264,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
         key={key++}
         style={{
           backgroundColor: "var(--accent-yellow)",
-          color: "var(--text-primary)",
+          color: "var(--ink)",
           padding: "0 1px",
           borderRadius: "2px",
         }}
@@ -289,8 +289,8 @@ function domainMeta(d: SearchDomain): {
       return {
         label: "메모",
         icon: FileText,
-        color: "var(--accent-blue-text)",
-        bg: "var(--accent-blue-bg)",
+        color: "var(--accent-ink)",
+        bg: "var(--accent-soft)",
       };
     case "task":
       return {
@@ -298,21 +298,21 @@ function domainMeta(d: SearchDomain): {
         icon: CheckSquare,
         // tasks 의 work category 와 같은 톤 (주황). 시각 통일.
         color: "var(--cat-work)",
-        bg: "var(--bg-surface)",
+        bg: "var(--surface)",
       };
     case "portfolio":
       return {
         label: "포트폴리오",
         icon: LayoutGrid,
         color: "var(--cat-uiux)",
-        bg: "var(--bg-surface)",
+        bg: "var(--surface)",
       };
     case "journal":
       return {
         label: "일기",
         icon: BookOpen,
         color: "var(--cat-other)",
-        bg: "var(--bg-surface)",
+        bg: "var(--surface)",
       };
   }
 }

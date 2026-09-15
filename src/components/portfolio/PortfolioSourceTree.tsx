@@ -295,7 +295,7 @@ export const PortfolioSourceTree = forwardRef<
       />
       {!collapse.manual && rootManualCount > 0 ? (
         <FilterItem
-          label={<Text variant="caption" color="muted" as="span" className="text-[12px]">(폴더 없음)</Text>}
+          label={<Text variant="caption" color="muted" as="span" className="text-xs">(폴더 없음)</Text>}
           count={rootManualCount}
           active={activeFilter.kind === "folder" && activeFilter.path === ""}
           onClick={() => onFilterChange({ kind: "folder", path: "" })}
@@ -308,11 +308,11 @@ export const PortfolioSourceTree = forwardRef<
             <div
               key={f.path}
               className="flex items-center gap-1.5 rounded-md px-2 py-1"
-              style={{ backgroundColor: "var(--bg-surface-active)" }}
+              style={{ backgroundColor: "var(--surface-3)" }}
             >
               <FolderOpen
                 className="h-3 w-3 shrink-0"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               />
               <input
                 ref={inputRef}
@@ -336,8 +336,8 @@ export const PortfolioSourceTree = forwardRef<
                 placeholder="폴더 이름을 입력하세요"
                 className="flex-1 rounded-sm bg-transparent px-1 py-0.5 text-sm outline-none"
                 style={{
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-default)",
+                  color: "var(--ink)",
+                  border: "1px solid var(--line)",
                 }}
               />
             </div>
@@ -357,7 +357,7 @@ export const PortfolioSourceTree = forwardRef<
               leading={
                 <Folder
                   className="h-3 w-3"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 />
               }
               active={
@@ -373,8 +373,8 @@ export const PortfolioSourceTree = forwardRef<
         <Text
           variant="caption"
           as="p"
-          className="mt-1 px-2 text-[11px]"
-          style={{ color: "var(--accent-red-text)" }}
+          className="mt-1 px-2 text-2xs"
+          style={{ color: "var(--down-ink)" }}
         >
           {error}
         </Text>
@@ -418,8 +418,8 @@ function SectionLabel({
     <button
       type="button"
       onClick={onToggle}
-      className="mt-3 mb-0.5 flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-left transition hover:bg-[var(--bg-surface-hover)]"
-      style={{ color: "var(--text-muted)" }}
+      className="mt-3 mb-0.5 flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-left transition hover:bg-[var(--surface-2)]"
+      style={{ color: "var(--faint)" }}
       aria-expanded={!collapsed}
     >
       {collapsed ? (
@@ -431,7 +431,7 @@ function SectionLabel({
         variant="caption"
         color="muted"
         as="span"
-        className="text-[11px] tracking-wide"
+        className="text-2xs tracking-wide"
       >
         {label}
       </Text>
@@ -449,7 +449,7 @@ function renderRepo(name: string): React.ReactNode {
         variant="caption"
         color="muted"
         as="span"
-        className="text-[10px]"
+        className="text-3xs"
       >
         {name.slice(0, slashIdx)}
       </Text>
@@ -480,8 +480,8 @@ const ProjectContextMenu = forwardRef<
       style={{
         left,
         top,
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
         minWidth: MENU_W,
       }}
     >
@@ -489,7 +489,7 @@ const ProjectContextMenu = forwardRef<
         variant="caption"
         color="muted"
         as="div"
-        className="truncate px-3 pt-2 pb-1 text-[11px]"
+        className="truncate px-3 pt-2 pb-1 text-2xs"
       >
         {name}
       </Text>
@@ -500,10 +500,10 @@ const ProjectContextMenu = forwardRef<
         leftIcon={
           <Pencil
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         }
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       >
         이름 변경...
       </Button>
@@ -512,7 +512,7 @@ const ProjectContextMenu = forwardRef<
         onClick={onDelete}
         className="w-full justify-start gap-2 rounded-none px-3 py-2"
         leftIcon={<Trash2 className="h-3.5 w-3.5 shrink-0" />}
-        style={{ color: "var(--accent-red)" }}
+        style={{ color: "var(--down)" }}
       >
         폴더 삭제...
       </Button>

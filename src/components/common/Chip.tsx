@@ -15,7 +15,7 @@ type Props = Omit<HTMLAttributes<HTMLSpanElement>, "children"> & {
 
 // 작은 라벨 chip — 카테고리 / 메타 / 상태 표시. 8+ 자리 산재 패턴 흡수.
 // variant: default(surface-hover bg + secondary text) / outline(border only) / accent(bg-base + border)
-// size: sm (text-[10px], px-1.5 py-0.5) / md (text-[11px], px-2 py-0.5)
+// size: sm (text-3xs, px-1.5 py-0.5) / md (text-2xs, px-2 py-0.5)
 // dot: hex 또는 var() — 좌측 1.5x1.5 rounded-full 색 (카테고리 시그널)
 export function Chip({
   variant = "default",
@@ -29,25 +29,25 @@ export function Chip({
 }: Props) {
   const sizeClass =
     size === "sm"
-      ? "rounded px-1.5 py-0.5 text-[10px]"
-      : "rounded-md px-1.5 py-0.5 text-[11px]";
+      ? "rounded px-1.5 py-0.5 text-3xs"
+      : "rounded-md px-1.5 py-0.5 text-2xs";
 
   const variantStyle: React.CSSProperties =
     variant === "outline"
       ? {
           backgroundColor: "transparent",
-          color: "var(--text-secondary)",
-          border: "1px solid var(--border-default)",
+          color: "var(--sub)",
+          border: "1px solid var(--line)",
         }
       : variant === "accent"
         ? {
-            backgroundColor: "var(--bg-base)",
-            color: "var(--text-secondary)",
-            border: "1px solid var(--border-default)",
+            backgroundColor: "var(--bg)",
+            color: "var(--sub)",
+            border: "1px solid var(--line)",
           }
         : {
-            backgroundColor: "var(--bg-surface-hover)",
-            color: "var(--text-secondary)",
+            backgroundColor: "var(--surface-2)",
+            color: "var(--sub)",
           };
 
   return (

@@ -160,7 +160,7 @@ export function TasksPage({
         left={
           <div
             className="inline-flex overflow-hidden rounded-md"
-            style={{ border: "1px solid var(--border-subtle)" }}
+            style={{ border: "1px solid var(--line-2)" }}
           >
             <Button
               variant="ghost"
@@ -168,7 +168,7 @@ export function TasksPage({
               disabled={!canUndo}
               title="실행 취소 (⌘Z)"
               className="rounded-none px-1.5 py-1 disabled:opacity-20"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               <Undo2 className="h-3.5 w-3.5" />
             </Button>
@@ -179,8 +179,8 @@ export function TasksPage({
               title="다시 실행 (⌘⇧Z)"
               className="rounded-none px-1.5 py-1 disabled:opacity-20"
               style={{
-                color: "var(--text-secondary)",
-                borderLeft: "1px solid var(--border-subtle)",
+                color: "var(--sub)",
+                borderLeft: "1px solid var(--line-2)",
               }}
             >
               <Redo2 className="h-3.5 w-3.5" />
@@ -205,7 +205,7 @@ export function TasksPage({
           icon={
             <AlertCircle
               className="h-12 w-12"
-              style={{ color: "var(--accent-red)" }}
+              style={{ color: "var(--down)" }}
               strokeWidth={1.25}
             />
           }
@@ -267,7 +267,7 @@ function TasksToolbar({
     <div
       className="shrink-0 px-6 py-2 backdrop-blur"
       style={{
-        borderBottom: "1px solid var(--border-subtle)",
+        borderBottom: "1px solid var(--line-2)",
         backgroundColor: "var(--bg-overlay)",
       }}
     >
@@ -287,7 +287,7 @@ function SkeletonList() {
         <li
           key={i}
           className="h-12 animate-pulse rounded-lg"
-          style={{ backgroundColor: "var(--bg-surface)" }}
+          style={{ backgroundColor: "var(--surface)" }}
         />
       ))}
     </ul>

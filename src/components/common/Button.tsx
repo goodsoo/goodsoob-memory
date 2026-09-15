@@ -46,21 +46,21 @@ export function Button({
   const hover =
     variant === "primary" || variant === "danger" || variant === "info"
       ? "hover:opacity-90"
-      : "hover:bg-[var(--bg-surface-hover)]";
+      : "hover:bg-[var(--surface-2)]";
 
   const variantStyle: React.CSSProperties =
     variant === "primary"
       ? { backgroundColor: "var(--btn-primary)", color: "var(--btn-primary-text)" }
       : variant === "danger"
-        ? { backgroundColor: "var(--accent-red)", color: "var(--text-inverse)" }
+        ? { backgroundColor: "var(--down)", color: "var(--text-inverse)" }
         : variant === "info"
-          ? { backgroundColor: "var(--accent-blue)", color: "var(--text-inverse)" }
+          ? { backgroundColor: "var(--accent)", color: "var(--text-inverse)" }
           : variant === "secondary"
             ? {
-                border: "1px solid var(--border-default)",
-                color: "var(--text-secondary)",
+                border: "1px solid var(--line)",
+                color: "var(--sub)",
               }
-            : { color: "var(--text-secondary)" };
+            : { color: "var(--sub)" };
 
   return (
     <button

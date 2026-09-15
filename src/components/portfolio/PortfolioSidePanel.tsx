@@ -63,12 +63,12 @@ export function PortfolioSidePanel({
         className="flex shrink-0 items-center justify-between px-4"
         style={{
           height: "var(--page-header-h)",
-          borderBottom: "1px solid var(--border-default)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         <h2
           className="font-serif text-sm font-medium"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           포트폴리오
         </h2>
@@ -78,7 +78,7 @@ export function PortfolioSidePanel({
             onClick={() => sourceTreeRef.current?.createAndEdit()}
             title="새 폴더"
             aria-label="새 폴더"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <FolderPlus className="h-4 w-4" />
           </Button>
@@ -87,7 +87,7 @@ export function PortfolioSidePanel({
             onClick={() => setCreateOpen(true)}
             title="새 카드 — PR 없이 직접 추가"
             aria-label="새 카드"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -97,7 +97,7 @@ export function PortfolioSidePanel({
       {/* 동기화 + 상태 — 헤더 아래 별도 영역. */}
       <div
         className="flex shrink-0 flex-col gap-2 px-3 pt-3 pb-3"
-        style={{ borderBottom: "1px solid var(--border-default)" }}
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
         <SyncButton
           state={syncState}
@@ -116,8 +116,8 @@ export function PortfolioSidePanel({
           <div
             className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md px-3 py-1.5 text-xs"
             style={{
-              backgroundColor: "var(--bg-surface-hover)",
-              color: "var(--text-secondary)",
+              backgroundColor: "var(--surface-2)",
+              color: "var(--sub)",
             }}
           >
             <span>
@@ -155,7 +155,7 @@ export function PortfolioSidePanel({
       {/* 미사용 — 사이드바 하단 별도 entry. 할 일 "취소됨" 패턴과 동일. */}
       <div
         className="px-1 py-2"
-        style={{ borderTop: "1px solid var(--border-default)" }}
+        style={{ borderTop: "1px solid var(--line)" }}
       >
         <FilterItem
           label="미사용"
@@ -212,14 +212,14 @@ function SyncErrorRow({
       role="alert"
       className="flex flex-col gap-1.5 rounded-md px-3 py-2 text-xs"
       style={{
-        backgroundColor: "color-mix(in srgb, var(--accent-red) 10%, var(--bg-surface))",
-        border: "1px solid color-mix(in srgb, var(--accent-red) 35%, transparent)",
-        color: "var(--text-primary)",
+        backgroundColor: "color-mix(in srgb, var(--down) 10%, var(--surface))",
+        border: "1px solid color-mix(in srgb, var(--down) 35%, transparent)",
+        color: "var(--ink)",
       }}
     >
       <div
         className="flex items-start gap-1.5"
-        style={{ color: "var(--accent-red)" }}
+        style={{ color: "var(--down)" }}
       >
         {icon}
         <span className="flex-1 font-medium">{label}</span>
@@ -229,12 +229,12 @@ function SyncErrorRow({
           title="알림 닫기"
           aria-label="알림 닫기"
           className="-mr-1 -mt-0.5 shrink-0 rounded-sm p-0.5"
-          style={{ color: "var(--accent-red)", minHeight: 0 }}
+          style={{ color: "var(--down)", minHeight: 0 }}
         >
           <X className="h-3 w-3" />
         </Button>
       </div>
-      <Text variant="caption" color="secondary" as="p" className="text-[11px] leading-snug">
+      <Text variant="caption" color="secondary" as="p" className="text-2xs leading-snug">
         {detail}
       </Text>
       {action ? (
@@ -242,9 +242,9 @@ function SyncErrorRow({
           variant="ghost"
           size="sm"
           onClick={action.onClick}
-          className="self-start px-2 py-1 text-[11px]"
+          className="self-start px-2 py-1 text-2xs"
           style={{
-            color: "var(--accent-red)",
+            color: "var(--down)",
             textDecoration: "underline",
             minHeight: 0,
           }}

@@ -48,17 +48,17 @@ export function ResponsePasteArea({ onParsed, onError }: Props) {
         placeholder="Claude 응답 붙여넣기..."
         className="w-full resize-y rounded-md px-2 py-1.5 text-xs transition"
         style={{
-          backgroundColor: "var(--bg-surface)",
-          border: `1px solid ${unparsed ? "var(--accent-red)" : "var(--border-default)"}`,
-          color: "var(--text-primary)",
+          backgroundColor: "var(--surface)",
+          border: `1px solid ${unparsed ? "var(--down)" : "var(--line)"}`,
+          color: "var(--ink)",
         }}
       />
       {unparsed ? (
         <Text
           variant="caption"
           as="span"
-          className="text-[11px]"
-          style={{ color: "var(--accent-red-text)" }}
+          className="text-2xs"
+          style={{ color: "var(--down-ink)" }}
         >
           응답 형식 못 알아봄 — 직접 입력
         </Text>

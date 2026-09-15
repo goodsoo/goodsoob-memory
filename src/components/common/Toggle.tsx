@@ -42,12 +42,12 @@ export function Toggle({
       onClick={() => onChange(!checked)}
       title={title}
       className={`inline-flex shrink-0 items-center rounded-full p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${s.track} ${className}`}
-      style={{ background: checked ? "var(--btn-primary)" : "var(--border-default)" }}
+      style={{ background: checked ? "var(--btn-primary)" : "var(--line)" }}
     >
       <span
         className={`shrink-0 rounded-full shadow-sm transition-transform ${s.knob}`}
         style={{
-          background: "var(--bg-surface)",
+          background: "var(--surface)",
           transform: checked ? s.on : "translateX(0)",
         }}
       />

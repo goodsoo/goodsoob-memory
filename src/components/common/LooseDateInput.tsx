@@ -125,7 +125,7 @@ export function LooseDateInput({
       maxLength={10}
       className={`m-0 appearance-none border-0 bg-transparent p-0 leading-none outline-none ${compact ? "text-xs" : "text-sm"}`}
       style={{
-        color: "var(--text-primary)",
+        color: "var(--ink)",
         width: fullWidth ? "100%" : `${widthCh}ch`,
       }}
     />

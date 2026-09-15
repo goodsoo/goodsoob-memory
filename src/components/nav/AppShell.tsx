@@ -115,7 +115,7 @@ export function AppShell({
   return (
     <div
       className="min-h-svh"
-      style={{ paddingTop: "var(--safe-top)", backgroundColor: "var(--bg-base)" }}
+      style={{ paddingTop: "var(--safe-top)", backgroundColor: "var(--bg)" }}
     >
       {/* 데스크탑 윈도우 헤더 — macOS Tauri Overlay titlebar 와 같은 줄.
           좌측 traffic lights padding + 탭 4개 + 우측 빈 drag region.
@@ -129,8 +129,8 @@ export function AppShell({
           left: 0,
           right: 0,
           height: "var(--titlebar-inset)",
-          backgroundColor: "var(--border-default)",
-          borderBottom: "1px solid var(--border-default)",
+          backgroundColor: "var(--line)",
+          borderBottom: "1px solid var(--line)",
           zIndex: 50,
           gap: "0.5rem",
         }}
@@ -150,7 +150,7 @@ export function AppShell({
             aria-label="메뉴 열기"
             aria-expanded={drawer.isOpen}
             className="shrink-0 self-center lg:hidden"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Menu className="h-4 w-4" />
           </Button>
@@ -188,7 +188,7 @@ export function AppShell({
               onClick={() => onOpenSearch()}
               title="검색 (⌘P)"
               aria-label="검색"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             >
               <Search className="h-3.5 w-3.5" />
             </Button>
@@ -198,7 +198,7 @@ export function AppShell({
             onClick={() => setSettingsOpen(true)}
             title="설정"
             aria-label="설정"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Settings className="h-3.5 w-3.5" />
           </Button>
@@ -206,7 +206,7 @@ export function AppShell({
             variant="icon"
             onClick={(e) => toggle({ origin: { x: e.clientX, y: e.clientY } })}
             title={theme === "light" ? "다크 모드로" : "라이트 모드로"}
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <ThemeIcon className="h-3.5 w-3.5" />
           </Button>
@@ -220,8 +220,8 @@ export function AppShell({
             className="relative"
             style={{
               width: `${width}px`,
-              backgroundColor: "var(--bg-surface)",
-              borderRight: "1px solid var(--border-default)",
+              backgroundColor: "var(--surface)",
+              borderRight: "1px solid var(--line)",
             }}
           >
             <div
@@ -232,7 +232,7 @@ export function AppShell({
               {sidePanelFooter ? (
                 <div
                   className="flex shrink-0 items-center px-3 py-2"
-                  style={{ borderTop: "1px solid var(--border-subtle)" }}
+                  style={{ borderTop: "1px solid var(--line-2)" }}
                 >
                   <div className="flex min-w-0 items-center">{sidePanelFooter}</div>
                 </div>
@@ -263,8 +263,8 @@ export function AppShell({
             }`}
             style={{
               width: `${MOBILE_DRAWER_WIDTH}px`,
-              backgroundColor: "var(--bg-surface)",
-              borderRight: "1px solid var(--border-default)",
+              backgroundColor: "var(--surface)",
+              borderRight: "1px solid var(--line)",
               // 항상 떠있는 타이틀바 아래로 드로어 내용이 시작하게 inset 확보.
               paddingTop: "calc(var(--safe-top) + var(--titlebar-inset))",
             }}
@@ -404,8 +404,8 @@ function HeaderTabs({
             aria-label={label}
             className="h-7 gap-1.5 px-2 rounded-none"
             style={{
-              backgroundColor: active ? "var(--bg-base)" : "transparent",
-              color: active ? "var(--text-primary)" : "var(--text-secondary)",
+              backgroundColor: active ? "var(--bg)" : "transparent",
+              color: active ? "var(--ink)" : "var(--sub)",
               marginBottom: active ? "-1px" : 0,
               border: "1px solid transparent",
               borderTopLeftRadius: active ? 6 : 4,
@@ -494,8 +494,8 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
           onClick={() => setOpen((v) => !v)}
           title={vaultRoot}
           aria-label={`vault: ${activeName}`}
-          className="h-7 max-w-full gap-1 px-2 text-[13px]"
-          style={{ color: "var(--text-primary)" }}
+          className="h-7 max-w-full gap-1 px-2 text-sm"
+          style={{ color: "var(--ink)" }}
         >
           <span className="truncate">{activeName}</span>
           <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
@@ -503,8 +503,8 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
       }
       panelClassName="absolute left-0 top-full mt-1 w-60 rounded-md p-1"
       panelStyle={{
-        background: "var(--bg-base)",
-        border: "1px solid var(--border-default)",
+        background: "var(--bg)",
+        border: "1px solid var(--line)",
         boxShadow: "var(--shadow-popover)",
         zIndex: 30,
       }}
@@ -517,8 +517,8 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
             <button
               key={v.id}
               type="button"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)]"
-              style={{ color: "var(--text-primary)" }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+              style={{ color: "var(--ink)" }}
               onClick={async () => {
                 if (!active) await switchVault(v.id);
                 setOpen(false);
@@ -535,13 +535,13 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
       </div>
       <div
         className="my-1 h-px"
-        style={{ background: "var(--border-subtle)" }}
+        style={{ background: "var(--line-2)" }}
         aria-hidden
       />
       <button
         type="button"
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)] disabled:opacity-50"
-        style={{ color: "var(--text-primary)" }}
+        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)] disabled:opacity-50"
+        style={{ color: "var(--ink)" }}
         disabled={busy}
         onClick={handleAddVault}
       >
@@ -550,8 +550,8 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
       </button>
       <button
         type="button"
-        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)]"
-        style={{ color: "var(--text-primary)" }}
+        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+        style={{ color: "var(--ink)" }}
         onClick={() => {
           setOpen(false);
           onOpenSettings();
@@ -561,8 +561,8 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
       </button>
       <button
         type="button"
-        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--bg-surface-hover)]"
-        style={{ color: "var(--text-primary)" }}
+        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+        style={{ color: "var(--ink)" }}
         onClick={() => {
           setOpen(false);
           window.location.hash = "#styleguide";

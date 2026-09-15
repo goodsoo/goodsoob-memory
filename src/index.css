@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Class-based dark mode for Tailwind v4 */
-@custom-variant dark (&:where(.dark, .dark *));
+/* Attribute-based dark mode for Tailwind v4 (canonical: [data-theme=dark]) */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
 /* DESIGN-SYSTEM:tokens-theme START — managed by goodsoob-design-system, do not edit */
@@ -27,38 +27,89 @@
 @layer base {
   /* ── Design Tokens ── */
 
+/* DESIGN-SYSTEM:color START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* 공유 색 파운데이션 — tower 이름·값 기준(진실원본). 중립 surface/ink/sub/faint/line
+       · accent 5변형 · ok/warn/down + soft/line. 이름·값 = goodsoob-tower/src/styles/tokens.css.
+       색과 무관한 크기 스케일은 scale.css, 캔버스(--bg)·앱 로컬 파생은 각 consumer 로컬. */
+    --surface: #ffffff;
+    --surface-2: #f7f9fc;
+    --surface-3: #eef1f6;
+    --line: #e4e8f1;
+    --line-2: #eef1f7;
+    --line-3: #d9deea;
+    --ink: #1d1d1f;
+    --sub: #5c5f68;
+    --faint: #868a94;
+    --dim: #a7aeb8;
+    --dot: #c4ccd5;
+    --tie: #9bb6d6;
+    --accent: #0071e3;
+    --accent-2: #005bbf;
+    --accent-soft: #e8f1fd;
+    --accent-line: #cfe2fb;
+    --accent-ink: #005bbf;
+    --ok: #248a3d;
+    --ok-soft: #e7f4ec;
+    --warn: #c2610a;
+    --warn-soft: #fbeede;
+    --warn-line: #f97316;
+    --down: #d33a2f;
+    --down-soft: #fbe9e7;
+    --down-line: #f3c7c1;
+  }
+
+  :root[data-theme="dark"] {
+    --surface: #161b24;
+    --surface-2: #1c222d;
+    --surface-3: #252d3a;
+    --line: #2b3441;
+    --line-2: #232b36;
+    --line-3: #3a4553;
+    --ink: #eef1f6;
+    --sub: #b0b8c4;
+    --faint: #7c8592;
+    --dim: #5c6572;
+    --dot: #39424f;
+    --tie: #4a6a8f;
+    --accent: #2f8fff;
+    --accent-2: #1f6fd6;
+    --accent-soft: #15263b;
+    --accent-line: #274a72;
+    --accent-ink: #7fbcff;
+    --ok: #3fbf5f;
+    --ok-soft: #122619;
+    --warn: #e0902f;
+    --warn-soft: #2d2211;
+    --warn-line: #fb923c;
+    --down: #ff5a4d;
+    --down-soft: #331810;
+    --down-line: #5a2a22;
+  }
+/* DESIGN-SYSTEM:color END */
+
 /* DESIGN-SYSTEM:tokens START — managed by goodsoob-design-system, do not edit */
   :root {
     color-scheme: light;
 
-    /* Background */
-    --bg-base: #ffffff;
-    --bg-surface: #fafafa;
-    --bg-surface-hover: #f4f4f5;
-    --bg-surface-active: #e4e4e7;
+    /* work 고유·비공유 토큰만. 공유 색 파운데이션은 color.css(tokens 앞 color 블록),
+       크기 스케일은 scale.css(tokens-scale 블록)로 분리됨. 여기엔 캔버스·앱 로컬
+       파생 + work 컴포넌트 전용(speaker·cat·btn·focus·layout·z·opacity·shadow·motion). */
+
+    /* --bg(앱 캔버스)는 앱별 오버라이드 대상 — work 은 카드형이 아니라 본문이
+       캔버스에 직접 얹혀서 흰색 유지 (docs/palette-unification.md). */
+    --bg: #ffffff;
+
+    /* App-local: 캔버스 파생 오버레이·프로스트(캔버스 색에 종속 → 앱 로컬). */
     --bg-overlay: rgba(255, 255, 255, 0.92);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-
-    /* Text */
-    --text-primary: #18181b;
-    --text-secondary: #71717a;
-    --text-muted: #a1a1aa;
     --text-inverse: #ffffff;
 
-    /* Border */
-    --border-default: #e4e4e7;
-    --border-subtle: #f4f4f5;
-
-    /* Accent */
-    --accent-red: #dc2626;
-    --accent-red-bg: #fef2f2;
-    --accent-red-text: #991b1b;
-    --accent-blue: #2563eb;
-    --accent-blue-bg: #eff6ff;
-    --accent-blue-text: #1d4ed8;
-    --accent-green: #16a34a;
+    /* App-local accent/상태 파생 잉크(work 컴포넌트 전용, 파운데이션 아님).
+       tower 이름 체계에 맞춰 down(위험) 계열 잉크로 명명. */
+    --down-ink: #991b1b;
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
     --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
 
@@ -78,7 +129,7 @@
        팔레트: 적힌 순서대로 i%10 배정 → 한 회의 안 10명까지 색 안 겹침. accent 레시피
        동일 (라이트=연한 tint bg + 진한 글자). 순서는 hue 휠 순이 아니라 연속 색이
        최대한 멀어지게 점프 (대부분 2-4명 → 앞 색이 제일 많이 쓰임. 앞 4개=파랑·주황·
-       초록·분홍 보색 쌍, d3/Tableau10 방식). 색 자체 바꾸면 .dark 블록도 같이 수정. */
+       초록·분홍 보색 쌍, d3/Tableau10 방식). 색 자체 바꾸면 [data-theme=dark] 블록도 같이 수정. */
     --speaker-0-bg: #e0f2fe; --speaker-0-text: #0369a1; /* sky */
     --speaker-1-bg: #ffedd5; --speaker-1-text: #c2410c; /* orange */
     --speaker-2-bg: #d1fae5; --speaker-2-text: #047857; /* emerald */
@@ -91,9 +142,9 @@
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
 
     /* Interactive */
-    --btn-primary: #18181b;
+    --btn-primary: #1d1d1f;
     --btn-primary-text: #ffffff;
-    --focus-ring: #3b82f6;
+    --focus-ring: #0071e3;
 
     /* Layout */
     --safe-top: env(safe-area-inset-top);
@@ -144,37 +195,21 @@
     --titlebar-traffic-inset: 80px;
   }
 
-  .dark {
+  :root[data-theme="dark"] {
     color-scheme: dark;
 
-    /* Background */
-    --bg-base: #1a1a1a;
-    --bg-surface: #242424;
-    --bg-surface-hover: #2a2a2a;
-    --bg-surface-active: #333333;
-    --bg-overlay: rgba(26, 26, 26, 0.92);
-    --surface-frost: rgba(30, 30, 30, 0.65);
+    /* --bg(앱 캔버스) 다크 — 앱별 오버라이드. tower 앵커 딥네이비. */
+    --bg: #0c0f16;
+
+    /* App-local: 캔버스 파생 오버레이·프로스트 (dark) */
+    --bg-overlay: rgba(12, 15, 22, 0.92);
+    --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
+    --text-inverse: #1d1d1f;
 
-    /* Text */
-    --text-primary: #e4e4e7;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
-    --text-inverse: #18181b;
-
-    /* Border */
-    --border-default: #3f3f46;
-    --border-subtle: #2a2a2a;
-
-    /* Accent (desaturated for dark) */
-    --accent-red: #f87171;
-    --accent-red-bg: rgba(248, 113, 113, 0.1);
-    --accent-red-text: #fca5a5;
-    --accent-blue: #60a5fa;
-    --accent-blue-bg: rgba(96, 165, 250, 0.1);
-    --accent-blue-text: #93c5fd;
-    --accent-green: #4ade80;
+    /* App-local accent/상태 파생 잉크 (dark) */
+    --down-ink: #fca5a5;
     --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
     --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
 
@@ -214,6 +249,75 @@
   }
 /* DESIGN-SYSTEM:tokens END */
 
+/* DESIGN-SYSTEM:tokens-scale START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* ── Spacing scale ── 값기반 네이밍(이름 = px 값). 하드코딩 px 금지, 전부 이 토큰.
+       4/8/12/16/24 = tower·work·growth 만장일치 · 6 = 조밀 컨트롤(버튼·칩) · 20 = 데이터상
+       tower 27회로 24(18회)보다 빈번 · 32 = 레이아웃/모달 거터. semantic 별칭 안 만들고 직접 참조. */
+    --space-4: 4px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-20: 20px;
+    --space-24: 24px;
+    --space-32: 32px;
+
+    /* ── Radius scale ── 4는 쳐냄(growth focus-outline 단독→6 흡수), 10도 쳐냄(8과 2px차→8 통합). */
+    --radius-6: 6px;        /* 버튼·인풋 */
+    --radius-8: 8px;        /* 카드 (작은·중간 공통) */
+    --radius-16: 16px;      /* 큰 카드·모달 패널 (growth 모달 14 → 16 흡수) */
+    --radius-full: 9999px;  /* pill — 칩·태그 (growth pill 20 → full 흡수) */
+
+    /* ── Icon 글리프 크기 ── */
+    --icon-12: 12px;  /* 칩·배지 내 인라인 (work h-3 최다) */
+    --icon-14: 14px;  /* 컨트롤 내 아이콘 (버튼 라벨 동반) */
+    --icon-16: 16px;  /* 아이콘 전용 버튼 */
+    --icon-20: 20px;  /* 기본 */
+    --icon-24: 24px;  /* 큰 아이콘 */
+
+    /* ── Control height (responsive) ── var(--ctl-h) 쓰는 버튼·아이콘버튼은
+       데스크탑 28 / 터치 44 로 자동 적응. 하단 @media (pointer: coarse) 참조. */
+    --ctl-h: 28px;
+
+    /* ── Type scale ── tower 기준(dense 대시보드). 폰트 배율(--fscale)만 곱해
+       '글자 크기만' 바뀌게(레이아웃/간격 고정, zoom 아님). 값·이름 = tower tokens.css. */
+    --fscale: 1;
+    --fs-3xs: calc(10px * var(--fscale));
+    --fs-2xs: calc(11px * var(--fscale));
+    --fs-xs: calc(12px * var(--fscale));
+    --fs-sm: calc(13px * var(--fscale));
+    --fs-base: calc(14px * var(--fscale));
+    --fs-md: calc(15px * var(--fscale));
+    --fs-lg: calc(17px * var(--fscale));
+    --fs-xl: calc(19px * var(--fscale));
+    --fs-2xl: calc(22px * var(--fscale));
+    --fs-3xl: calc(27px * var(--fscale));
+    --fs-4xl: calc(30px * var(--fscale));
+    --fs-5xl: calc(34px * var(--fscale));
+    --fs-6xl: calc(44px * var(--fscale));
+
+    /* ── Line-height scale ── 읽기 텍스트용(tower 참고: 본문 1.55). */
+    --lh-tight: 1.3;
+    --lh-snug: 1.45;
+    --lh-normal: 1.5;
+    --lh-relaxed: 1.55;
+    --lh-loose: 1.65;
+
+    /* ── Font-weight scale ── */
+    --fw-med: 500;
+    --fw-semi: 600;
+    --fw-bold: 700;
+  }
+
+  /* 터치 기기 = 컨트롤 높이를 44 로. Apple HIG 최소 터치 타깃. */
+  @media (pointer: coarse) {
+    :root {
+      --ctl-h: 44px;
+    }
+  }
+/* DESIGN-SYSTEM:tokens-scale END */
+
   /* ── Base styles ── */
 
   html {
@@ -225,8 +329,8 @@
   }
 
   body {
-    background-color: var(--bg-base);
-    color: var(--text-primary);
+    background-color: var(--bg);
+    color: var(--ink);
     font-family: var(--font-sans);
     font-feature-settings: "ss10";
     -webkit-font-smoothing: antialiased;
@@ -257,21 +361,21 @@
      .meta-input::placeholder 등 명시 클래스는 specificity 가 높아 그대로 유지. */
   input::placeholder,
   textarea::placeholder {
-    color: var(--text-muted);
+    color: var(--faint);
     opacity: 1;
   }
 
   /* portfolio 가이드북 본문 — 일반적인 doc-like 스타일 (tailwind reset 가 list 제거하므로 복원) */
   .guide-body {
-    font-size: 12px;
+    font-size: var(--fs-xs);
     line-height: 1.6;
-    color: var(--text-secondary);
+    color: var(--sub);
   }
   .guide-body p { margin: 0 0 0.5rem; }
   .guide-body p:last-child { margin-bottom: 0; }
-  .guide-body p.muted { color: var(--text-muted); font-size: 11px; }
-  .guide-body strong { color: var(--text-primary); font-weight: 600; }
-  .guide-body em { color: var(--text-primary); font-style: italic; }
+  .guide-body p.muted { color: var(--faint); font-size: var(--fs-2xs); }
+  .guide-body strong { color: var(--ink); font-weight: 600; }
+  .guide-body em { color: var(--ink); font-style: italic; }
   .guide-body ul, .guide-body ol {
     margin: 0.5rem 0;
     padding-left: 1.25rem;
@@ -300,7 +404,7 @@
      데스크탑 전용 전환 (V0.6) 이후 명분 사라져 제거. 모바일 부활 시 필요한
      곳만 컴포넌트 단에서 min-h-11 박는 방향. */
   button:not(:disabled):not([aria-current="page"]):hover {
-    background-color: var(--bg-surface-hover);
+    background-color: var(--surface-2);
   }
 
   /* ── Form elements (token-based) ── */
@@ -311,35 +415,35 @@
     background-repeat: no-repeat;
     background-position: right 6px center;
     padding-right: 22px !important;
-    border-radius: 6px;
-    border: 1px solid var(--border-default);
+    border-radius: var(--radius-6);
+    border: 1px solid var(--line);
     padding: 4px 22px 4px 8px;
-    font-size: 13px;
-    color: var(--text-primary);
-    background-color: var(--bg-surface);
+    font-size: var(--fs-sm);
+    color: var(--ink);
+    background-color: var(--surface);
     transition: border-color 0.15s;
     min-height: 0;
   }
   select:focus {
     outline: none;
-    border-color: var(--text-muted);
+    border-color: var(--faint);
   }
 
   input[type="date"],
   input[type="time"] {
-    border-radius: 6px;
-    border: 1px solid var(--border-default);
+    border-radius: var(--radius-6);
+    border: 1px solid var(--line);
     padding: 4px 8px;
-    font-size: 13px;
-    color: var(--text-primary);
-    background-color: var(--bg-surface);
+    font-size: var(--fs-sm);
+    color: var(--ink);
+    background-color: var(--surface);
     transition: border-color 0.15s;
     min-height: 0;
   }
   input[type="date"]:focus,
   input[type="time"]:focus {
     outline: none;
-    border-color: var(--text-muted);
+    border-color: var(--faint);
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -384,7 +488,7 @@
      flash 끝나면 class 제거 — enter animation 은 이미 끝났으니 재실행 X. */
   @keyframes taskCardFlash {
     0%, 100% { background-color: transparent; }
-    25%, 75% { background-color: var(--accent-blue-bg); }
+    25%, 75% { background-color: var(--accent-soft); }
   }
   .task-card-flash { animation: taskCardFlash 600ms ease; }
 
@@ -398,22 +502,22 @@
     outline: none;
     padding: 0;
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--fs-base);
     line-height: 1.625rem;
-    color: var(--text-primary);
+    color: var(--ink);
     font-family: inherit;
     min-width: 0;
   }
-  .meta-input::placeholder { color: var(--text-muted); }
+  .meta-input::placeholder { color: var(--faint); }
 
   /* meta row focus-within 강조 — 옵시디안 properties 의 row hover 패턴 */
   .meta-row {
-    border-radius: 0.375rem;
+    border-radius: var(--radius-6);
     transition: background-color 120ms ease;
   }
   .meta-row:focus-within {
-    background-color: var(--bg-surface);
-    box-shadow: inset 0 0 0 1px var(--border-default);
+    background-color: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
   }
 }
 

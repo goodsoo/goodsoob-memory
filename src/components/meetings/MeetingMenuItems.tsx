@@ -38,7 +38,7 @@ export function MeetingMenuItems({
             className="h-3.5 w-3.5 shrink-0"
             fill={pinned ? "var(--accent-yellow)" : "none"}
             style={{
-              color: pinned ? "var(--accent-yellow)" : "var(--text-muted)",
+              color: pinned ? "var(--accent-yellow)" : "var(--faint)",
             }}
           />
         }
@@ -49,7 +49,7 @@ export function MeetingMenuItems({
         icon={
           <FolderInput
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         }
         onClick={onMove}
@@ -60,7 +60,7 @@ export function MeetingMenuItems({
         icon={
           <ClipboardCopy
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         }
         onClick={onCopy}
@@ -70,7 +70,7 @@ export function MeetingMenuItems({
         icon={
           <Download
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           />
         }
         onClick={onExport}
@@ -91,7 +91,7 @@ function MenuDivider() {
   return (
     <div
       className="my-1 h-px"
-      style={{ backgroundColor: "var(--border-default)" }}
+      style={{ backgroundColor: "var(--line)" }}
     />
   );
 }
@@ -117,7 +117,7 @@ export function MenuItem({
       disabled={disabled}
       className="w-full justify-start gap-2 rounded-none px-3 py-1.5 font-normal disabled:opacity-40"
       style={{
-        color: danger ? "var(--accent-red-text)" : "var(--text-primary)",
+        color: danger ? "var(--down-ink)" : "var(--ink)",
       }}
     >
       {icon}

@@ -779,7 +779,7 @@ export function MeetingForm({
           icon={
             <AlertCircle
               className="h-12 w-12"
-              style={{ color: "var(--accent-red)" }}
+              style={{ color: "var(--down)" }}
               strokeWidth={1.25}
             />
           }
@@ -799,9 +799,9 @@ export function MeetingForm({
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-16">
         <div className="space-y-4" aria-hidden>
-          <div className="h-10 w-48 animate-pulse rounded" style={{ backgroundColor: "var(--bg-surface)" }} />
-          <div className="h-6 w-32 animate-pulse rounded" style={{ backgroundColor: "var(--bg-surface)" }} />
-          <div className="h-64 animate-pulse rounded" style={{ backgroundColor: "var(--bg-surface)" }} />
+          <div className="h-10 w-48 animate-pulse rounded" style={{ backgroundColor: "var(--surface)" }} />
+          <div className="h-6 w-32 animate-pulse rounded" style={{ backgroundColor: "var(--surface)" }} />
+          <div className="h-64 animate-pulse rounded" style={{ backgroundColor: "var(--surface)" }} />
         </div>
       </div>
     );
@@ -869,7 +869,7 @@ export function MeetingForm({
 
   // 활성 탭 밑줄 색 — 편집 모드면 파랑(ModeChip 과 통일), 보기 모드면 모노톤.
   const tabAccentColor =
-    viewMode === "edit" ? "var(--accent-blue-text)" : "var(--text-primary)";
+    viewMode === "edit" ? "var(--accent-ink)" : "var(--ink)";
 
   // 활성 탭 글자수 — 에디터 하단 우측 sticky chip 으로 표시 (헤더 컨트롤 클러스터에서 분리).
   const activeCount =
@@ -920,7 +920,7 @@ export function MeetingForm({
           <>
             <div
               className="inline-flex overflow-hidden rounded-md"
-              style={{ border: "1px solid var(--border-subtle)" }}
+              style={{ border: "1px solid var(--line-2)" }}
             >
               <Button
                 variant="ghost"
@@ -931,7 +931,7 @@ export function MeetingForm({
                 disabled={!docHistory.canUndo}
                 title={`실행 취소 (${activeTab === "body" ? "메모" : activeTab === "transcript" ? "음성 기록" : "요약"})`}
                 className="rounded-none px-1.5 py-1 disabled:opacity-20"
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
               >
                 <Undo2 className="h-3.5 w-3.5" />
               </Button>
@@ -944,7 +944,7 @@ export function MeetingForm({
                 disabled={!docHistory.canRedo}
                 title={`다시 실행 (${activeTab === "body" ? "메모" : activeTab === "transcript" ? "음성 기록" : "요약"})`}
                 className="rounded-none px-1.5 py-1 disabled:opacity-20"
-                style={{ color: "var(--text-secondary)", borderLeft: "1px solid var(--border-subtle)" }}
+                style={{ color: "var(--sub)", borderLeft: "1px solid var(--line-2)" }}
               >
                 <Redo2 className="h-3.5 w-3.5" />
               </Button>
@@ -981,7 +981,7 @@ export function MeetingForm({
             autoFocus={!data.title}
             className="min-w-0 bg-transparent text-center text-base font-semibold outline-none"
             style={{
-              color: "var(--text-primary)",
+              color: "var(--ink)",
               fieldSizing: "content",
               maxWidth: "min(100%, 28rem)",
               textOverflow: "ellipsis",
@@ -1022,13 +1022,13 @@ export function MeetingForm({
                 backgroundColor: "var(--surface-frost)",
                 border: "1px solid var(--surface-frost-border)",
                 boxShadow: "var(--surface-frost-shadow)",
-                color: "var(--text-primary)",
+                color: "var(--ink)",
               }}
             >
               <div className="flex items-center gap-2">
                 <Ban
                   className="h-4 w-4 shrink-0"
-                  style={{ color: "var(--accent-red)" }}
+                  style={{ color: "var(--down)" }}
                 />
                 <span className="min-w-0 flex-1 truncate font-semibold">
                   자동 저장 실패
@@ -1039,7 +1039,7 @@ export function MeetingForm({
                   title="닫기"
                   aria-label="닫기"
                   className="shrink-0 p-0.5"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
@@ -1066,10 +1066,10 @@ export function MeetingForm({
                   title="에러 메시지 복사"
                   aria-label="에러 메시지 복사"
                   className="p-1.5"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   {copiedToast === "update" ? (
-                    <Check className="h-3.5 w-3.5" style={{ color: "var(--accent-green)" }} />
+                    <Check className="h-3.5 w-3.5" style={{ color: "var(--ok)" }} />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -1093,13 +1093,13 @@ export function MeetingForm({
                 backgroundColor: "var(--surface-frost)",
                 border: "1px solid var(--surface-frost-border)",
                 boxShadow: "var(--surface-frost-shadow)",
-                color: "var(--text-primary)",
+                color: "var(--ink)",
               }}
             >
               <div className="flex items-center gap-2">
                 <Ban
                   className="h-4 w-4 shrink-0"
-                  style={{ color: "var(--accent-red)" }}
+                  style={{ color: "var(--down)" }}
                 />
                 <span className="min-w-0 flex-1 truncate font-semibold">
                   ERROR
@@ -1110,7 +1110,7 @@ export function MeetingForm({
                   title="닫기"
                   aria-label="닫기"
                   className="shrink-0 p-0.5"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
@@ -1130,10 +1130,10 @@ export function MeetingForm({
                   title="에러 메시지 복사"
                   aria-label="에러 메시지 복사"
                   className="p-1.5"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   {copiedToast === "action" ? (
-                    <Check className="h-3.5 w-3.5" style={{ color: "var(--accent-green)" }} />
+                    <Check className="h-3.5 w-3.5" style={{ color: "var(--ok)" }} />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -1152,7 +1152,7 @@ export function MeetingForm({
           <div
             className="flex items-center justify-between backdrop-blur"
             style={{
-              borderBottom: "1px solid var(--border-subtle)",
+              borderBottom: "1px solid var(--line-2)",
               backgroundColor: "var(--bg-overlay)",
             }}
           >
@@ -1206,7 +1206,7 @@ export function MeetingForm({
               {hasTabActions ? (
                 <div
                   className="mx-0.5 h-4 w-px"
-                  style={{ backgroundColor: "var(--border-default)" }}
+                  style={{ backgroundColor: "var(--line)" }}
                 />
               ) : null}
               {/* 세 탭 모두 편집/보기 토글 (음성 기록 보기 = 읽기 전용 + 참석자 하이라이트). */}
@@ -1444,7 +1444,7 @@ export function MeetingForm({
                 icon={
                   <Sparkles
                     className="h-12 w-12"
-                    style={{ color: "var(--text-muted)" }}
+                    style={{ color: "var(--faint)" }}
                     strokeWidth={1.25}
                   />
                 }
@@ -1483,7 +1483,7 @@ export function MeetingForm({
               className="rounded-md px-2 py-0.5 text-xs backdrop-blur"
               style={{
                 backgroundColor: "var(--bg-overlay)",
-                color: "var(--text-muted)",
+                color: "var(--faint)",
               }}
             >
               {activeCount.toLocaleString("ko-KR")}자
@@ -1566,19 +1566,19 @@ function MetaRow({
         className="flex shrink-0 items-center justify-center"
         style={{
           width: "1.75rem",
-          color: "var(--text-muted)",
-          borderRight: "1px solid var(--border-subtle)",
+          color: "var(--faint)",
+          borderRight: "1px solid var(--line-2)",
         }}
       >
         {icon}
       </div>
       <div
         className="flex flex-1 items-center gap-3 text-sm"
-        style={{ paddingLeft: "0.5rem", color: "var(--text-primary)" }}
+        style={{ paddingLeft: "0.5rem", color: "var(--ink)" }}
       >
         <span
           className="shrink-0"
-          style={{ color: "var(--text-muted)", width: "3.5rem" }}
+          style={{ color: "var(--faint)", width: "3.5rem" }}
         >
           {label}
         </span>
@@ -1626,8 +1626,8 @@ function MetaReadOnly({ meta, boxed }: { meta: MetaDoc; boxed?: boolean }) {
       <div
         className="rounded-lg"
         style={{
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-subtle)",
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--line-2)",
           padding: "0.5rem 0.75rem",
           marginTop: "calc(-0.5rem - 1px)",
           marginLeft: "calc(-0.75rem - 1px)",
@@ -1655,17 +1655,17 @@ function EmptyBodyCTA({ onStartEdit }: { onStartEdit: () => void }) {
       className="group flex-col w-full justify-center gap-3 rounded-lg text-center"
       style={{
         minHeight: "60vh",
-        border: "1px dashed var(--border-subtle)",
-        color: "var(--text-muted)",
+        border: "1px dashed var(--line-2)",
+        color: "var(--faint)",
         backgroundColor: "transparent",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "var(--bg-surface)";
-        e.currentTarget.style.color = "var(--text-secondary)";
+        e.currentTarget.style.backgroundColor = "var(--surface)";
+        e.currentTarget.style.color = "var(--sub)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = "transparent";
-        e.currentTarget.style.color = "var(--text-muted)";
+        e.currentTarget.style.color = "var(--faint)";
       }}
     >
       <Pencil className="h-6 w-6" />
@@ -1677,9 +1677,9 @@ function EmptyBodyCTA({ onStartEdit }: { onStartEdit: () => void }) {
           <span>또는</span>
           <Kbd
             style={{
-              borderColor: "var(--border-subtle)",
-              color: "var(--text-muted)",
-              backgroundColor: "var(--bg-surface)",
+              borderColor: "var(--line-2)",
+              color: "var(--faint)",
+              backgroundColor: "var(--surface)",
             }}
           >
             ⌘⇧E
@@ -1697,7 +1697,7 @@ function TabBtn({
   onBadgeClick,
   badgeTitle,
   active,
-  accentColor = "var(--text-primary)",
+  accentColor = "var(--ink)",
   onClick,
 }: {
   label: string;
@@ -1718,7 +1718,7 @@ function TabBtn({
       aria-current={active ? "page" : undefined}
       className="rounded-none px-3 py-2"
       style={{
-        color: active ? "var(--text-primary)" : "var(--text-secondary)",
+        color: active ? "var(--ink)" : "var(--sub)",
         borderBottom: active
           ? `2px solid ${accentColor}`
           : "2px solid transparent",
@@ -1756,11 +1756,11 @@ function TabBtn({
           className="rounded-md px-1.5 py-0.5"
           style={{
             backgroundColor: badgeAccent
-              ? "var(--accent-blue-bg)"
-              : "var(--bg-surface-hover)",
+              ? "var(--accent-soft)"
+              : "var(--surface-2)",
             color: badgeAccent
-              ? "var(--accent-blue-text)"
-              : "var(--text-secondary)",
+              ? "var(--accent-ink)"
+              : "var(--sub)",
             fontWeight: 400,
             cursor: onBadgeClick ? "pointer" : undefined,
           }}
@@ -1878,7 +1878,7 @@ function TranscriptArea({
           autoCapitalize="off"
           spellCheck={false}
           style={{
-            color: "var(--text-primary)",
+            color: "var(--ink)",
             overflowY: "hidden",
           }}
         />
@@ -1967,7 +1967,7 @@ function TranscriptView({
       className="text-base leading-relaxed"
       style={{
         minHeight: "60vh",
-        color: "var(--text-primary)",
+        color: "var(--ink)",
         whiteSpace: "pre-wrap",
         overflowWrap: "anywhere",
         // 보기 모드 음성 기록도 외부 복사 주 경로 — body { user-select: none } 를
@@ -2000,8 +2000,8 @@ function TranscriptView({
               key={i}
               className="rounded px-1 py-0.5 font-mono"
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                color: "var(--text-primary)",
+                backgroundColor: "var(--surface-2)",
+                color: "var(--ink)",
               }}
             >
               {seg.text}

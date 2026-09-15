@@ -28,16 +28,16 @@ export function FilterItem({
     <Button
       variant="ghost"
       onClick={onClick}
-      className={`w-full justify-between gap-2 px-2 py-1 text-[13px] ${
+      className={`w-full justify-between gap-2 px-2 py-1 text-sm ${
         active ? "font-medium" : ""
       }`}
       style={{
-        backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: active ? "var(--surface-3)" : undefined,
         color: muted
-          ? "var(--text-muted)"
+          ? "var(--faint)"
           : active
-            ? "var(--text-primary)"
-            : "var(--text-secondary)",
+            ? "var(--ink)"
+            : "var(--sub)",
       }}
     >
       <span className="inline-flex min-w-0 items-center gap-2">
@@ -53,9 +53,9 @@ export function FilterItem({
       </span>
       {typeof count === "number" ? (
         <span
-          className="text-[11px] tabular-nums"
+          className="text-2xs tabular-nums"
           style={{
-            color: active ? "var(--text-secondary)" : "var(--text-muted)",
+            color: active ? "var(--sub)" : "var(--faint)",
           }}
         >
           {count}

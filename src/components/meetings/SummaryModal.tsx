@@ -252,7 +252,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
           </div>
           <div
             className="mt-3 flex gap-1 px-5"
-            style={{ borderBottom: "1px solid var(--border-subtle)" }}
+            style={{ borderBottom: "1px solid var(--line-2)" }}
           >
             <TabBtn
               label="자동 요약"
@@ -307,7 +307,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
               {requesting ? (
                 <div
                   className="flex flex-col gap-1.5 rounded-md p-3"
-                  style={{ backgroundColor: "var(--bg-surface)" }}
+                  style={{ backgroundColor: "var(--surface)" }}
                 >
                   <div className="flex items-center gap-2">
                     <Spinner size="md" />
@@ -340,10 +340,10 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
                 <Text
                   variant="caption"
                   as="div"
-                  className="rounded-md px-2.5 py-1.5 text-[12px] leading-relaxed whitespace-pre-line"
+                  className="rounded-md px-2.5 py-1.5 text-xs leading-relaxed whitespace-pre-line"
                   style={{
-                    backgroundColor: "var(--accent-red-bg)",
-                    color: "var(--accent-red-text)",
+                    backgroundColor: "var(--down-soft)",
+                    color: "var(--down-ink)",
                   }}
                 >
                   {autoError}
@@ -370,8 +370,8 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
                   <div
                     className="rounded-md p-3"
                     style={{
-                      backgroundColor: "var(--bg-surface-hover)",
-                      border: "1px solid var(--border-default)",
+                      backgroundColor: "var(--surface-2)",
+                      border: "1px solid var(--line)",
                     }}
                   >
                     <MarkdownView content={suggestion} />
@@ -382,7 +382,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
 
             <div
               className="flex shrink-0 items-center justify-end gap-2 px-5 py-3"
-              style={{ borderTop: "1px solid var(--border-subtle)" }}
+              style={{ borderTop: "1px solid var(--line-2)" }}
             >
               <Button
                 variant="secondary"
@@ -466,17 +466,17 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
                   placeholder="Claude 응답을 붙여넣으세요"
                   className="min-h-[8rem] w-full flex-1 resize-none rounded-md px-2.5 py-2 text-sm transition"
                   style={{
-                    backgroundColor: "var(--bg-surface)",
-                    border: `1px solid ${pasteError ? "var(--accent-red)" : "var(--border-default)"}`,
-                    color: "var(--text-primary)",
+                    backgroundColor: "var(--surface)",
+                    border: `1px solid ${pasteError ? "var(--down)" : "var(--line)"}`,
+                    color: "var(--ink)",
                   }}
                 />
                 {pasteError ? (
                   <Text
                     variant="caption"
                     as="span"
-                    className="text-[11px]"
-                    style={{ color: "var(--accent-red-text)" }}
+                    className="text-2xs"
+                    style={{ color: "var(--down-ink)" }}
                   >
                     {pasteError}
                   </Text>
@@ -486,7 +486,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
 
             <div
               className="flex shrink-0 items-center justify-end gap-2 px-5 py-3"
-              style={{ borderTop: "1px solid var(--border-subtle)" }}
+              style={{ borderTop: "1px solid var(--line-2)" }}
             >
               <Button
                 variant="secondary"
@@ -531,11 +531,11 @@ function TemplateChip({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className="rounded-full px-2.5 py-1 text-[12px] transition disabled:cursor-not-allowed disabled:opacity-50"
+      className="rounded-full px-2.5 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50"
       style={{
-        backgroundColor: active ? "var(--bg-surface-hover)" : "transparent",
-        border: `1px solid ${active ? "var(--border-default)" : "var(--border-subtle)"}`,
-        color: active ? "var(--text-primary)" : "var(--text-secondary)",
+        backgroundColor: active ? "var(--surface-2)" : "transparent",
+        border: `1px solid ${active ? "var(--line)" : "var(--line-2)"}`,
+        color: active ? "var(--ink)" : "var(--sub)",
         fontWeight: active ? 600 : 400,
       }}
     >
@@ -562,9 +562,9 @@ function TabBtn({
       aria-current={active ? "page" : undefined}
       className="gap-1.5 rounded-none px-3 py-2"
       style={{
-        color: active ? "var(--text-primary)" : "var(--text-secondary)",
+        color: active ? "var(--ink)" : "var(--sub)",
         borderBottom: active
-          ? "2px solid var(--text-primary)"
+          ? "2px solid var(--ink)"
           : "2px solid transparent",
         marginBottom: "-1px",
         fontWeight: active ? 600 : 400,

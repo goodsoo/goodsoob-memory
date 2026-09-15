@@ -53,13 +53,13 @@ export function VaultDisconnected({ from }: Props) {
   return (
     <main
       className="flex min-h-svh items-center justify-center px-6"
-      style={{ background: "var(--bg-base)" }}
+      style={{ background: "var(--bg)" }}
     >
       <div
         className="w-full max-w-md rounded-xl p-6"
         style={{
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          background: "var(--surface)",
+          border: "1px solid var(--line)",
         }}
       >
         <Text variant="h2" weight="bold" as="h1" className="mb-2">
@@ -76,8 +76,8 @@ export function VaultDisconnected({ from }: Props) {
           as="div"
           className="mb-5 break-all rounded px-3 py-2"
           style={{
-            background: "var(--bg-base)",
-            border: "1px solid var(--border-default)",
+            background: "var(--bg)",
+            border: "1px solid var(--line)",
           }}
         >
           이전 vault: <span className="font-mono">{from}</span>
@@ -108,9 +108,9 @@ export function VaultDisconnected({ from }: Props) {
             as="div"
             className="mt-3 rounded px-3 py-2"
             style={{
-              color: "var(--accent-red)",
-              background: "var(--bg-base)",
-              border: "1px solid var(--accent-red)",
+              color: "var(--down)",
+              background: "var(--bg)",
+              border: "1px solid var(--down)",
             }}
           >
             {error}

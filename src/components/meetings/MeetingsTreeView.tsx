@@ -340,11 +340,11 @@ function RootDropZone({
         margin: "0",
         padding: "0",
         minHeight: isDragging && isEmpty ? "32px" : undefined,
-        backgroundColor: activeAllowed ? "var(--bg-surface-active)" : undefined,
+        backgroundColor: activeAllowed ? "var(--surface-3)" : undefined,
         outline: isDragging
           ? activeAllowed
             ? "1px dashed var(--btn-primary)"
-            : "1px dashed var(--border-subtle)"
+            : "1px dashed var(--line-2)"
           : undefined,
         outlineOffset: "0px",
         cursor: isDropTarget && !dropAllowed ? "not-allowed" : undefined,
@@ -449,20 +449,20 @@ function FolderItem({
           onDragOver={(e) => onDragOverFolder(e, node.path)}
           onDragLeave={() => onDragLeaveFolder(node.path)}
           onDrop={(e) => onDropFolder(e, node.path)}
-          className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-[13px] font-normal"
+          className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
           style={
             {
               paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
-              color: "var(--text-secondary)",
+              color: "var(--sub)",
               opacity: isBeingDragged ? 0.5 : 1,
               backgroundColor: activeAllowed
-                ? "var(--bg-surface-active)"
+                ? "var(--surface-3)"
                 : undefined,
               // valid = primary 점선, blocked(자기·자손·현재 부모) = red 점선 + not-allowed.
               outline: activeAllowed
                 ? "1px dashed var(--btn-primary)"
                 : activeBlocked
-                  ? "1px dashed var(--accent-red-text)"
+                  ? "1px dashed var(--down-ink)"
                   : undefined,
               outlineOffset: "-2px",
               cursor: activeBlocked ? "not-allowed" : undefined,
@@ -477,12 +477,12 @@ function FolderItem({
           {isCollapsed ? (
             <ChevronRight
               className="h-3 w-3 shrink-0"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             />
           ) : (
             <ChevronDown
               className="h-3 w-3 shrink-0"
-              style={{ color: "var(--text-secondary)" }}
+              style={{ color: "var(--sub)" }}
             />
           )}
           <span className="min-w-0 flex-1 truncate">{node.name}</span>
@@ -506,7 +506,7 @@ function FolderItem({
             className={`h-4 w-4 shrink-0 items-center justify-center rounded group-hover:inline-flex ${
               isContextTarget ? "inline-flex" : "hidden"
             }`}
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </span>
@@ -530,7 +530,7 @@ function FolderItem({
             className="pointer-events-none absolute top-0 bottom-0 w-px"
             style={{
               left: "14px",
-              backgroundColor: "var(--border-default)",
+              backgroundColor: "var(--line)",
             }}
           />
           {/* 정렬과 무관하게 sub-folder 가 항상 먼저, 그 다음 메모. 옵시디안과 동일.
@@ -611,22 +611,22 @@ function FolderRowEditing({
   }, []);
   return (
     <div
-      className="flex w-full min-w-0 items-center gap-1.5 rounded py-1 pr-2 text-[13px]"
+      className="flex w-full min-w-0 items-center gap-1.5 rounded py-1 pr-2 text-sm"
       style={{
         paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
-        backgroundColor: "var(--bg-surface-active)",
+        backgroundColor: "var(--surface-3)",
         minHeight: 0,
       }}
     >
       {isCollapsed ? (
         <ChevronRight
           className="h-3 w-3 shrink-0"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         />
       ) : (
         <ChevronDown
           className="h-3 w-3 shrink-0"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         />
       )}
       <input
@@ -645,10 +645,10 @@ function FolderRowEditing({
         }}
         onBlur={() => onCommit?.()}
         disabled={pending}
-        className="h-5 min-w-0 flex-1 appearance-none rounded border-0 bg-transparent p-0 text-[13px] font-medium leading-5 outline-none"
+        className="h-5 min-w-0 flex-1 appearance-none rounded border-0 bg-transparent p-0 text-sm font-medium leading-5 outline-none"
         style={{
-          color: "var(--text-primary)",
-          boxShadow: "0 0 0 1px var(--border-default) inset",
+          color: "var(--ink)",
+          boxShadow: "0 0 0 1px var(--line) inset",
           paddingInline: "4px",
         }}
       />
@@ -697,12 +697,12 @@ function MeetingRow({
         }}
         onDragStart={(e) => onDragStart(e, meeting.uid)}
         onDragEnd={onDragEnd}
-        className="w-full justify-start gap-1.5 rounded py-1 pr-2 text-[13px] font-normal"
+        className="w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
         style={
           {
             paddingLeft: `${ROW_BASE_PAD_LEFT + TITLE_OFFSET}px`,
-            backgroundColor: selected ? "var(--bg-surface-active)" : undefined,
-            color: "var(--text-primary)",
+            backgroundColor: selected ? "var(--surface-3)" : undefined,
+            color: "var(--ink)",
             opacity: isDragging ? 0.5 : 1,
             boxShadow: isContextTarget
               ? "inset 0 0 0 1.5px var(--focus-ring)"
@@ -720,7 +720,7 @@ function MeetingRow({
             variant="caption"
             color="muted"
             as="span"
-            className="shrink-0 pl-2 text-[11px] tabular-nums"
+            className="shrink-0 pl-2 text-2xs tabular-nums"
           >
             {meta}
           </Text>

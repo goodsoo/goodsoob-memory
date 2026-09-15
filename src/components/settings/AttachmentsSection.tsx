@@ -86,7 +86,7 @@ export function AttachmentsSection() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Text variant="body" as="p" style={{ color: "var(--text-secondary)" }}>
+        <Text variant="body" as="p" style={{ color: "var(--sub)" }}>
           본문에서 지워도 vault 안 이미지 파일은 남습니다. 활성 메모와 휴지통
           어디서도 참조하지 않는 첨부만 정리합니다.
         </Text>
@@ -95,7 +95,7 @@ export function AttachmentsSection() {
       {loading ? (
         <div className="flex items-center gap-2">
           <Spinner size="sm" />
-          <Text variant="caption" style={{ color: "var(--text-muted)" }}>
+          <Text variant="caption" style={{ color: "var(--faint)" }}>
             첨부를 검사하고 있습니다.
           </Text>
         </div>
@@ -103,8 +103,8 @@ export function AttachmentsSection() {
         <div
           className="rounded-md p-3"
           style={{
-            background: "var(--accent-red-bg)",
-            color: "var(--accent-red-text)",
+            background: "var(--down-soft)",
+            color: "var(--down-ink)",
           }}
         >
           <Text variant="caption">
@@ -123,8 +123,8 @@ export function AttachmentsSection() {
         <div
           className="flex items-center gap-2 rounded-md p-3"
           style={{
-            background: "var(--bg-surface)",
-            color: "var(--text-secondary)",
+            background: "var(--surface)",
+            color: "var(--sub)",
           }}
         >
           <ImageOff className="h-4 w-4" />
@@ -149,15 +149,15 @@ export function AttachmentsSection() {
           <ul
             className="flex max-h-64 flex-col gap-1 overflow-y-auto rounded-md p-2 font-mono"
             style={{
-              background: "var(--bg-surface)",
-              fontSize: "0.75rem",
-              color: "var(--text-secondary)",
+              background: "var(--surface)",
+              fontSize: "var(--fs-xs)",
+              color: "var(--sub)",
             }}
           >
             {rows.map((r) => (
               <li key={r.path} className="flex items-baseline justify-between gap-3">
                 <span className="truncate">{r.path}</span>
-                <span className="shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>
+                <span className="shrink-0 tabular-nums" style={{ color: "var(--faint)" }}>
                   {formatBytes(r.size)}
                 </span>
               </li>
@@ -170,11 +170,11 @@ export function AttachmentsSection() {
         <div
           className="rounded-md p-3"
           style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
+            background: "var(--surface)",
+            border: "1px solid var(--line)",
           }}
         >
-          <Text variant="caption" as="p" style={{ color: "var(--text-primary)" }}>
+          <Text variant="caption" as="p" style={{ color: "var(--ink)" }}>
             {rows.length}개 첨부 ({formatBytes(totalSize)}) 를 영구 삭제합니다.
             되돌릴 수 없습니다.
           </Text>

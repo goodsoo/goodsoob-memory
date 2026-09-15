@@ -36,11 +36,11 @@ export function AuthGuideModal({
       {/* 헤더 */}
       <div
         className="flex shrink-0 items-center gap-2 px-5 py-3"
-        style={{ borderBottom: "1px solid var(--border-default)" }}
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
         <KeyRound
           className="h-4 w-4"
-          style={{ color: "var(--text-secondary)" }}
+          style={{ color: "var(--sub)" }}
         />
         <Text variant="body" weight="semibold" as="h2">
           GitHub 로그인
@@ -51,7 +51,7 @@ export function AuthGuideModal({
           title="닫기  ESC"
           aria-label="닫기"
           className="ml-auto"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -74,7 +74,7 @@ export function AuthGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-2 text-[11px] leading-relaxed"
+            className="mt-2 text-2xs leading-relaxed"
           >
             대화형 안내가 뜸 — <strong>GitHub.com</strong> → <strong>HTTPS</strong> →{" "}
             <strong>Login with a web browser</strong> 권장. 일회용 코드가 표시되고
@@ -96,7 +96,7 @@ export function AuthGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-2 text-[11px] leading-relaxed"
+            className="mt-2 text-2xs leading-relaxed"
           >
             여러 계정을 동시에 두고 전환만 하려면{" "}
             <code className="font-mono">gh auth switch</code> (gh 2.40+).
@@ -115,7 +115,7 @@ export function AuthGuideModal({
               variant="caption"
               color="muted"
               as="p"
-              className="mt-2 text-[11px]"
+              className="mt-2 text-2xs"
             >
               GitHub.com 계정과 별개로 저장돼 둘 다 로그인 가능.
             </Text>
@@ -134,7 +134,7 @@ export function AuthGuideModal({
       {/* footer */}
       <div
         className="flex shrink-0 items-center justify-end gap-2 px-5 py-3"
-        style={{ borderTop: "1px solid var(--border-default)" }}
+        style={{ borderTop: "1px solid var(--line)" }}
       >
         <Button variant="secondary" onClick={onClose}>
           닫기
@@ -165,10 +165,10 @@ function Section({
     <section className="mb-5 last:mb-0">
       <div className="mb-2 flex items-baseline gap-2">
         <span
-          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold"
           style={{
-            backgroundColor: "var(--bg-surface-active)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface-3)",
+            color: "var(--ink)",
           }}
         >
           {stepNumber}

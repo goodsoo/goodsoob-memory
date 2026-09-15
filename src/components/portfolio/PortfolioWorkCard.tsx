@@ -81,16 +81,16 @@ export function PortfolioWorkCard({ work }: Props) {
       <div
         className="relative flex w-full items-stretch gap-3 rounded-lg p-3"
         style={{
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--line)",
           opacity: 0.7,
         }}
       >
         <div
           className="flex h-[72px] w-24 shrink-0 items-center justify-center overflow-hidden rounded-md"
           style={{
-            backgroundColor: "var(--bg-surface-hover)",
-            border: "1px solid var(--border-subtle)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--line-2)",
           }}
         >
           {firstScreenshot ? (
@@ -110,7 +110,7 @@ export function PortfolioWorkCard({ work }: Props) {
             as="span"
             className="line-clamp-2 leading-snug"
             style={{
-              color: isEmpty ? "var(--text-muted)" : "var(--text-primary)",
+              color: isEmpty ? "var(--faint)" : "var(--ink)",
               fontStyle: isEmpty ? "italic" : "normal",
               fontWeight: isEmpty ? 500 : 600,
             }}
@@ -123,7 +123,7 @@ export function PortfolioWorkCard({ work }: Props) {
             color="secondary"
             as="span"
             truncate
-            className="font-mono text-[11px]"
+            className="font-mono text-2xs"
             title={fm.github_title}
           >
             {fm.github_title}
@@ -141,7 +141,7 @@ export function PortfolioWorkCard({ work }: Props) {
               {categoryLabel}
             </Chip>
             <Chip
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
               title={`변경: +${fm.github_additions} −${fm.github_deletions} · ${fm.github_changed_files} files`}
             >
               +{fm.github_additions} −{fm.github_deletions}
@@ -155,8 +155,8 @@ export function PortfolioWorkCard({ work }: Props) {
               leftIcon={<Eye className="h-3.5 w-3.5" />}
               className="whitespace-nowrap"
               style={{
-                backgroundColor: "var(--bg-surface-hover)",
-                color: "var(--text-primary)",
+                backgroundColor: "var(--surface-2)",
+                color: "var(--ink)",
               }}
               title="평가 자료에 포함"
             >
@@ -169,9 +169,9 @@ export function PortfolioWorkCard({ work }: Props) {
               leftIcon={<Trash2 className="h-3.5 w-3.5" />}
               className="whitespace-nowrap"
               style={{
-                backgroundColor: "var(--accent-red-bg)",
-                color: "var(--accent-red-text)",
-                border: "1px solid var(--accent-red)",
+                backgroundColor: "var(--down-soft)",
+                color: "var(--down-ink)",
+                border: "1px solid var(--down)",
               }}
               title="휴지통으로 보내기"
             >
@@ -195,19 +195,19 @@ export function PortfolioWorkCard({ work }: Props) {
             setModalOpen(true);
           }
         }}
-        className="group relative flex w-full cursor-pointer items-stretch gap-3 rounded-lg p-3 pr-9 text-left transition hover:border-[var(--text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+        className="group relative flex w-full cursor-pointer items-stretch gap-3 rounded-lg p-3 pr-9 text-left transition hover:border-[var(--faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
         style={{
-          backgroundColor: "var(--bg-surface)",
+          backgroundColor: "var(--surface)",
           border: isEmpty
-            ? "1px dashed var(--border-default)"
-            : "1px solid var(--border-default)",
+            ? "1px dashed var(--line)"
+            : "1px solid var(--line)",
         }}
       >
         <div
           className="flex h-[72px] w-24 shrink-0 items-center justify-center overflow-hidden rounded-md"
           style={{
-            backgroundColor: "var(--bg-surface-hover)",
-            border: "1px solid var(--border-subtle)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--line-2)",
           }}
         >
           {firstScreenshot ? (
@@ -228,7 +228,7 @@ export function PortfolioWorkCard({ work }: Props) {
             as="span"
             className="line-clamp-2 leading-snug"
             style={{
-              color: isEmpty ? "var(--text-muted)" : "var(--text-primary)",
+              color: isEmpty ? "var(--faint)" : "var(--ink)",
               fontStyle: isEmpty ? "italic" : "normal",
               fontWeight: isEmpty ? 500 : 600,
             }}
@@ -241,7 +241,7 @@ export function PortfolioWorkCard({ work }: Props) {
             color="secondary"
             as="span"
             truncate
-            className="font-mono text-[11px]"
+            className="font-mono text-2xs"
             title={fm.github_title}
           >
             {fm.github_title}
@@ -259,7 +259,7 @@ export function PortfolioWorkCard({ work }: Props) {
               {categoryLabel}
             </Chip>
             <Chip
-              style={{ color: "var(--text-muted)" }}
+              style={{ color: "var(--faint)" }}
               title={`변경: +${fm.github_additions} −${fm.github_deletions} · ${fm.github_changed_files} files`}
             >
               +{fm.github_additions} −{fm.github_deletions}
@@ -292,7 +292,7 @@ function EmptyThumb({ githubCard }: { githubCard: boolean }) {
     return (
       <GithubMark
         className="h-5 w-5"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       />
     );
   }
@@ -300,7 +300,7 @@ function EmptyThumb({ githubCard }: { githubCard: boolean }) {
     <Briefcase
       className="h-5 w-5"
       strokeWidth={1.5}
-      style={{ color: "var(--text-muted)" }}
+      style={{ color: "var(--faint)" }}
     />
   );
 }

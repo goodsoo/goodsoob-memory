@@ -26,14 +26,14 @@ export function CommandBlock({ command, caption, size = "md" }: Props) {
   }
 
   const padding = size === "sm" ? "px-2.5 py-1.5" : "px-3 py-2";
-  const fontSize = size === "sm" ? "text-[11px]" : "text-xs";
+  const fontSize = size === "sm" ? "text-2xs" : "text-xs";
 
   return (
     <div className="flex flex-col gap-1">
       {caption ? (
         <span
-          className="text-[10px] uppercase tracking-wider"
-          style={{ color: "var(--text-muted)" }}
+          className="text-3xs uppercase tracking-wider"
+          style={{ color: "var(--faint)" }}
         >
           {caption}
         </span>
@@ -41,13 +41,13 @@ export function CommandBlock({ command, caption, size = "md" }: Props) {
       <div
         className={`flex items-center gap-2 rounded-md ${padding}`}
         style={{
-          backgroundColor: "var(--bg-surface-hover)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--surface-2)",
+          border: "1px solid var(--line)",
         }}
       >
         <code
           className={`flex-1 overflow-x-auto font-mono ${fontSize} whitespace-nowrap`}
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           {command}
         </code>
@@ -58,7 +58,7 @@ export function CommandBlock({ command, caption, size = "md" }: Props) {
           aria-label={copied ? "복사됨" : "명령어 복사"}
           className="shrink-0 rounded-sm p-1"
           style={{
-            color: "var(--text-secondary)",
+            color: "var(--sub)",
             minHeight: 0,
           }}
         >

@@ -76,12 +76,12 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
         className="flex shrink-0 items-center justify-between gap-1 px-4"
         style={{
           height: "var(--page-header-h)",
-          borderBottom: "1px solid var(--border-default)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         <h2
           className="font-serif text-sm font-medium tabular-nums"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         >
           {view.year}년 {view.month}월
         </h2>
@@ -91,7 +91,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
             onClick={prevMonth}
             title="이전 달"
             aria-label="이전 달"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -101,7 +101,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
             onClick={goToday}
             title="이번 달로"
             aria-label="이번 달로"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             오늘
           </Button>
@@ -110,7 +110,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
             onClick={nextMonth}
             title="다음 달"
             aria-label="다음 달"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -120,15 +120,15 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
       {/* 미니 월 그리드 */}
       <div
         className="shrink-0 px-3 pb-3 pt-2"
-        style={{ borderBottom: "1px solid var(--border-default)" }}
+        style={{ borderBottom: "1px solid var(--line)" }}
       >
         <div className="mb-1 grid grid-cols-7">
           {WEEKDAYS.map((w, i) => (
             <div
               key={w}
-              className="text-center text-[11px] font-medium"
+              className="text-center text-2xs font-medium"
               style={{
-                color: i === 0 ? "var(--accent-red)" : "var(--text-muted)",
+                color: i === 0 ? "var(--down)" : "var(--faint)",
               }}
             >
               {w}
@@ -146,20 +146,20 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
                 onClick={() => onOpenDay(iso)}
                 title={`${formatDisplayDate(iso)} 상세`}
                 aria-label={`${formatDisplayDate(iso)} 상세`}
-                className="relative mx-auto flex h-7 w-7 flex-col items-center justify-center rounded-md text-[12px] tabular-nums transition hover:bg-[var(--bg-surface-hover)]"
+                className="relative mx-auto flex h-7 w-7 flex-col items-center justify-center rounded-md text-xs tabular-nums transition hover:bg-[var(--surface-2)]"
                 style={
                   isToday(iso)
                     ? {
-                        backgroundColor: "var(--accent-red)",
+                        backgroundColor: "var(--down)",
                         color: "var(--text-inverse)",
                       }
                     : iso === selectedDay
                       ? {
                           // 오늘이 아닌 선택일 — 레이아웃 안 밀리게 inset ring 으로 강조.
-                          color: "var(--text-primary)",
-                          boxShadow: "inset 0 0 0 1.5px var(--accent-red)",
+                          color: "var(--ink)",
+                          boxShadow: "inset 0 0 0 1.5px var(--down)",
                         }
-                      : { color: "var(--text-primary)" }
+                      : { color: "var(--ink)" }
                 }
               >
                 {Number(iso.slice(8, 10))}
@@ -169,7 +169,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
                     style={{
                       backgroundColor: isToday(iso)
                         ? "var(--text-inverse)"
-                        : "var(--accent-red)",
+                        : "var(--down)",
                     }}
                     aria-label="일정 있음"
                   />
@@ -184,8 +184,8 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
         <div className="flex items-center justify-between px-1 pb-1">
           <span
-            className="text-[12px] font-semibold"
-            style={{ color: "var(--text-secondary)" }}
+            className="text-xs font-semibold"
+            style={{ color: "var(--sub)" }}
           >
             다가오는 일정
           </span>
@@ -196,7 +196,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
             onClick={() => onOpenDay(today)}
             title="일정 추가"
             aria-label="일정 추가"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -206,7 +206,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
             icon={
               <CalendarOff
                 className="h-8 w-8"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               />
             }
             description="다가오는 일정 없음"
@@ -237,18 +237,18 @@ function UpcomingRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition hover:bg-[var(--bg-surface-hover)]"
+      className="flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-[var(--surface-2)]"
     >
       {/* 내용-날짜-시간 순으로 통일(할일·노트와 동일): 제목 먼저, 날짜·시각은 우측. */}
       <span
         className="min-w-0 flex-1 truncate"
-        style={{ color: "var(--text-primary)" }}
+        style={{ color: "var(--ink)" }}
       >
         {event.text}
       </span>
       <span
-        className="shrink-0 whitespace-nowrap text-[11px] tabular-nums"
-        style={{ color: "var(--text-muted)" }}
+        className="shrink-0 whitespace-nowrap text-2xs tabular-nums"
+        style={{ color: "var(--faint)" }}
       >
         {formatDisplayDate(event.start)}
         {event.time ? ` ${event.time}` : ""}

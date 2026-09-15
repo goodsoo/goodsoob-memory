@@ -19,8 +19,8 @@ export function VaultGate({ children }: { children: ReactNode }) {
           aria-hidden="true"
           className="size-6 animate-spin rounded-full border-2"
           style={{
-            borderColor: "var(--border-default)",
-            borderTopColor: "var(--accent-red)",
+            borderColor: "var(--line)",
+            borderTopColor: "var(--down)",
           }}
         />
         <span className="sr-only">vault 로딩 중</span>

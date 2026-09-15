@@ -86,7 +86,7 @@ export function PortfolioCardMenu({ work }: Props) {
           setOpen((o) => !o);
         }}
         title="카드 메뉴"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <MoreVertical className="h-4 w-4" />
       </Button>
@@ -96,8 +96,8 @@ export function PortfolioCardMenu({ work }: Props) {
           onClick={(e) => e.stopPropagation()}
           className="absolute right-0 top-8 z-10 w-44 overflow-visible rounded-lg py-1 text-sm shadow-lg"
           style={{
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
+            backgroundColor: "var(--surface)",
+            border: "1px solid var(--line)",
           }}
         >
           {!isGithub ? (
@@ -111,7 +111,7 @@ export function PortfolioCardMenu({ work }: Props) {
               />
               <div
                 className="my-1 h-px"
-                style={{ backgroundColor: "var(--border-default)" }}
+                style={{ backgroundColor: "var(--line)" }}
               />
             </>
           ) : null}
@@ -158,7 +158,7 @@ function MenuItem({
       onMouseEnter={onMouseEnter}
       className="w-full justify-between rounded-none px-3 py-1.5 font-normal"
       style={{
-        color: danger ? "var(--accent-red-text)" : "var(--text-primary)",
+        color: danger ? "var(--down-ink)" : "var(--ink)",
       }}
     >
       <span>{label}</span>

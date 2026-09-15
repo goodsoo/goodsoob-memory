@@ -165,8 +165,8 @@ export function SlashCommandPopover({
         style={{
           top: anchorTop,
           left: anchorLeft,
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--line)",
         }}
       >
         일치하는 명령이 없음
@@ -184,8 +184,8 @@ export function SlashCommandPopover({
       style={{
         top: anchorTop,
         left: anchorLeft,
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       {options.map((o, i) => {
@@ -206,8 +206,8 @@ export function SlashCommandPopover({
             }}
             className="w-full justify-start gap-2 rounded-none px-3 py-1.5 font-normal"
             style={{
-              color: active ? "var(--text-primary)" : "var(--text-secondary)",
-              backgroundColor: active ? "var(--bg-surface-active)" : undefined,
+              color: active ? "var(--ink)" : "var(--sub)",
+              backgroundColor: active ? "var(--surface-3)" : undefined,
             }}
           >
             <o.Icon className="h-3.5 w-3.5 flex-shrink-0" />
@@ -216,7 +216,7 @@ export function SlashCommandPopover({
               variant="caption"
               color="muted"
               as="span"
-              className="font-mono text-[10px] tabular-nums"
+              className="font-mono text-3xs tabular-nums"
             >
               {o.hint}
             </Text>

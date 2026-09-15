@@ -53,8 +53,8 @@ export function FindBar({
     <div
       className="absolute right-4 top-16 z-30 flex items-start gap-1 rounded-lg px-1.5 py-1 shadow-md"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
+        backgroundColor: "var(--surface)",
+        border: "1px solid var(--line)",
       }}
     >
       <button
@@ -63,7 +63,7 @@ export function FindBar({
         title={expanded ? "바꾸기 접기" : "바꾸기 펼치기"}
         aria-expanded={expanded}
         className="mt-0.5 shrink-0 rounded p-1"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--faint)" }}
       >
         <ChevronRight
           className="h-4 w-4 transition-transform"
@@ -99,11 +99,11 @@ export function FindBar({
             spellCheck={false}
             autoCorrect="off"
             className="w-44 bg-transparent px-1.5 py-0.5 text-sm outline-none"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: "var(--ink)" }}
           />
           <span
             className="min-w-[3.5rem] shrink-0 whitespace-nowrap text-right text-xs tabular-nums"
-            style={{ color: noResult ? "var(--accent-red)" : "var(--text-muted)" }}
+            style={{ color: noResult ? "var(--down)" : "var(--faint)" }}
           >
             {noResult
               ? "결과 없음"
@@ -119,8 +119,8 @@ export function FindBar({
             title="대소문자 구분"
             className="rounded p-1"
             style={{
-              color: caseSensitive ? "var(--text-inverse)" : "var(--text-muted)",
-              backgroundColor: caseSensitive ? "var(--accent-blue)" : "transparent",
+              color: caseSensitive ? "var(--text-inverse)" : "var(--faint)",
+              backgroundColor: caseSensitive ? "var(--accent)" : "transparent",
             }}
           >
             <CaseSensitive className="h-4 w-4" />
@@ -131,7 +131,7 @@ export function FindBar({
             disabled={total === 0}
             title="이전 (Shift+Enter)"
             className="rounded p-1 disabled:opacity-30"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <ChevronUp className="h-4 w-4" />
           </button>
@@ -141,7 +141,7 @@ export function FindBar({
             disabled={total === 0}
             title="다음 (Enter)"
             className="rounded p-1 disabled:opacity-30"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <ChevronDown className="h-4 w-4" />
           </button>
@@ -150,7 +150,7 @@ export function FindBar({
             onClick={onClose}
             title="닫기 (Esc)"
             className="rounded p-1"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             <X className="h-4 w-4" />
           </button>
@@ -178,7 +178,7 @@ export function FindBar({
               autoCorrect="off"
               disabled={!canReplace}
               className="w-44 bg-transparent px-1.5 py-0.5 text-sm outline-none disabled:opacity-50"
-              style={{ color: "var(--text-primary)" }}
+              style={{ color: "var(--ink)" }}
             />
             {canReplace ? (
               <div className="flex items-center gap-1">
@@ -188,7 +188,7 @@ export function FindBar({
                   disabled={replaceDisabled}
                   title="현재 매치 바꾸기 (Enter)"
                   className="rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
-                  style={{ color: "var(--text-secondary)" }}
+                  style={{ color: "var(--sub)" }}
                 >
                   바꾸기
                 </button>
@@ -198,7 +198,7 @@ export function FindBar({
                   disabled={replaceDisabled}
                   title="전체 바꾸기 (Cmd+Enter)"
                   className="rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
-                  style={{ color: "var(--text-secondary)" }}
+                  style={{ color: "var(--sub)" }}
                 >
                   전체 바꾸기
                 </button>
@@ -206,7 +206,7 @@ export function FindBar({
             ) : (
               <span
                 className="px-1 text-xs"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "var(--faint)" }}
               >
                 편집 모드에서 바꿀 수 있습니다
               </span>

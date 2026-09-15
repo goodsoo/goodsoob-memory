@@ -191,9 +191,9 @@ export function GcalSection() {
   const linked = status?.linked ?? false;
   const configured = status?.configured ?? false;
   const inputStyle = {
-    background: "var(--bg-surface)",
-    border: "1px solid var(--border-subtle)",
-    color: "var(--text-primary)",
+    background: "var(--surface)",
+    border: "1px solid var(--line-2)",
+    color: "var(--ink)",
   } as const;
 
   return (
@@ -201,9 +201,9 @@ export function GcalSection() {
       <section className="space-y-3">
         <div
           className="flex items-center gap-3 rounded-lg px-3 py-3"
-          style={{ background: "var(--bg-base)", border: "1px solid var(--border-subtle)" }}
+          style={{ background: "var(--bg)", border: "1px solid var(--line-2)" }}
         >
-          <CalendarDays className="h-5 w-5 shrink-0" style={{ color: "var(--text-secondary)" }} />
+          <CalendarDays className="h-5 w-5 shrink-0" style={{ color: "var(--sub)" }} />
           <div className="min-w-0 flex-1">
             <Text variant="body" weight="semibold" as="div">
               Google 캘린더
@@ -224,7 +224,7 @@ export function GcalSection() {
                 disabled={busy}
                 leftIcon={busy ? <Spinner size="sm" /> : <Link2Off className="h-4 w-4" />}
                 className="shrink-0 rounded-lg px-3 py-2"
-                style={{ color: "var(--text-secondary)" }}
+                style={{ color: "var(--sub)" }}
               >
                 연동 해제
               </Button>
@@ -247,9 +247,9 @@ export function GcalSection() {
             as="div"
             className="rounded px-3 py-2"
             style={{
-              color: "var(--accent-red)",
-              background: "var(--bg-base)",
-              border: "1px solid var(--accent-red)",
+              color: "var(--down)",
+              background: "var(--bg)",
+              border: "1px solid var(--down)",
             }}
           >
             client secret 이 설정되지 않았습니다. 빌드/실행 환경에 GCAL_CLIENT_SECRET
@@ -261,9 +261,9 @@ export function GcalSection() {
         {!loading && linked && sync.needsReauth && (
           <div
             className="flex items-center gap-3 rounded-lg px-3 py-3"
-            style={{ background: "var(--bg-base)", border: "1px solid var(--accent-red)" }}
+            style={{ background: "var(--bg)", border: "1px solid var(--down)" }}
           >
-            <Text variant="caption" as="div" className="flex-1" style={{ color: "var(--accent-red)" }}>
+            <Text variant="caption" as="div" className="flex-1" style={{ color: "var(--down)" }}>
               Google 인증이 만료됐습니다. 동기화를 이어가려면 다시 연동하세요.
             </Text>
             <Button
@@ -294,7 +294,7 @@ export function GcalSection() {
           {calendarId ? (
             <div
               className="space-y-2 rounded-lg px-3 py-3"
-              style={{ background: "var(--bg-base)", border: "1px solid var(--border-subtle)" }}
+              style={{ background: "var(--bg)", border: "1px solid var(--line-2)" }}
             >
               {renaming ? (
                 <div className="flex items-center gap-2">
@@ -337,7 +337,7 @@ export function GcalSection() {
                     aria-label="캘린더 이름 변경"
                     title="이름 변경"
                     className="shrink-0 rounded px-2 py-1"
-                    style={{ color: "var(--text-muted)" }}
+                    style={{ color: "var(--faint)" }}
                     leftIcon={<Pencil className="h-3.5 w-3.5" />}
                   >
                     이름 변경
@@ -402,7 +402,7 @@ export function GcalSection() {
           {/* 자동 동기화 토글. */}
           <div
             className="flex items-center gap-3 rounded-lg px-3 py-3"
-            style={{ background: "var(--bg-base)", border: "1px solid var(--border-subtle)" }}
+            style={{ background: "var(--bg)", border: "1px solid var(--line-2)" }}
           >
             <div className="min-w-0 flex-1">
               <Text variant="body" weight="semibold" as="div">
@@ -448,9 +448,9 @@ export function GcalSection() {
               as="div"
               className="rounded px-3 py-2"
               style={{
-                color: "var(--accent-red)",
-                background: "var(--bg-base)",
-                border: "1px solid var(--accent-red)",
+                color: "var(--down)",
+                background: "var(--bg)",
+                border: "1px solid var(--down)",
               }}
             >
               동기화에 실패했습니다. {sync.error}
@@ -465,9 +465,9 @@ export function GcalSection() {
           as="div"
           className="rounded px-3 py-2"
           style={{
-            color: "var(--accent-red)",
-            background: "var(--bg-base)",
-            border: "1px solid var(--accent-red)",
+            color: "var(--down)",
+            background: "var(--bg)",
+            border: "1px solid var(--down)",
           }}
         >
           {error}

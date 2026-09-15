@@ -62,7 +62,7 @@ function Block({ title, examples }: { title: string; examples: Example[] }) {
           <li
             key={i}
             className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2"
-            style={{ borderBottom: "1px solid var(--border-default)" }}
+            style={{ borderBottom: "1px solid var(--line)" }}
           >
             <div className="flex flex-wrap items-center gap-1">
               {e.inputs.map((s, j) => (
@@ -70,9 +70,9 @@ function Block({ title, examples }: { title: string; examples: Example[] }) {
                   key={j}
                   className="rounded px-1.5 py-0.5 text-xs"
                   style={{
-                    background: "var(--bg-base)",
-                    color: "var(--text-primary)",
-                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg)",
+                    color: "var(--ink)",
+                    border: "1px solid var(--line-2)",
                     fontFamily: "ui-monospace, SFMono-Regular, monospace",
                   }}
                 >

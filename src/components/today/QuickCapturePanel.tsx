@@ -113,12 +113,12 @@ export function QuickCapturePanel() {
         onDoubleClick={() => setHeight(QC_DEFAULT)}
         title="드래그해서 높이 조절"
         className="group relative h-2 shrink-0 cursor-row-resize"
-        style={{ borderTop: "1px solid var(--border-default)" }}
+        style={{ borderTop: "1px solid var(--line)" }}
       >
         {/* hover 시 잡는 선 강조 */}
         <div
           className="absolute inset-x-0 top-0 h-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-          style={{ backgroundColor: "var(--accent-blue)" }}
+          style={{ backgroundColor: "var(--accent)" }}
         />
       </div>
 
@@ -126,14 +126,14 @@ export function QuickCapturePanel() {
         <div className="mb-1.5 flex items-center gap-1.5">
           <StickyNote
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--text-muted)" }}
+            style={{ color: "var(--faint)" }}
             aria-hidden
           />
           <Text
             variant="caption"
             weight="semibold"
             as="span"
-            style={{ color: "var(--text-secondary)" }}
+            style={{ color: "var(--sub)" }}
           >
             빠른 캡처
           </Text>
@@ -155,11 +155,11 @@ export function QuickCapturePanel() {
           }}
           onBlur={() => void flush()}
           placeholder="떠오른 생각을 적어두세요"
-          className="min-h-0 w-full flex-1 resize-none rounded-md px-2 py-1.5 text-[13px] leading-relaxed outline-none"
+          className="min-h-0 w-full flex-1 resize-none rounded-md px-2 py-1.5 text-sm leading-relaxed outline-none"
           style={{
-            backgroundColor: "var(--bg-base)",
-            border: "1px solid var(--border-default)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--bg)",
+            border: "1px solid var(--line)",
+            color: "var(--ink)",
           }}
         />
       </div>

@@ -105,7 +105,7 @@ function TaskForm({
           as="span"
           weight="medium"
         >
-          제목 <span style={{ color: "var(--accent-red)" }}>*</span>
+          제목 <span style={{ color: "var(--down)" }}>*</span>
         </Text>
         <input
           ref={titleRef}
@@ -117,9 +117,9 @@ function TaskForm({
           maxLength={200}
           className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
           style={{
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface)",
+            border: "1px solid var(--line)",
+            color: "var(--ink)",
           }}
         />
       </label>
@@ -140,8 +140,8 @@ function TaskForm({
           <div
             className="mt-1 rounded-md px-2 py-1.5"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--line)",
             }}
           >
             <LooseDateInput value={date} onCommit={setDate} fullWidth />
@@ -159,8 +159,8 @@ function TaskForm({
           <div
             className="mt-1 rounded-md px-2 py-1.5"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--line)",
             }}
           >
             <LooseTimeInput value={time} onCommit={setTime} fullWidth />
@@ -207,7 +207,7 @@ function TaskForm({
           variant="caption"
           as="p"
           className="mt-3"
-          style={{ color: "var(--accent-red)" }}
+          style={{ color: "var(--down)" }}
         >
           저장에 실패했어요. 다시 시도해주세요.
         </Text>
@@ -312,7 +312,7 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
           as="span"
           weight="medium"
         >
-          이름 <span style={{ color: "var(--accent-red)" }}>*</span>
+          이름 <span style={{ color: "var(--down)" }}>*</span>
         </Text>
         <input
           ref={nameRef}
@@ -328,9 +328,9 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
           maxLength={100}
           className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
           style={{
-            backgroundColor: "var(--bg-surface)",
-            border: `1px solid ${errors.name ? "var(--accent-red)" : "var(--border-default)"}`,
-            color: "var(--text-primary)",
+            backgroundColor: "var(--surface)",
+            border: `1px solid ${errors.name ? "var(--down)" : "var(--line)"}`,
+            color: "var(--ink)",
           }}
         />
         {errors.name ? (
@@ -338,7 +338,7 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
             variant="caption"
             as="p"
             className="mt-1"
-            style={{ color: "var(--accent-red)" }}
+            style={{ color: "var(--down)" }}
           >
             {errors.name}
           </Text>
@@ -352,8 +352,8 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
         <div
           className="mt-1 rounded-md px-2 py-1.5"
           style={{
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border-default)",
+            backgroundColor: "var(--surface)",
+            border: "1px solid var(--line)",
           }}
         >
           <LooseTimeInput value={time} onCommit={setTime} fullWidth />
@@ -366,13 +366,13 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
       >
         <label className="block">
           <Text variant="caption" color="secondary" as="span" weight="medium">
-            시작일 <span style={{ color: "var(--accent-red)" }}>*</span>
+            시작일 <span style={{ color: "var(--down)" }}>*</span>
           </Text>
           <div
             className="mt-1 rounded-md px-2 py-1.5"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: `1px solid ${errors.started ? "var(--accent-red)" : "var(--border-default)"}`,
+              backgroundColor: "var(--surface)",
+              border: `1px solid ${errors.started ? "var(--down)" : "var(--line)"}`,
             }}
           >
             <LooseDateInput
@@ -400,8 +400,8 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
           <div
             className="mt-1 rounded-md px-2 py-1.5"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: `1px solid ${errors.ends ? "var(--accent-red)" : "var(--border-default)"}`,
+              backgroundColor: "var(--surface)",
+              border: `1px solid ${errors.ends ? "var(--down)" : "var(--line)"}`,
             }}
           >
             <LooseDateInput
@@ -425,7 +425,7 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
           variant="caption"
           as="p"
           className="mt-1"
-          style={{ color: "var(--accent-red)" }}
+          style={{ color: "var(--down)" }}
         >
           {errors.started ?? errors.ends}
         </Text>
@@ -467,9 +467,9 @@ function CategoryChip({
       onClick={onClick}
       className="rounded-full px-3 py-1"
       style={{
-        backgroundColor: active ? "var(--btn-primary)" : "var(--bg-surface)",
-        color: active ? "var(--btn-primary-text)" : "var(--text-secondary)",
-        border: `1px solid ${active ? "var(--btn-primary)" : "var(--border-default)"}`,
+        backgroundColor: active ? "var(--btn-primary)" : "var(--surface)",
+        color: active ? "var(--btn-primary-text)" : "var(--sub)",
+        border: `1px solid ${active ? "var(--btn-primary)" : "var(--line)"}`,
       }}
     >
       {label}

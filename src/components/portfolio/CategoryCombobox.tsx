@@ -157,8 +157,8 @@ export function CategoryCombobox({
       <div
         className="flex items-center rounded-md"
         style={{
-          backgroundColor: "var(--bg-surface)",
-          border: "1px solid var(--border-default)",
+          backgroundColor: "var(--surface)",
+          border: "1px solid var(--line)",
         }}
       >
         <input
@@ -188,7 +188,7 @@ export function CategoryCombobox({
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           className="flex-1 rounded-md bg-transparent px-2 py-1.5 text-sm outline-none"
-          style={{ color: "var(--text-primary)" }}
+          style={{ color: "var(--ink)" }}
         />
         <button
           type="button"
@@ -198,7 +198,7 @@ export function CategoryCombobox({
           }}
           aria-label="후보 펼치기"
           className="px-1.5"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <ChevronDown className="h-3.5 w-3.5" />
         </button>
@@ -217,8 +217,8 @@ export function CategoryCombobox({
                 top: popRect.top,
                 width: popRect.width,
                 zIndex: 1000,
-                backgroundColor: "var(--bg-surface)",
-                border: "1px solid var(--border-default)",
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--line)",
               }}
             >
               {matches.map((slug, idx) => {
@@ -236,9 +236,9 @@ export function CategoryCombobox({
                     className="cursor-pointer px-2 py-1.5 text-sm"
                     style={{
                       backgroundColor: active
-                        ? "var(--bg-surface-active)"
+                        ? "var(--surface-3)"
                         : "transparent",
-                      color: "var(--text-primary)",
+                      color: "var(--ink)",
                     }}
                   >
                     {slug}
@@ -258,18 +258,18 @@ export function CategoryCombobox({
                   style={{
                     backgroundColor:
                       highlight === matches.length
-                        ? "var(--bg-surface-active)"
+                        ? "var(--surface-3)"
                         : "transparent",
-                    color: "var(--text-secondary)",
+                    color: "var(--sub)",
                     borderTop:
                       matches.length > 0
-                        ? "1px solid var(--border-subtle)"
+                        ? "1px solid var(--line-2)"
                         : "none",
                   }}
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   <span>새로 만들기: </span>
-                  <span style={{ color: "var(--text-primary)" }}>
+                  <span style={{ color: "var(--ink)" }}>
                     "{trimmed}"
                   </span>
                 </li>

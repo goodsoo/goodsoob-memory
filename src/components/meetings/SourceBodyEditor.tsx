@@ -594,8 +594,8 @@ export function SourceBodyEditor({
         style={{
           width: GUTTER_WIDTH,
           paddingRight: "4px", // active background 와 borderRight 사이 여백
-          color: "var(--accent-blue-text)", // 편집 모드 signal — 보기 모드엔 gutter 자체 없음
-          borderRight: "1px solid var(--border-subtle)",
+          color: "var(--accent-ink)", // 편집 모드 signal — 보기 모드엔 gutter 자체 없음
+          borderRight: "1px solid var(--line-2)",
           alignSelf: "flex-start", // outer flex stretch 무시 — 실제 줄 수까지만 border/marker 보임
         }}
       >
@@ -671,7 +671,7 @@ export function SourceBodyEditor({
           autoCapitalize="off"
           spellCheck={false}
           style={{
-            color: "var(--text-primary)",
+            color: "var(--ink)",
             lineHeight: LINE_HEIGHT,
             // index.css 의 `.font-serif { font-weight: 600 }` base 룰 가로채기 — 일기처럼
             // wrapper 가 font-serif 인 경우에도 본문은 regular weight 유지. 메모장 (sans 400)
@@ -689,11 +689,11 @@ export function SourceBodyEditor({
             // 통증 해결 — drag 중에만 8rem 으로 일시 확장, drag 끝나면 다시 autoresize.
             minHeight: isDraggingFiles ? "8rem" : undefined,
             outline: isDraggingFiles
-              ? "2px dashed var(--accent-blue)"
+              ? "2px dashed var(--accent)"
               : undefined,
             outlineOffset: isDraggingFiles ? "-2px" : undefined,
             backgroundColor: isDraggingFiles
-              ? "var(--accent-blue-bg)"
+              ? "var(--accent-soft)"
               : "transparent",
             borderRadius: isDraggingFiles ? "0.375rem" : undefined,
             transition:
@@ -826,7 +826,7 @@ function GutterMarker({
       style={{
         height: `${heightPx}px`,
         lineHeight: LINE_HEIGHT,
-        color: active ? "var(--accent-blue)" : undefined,
+        color: active ? "var(--accent)" : undefined,
         // wrap 으로 여러 visual line 인 경우 glyph 는 첫 visual line 에 정렬.
         alignItems: "flex-start",
       }}
@@ -836,7 +836,7 @@ function GutterMarker({
         style={{
           width: "1.5rem",
           height: LINE_HEIGHT, // glyph 자체는 한 visual line 높이 — 첫 줄에만.
-          backgroundColor: active ? "var(--accent-blue-bg)" : undefined,
+          backgroundColor: active ? "var(--accent-soft)" : undefined,
           borderRadius: active ? "0.375rem" : undefined,
         }}
       >
@@ -847,7 +847,7 @@ function GutterMarker({
             style={{
               right: "-1px",
               bottom: "-1px",
-              color: "var(--text-muted)",
+              color: "var(--faint)",
             }}
           >
             {depth}
@@ -878,7 +878,7 @@ function GutterMarker({
             alignItems: "center",
             justifyContent: "center",
             borderRadius: "0.25rem",
-            color: "var(--text-secondary)",
+            color: "var(--sub)",
           }}
         >
           <Plus size={14} strokeWidth={2} aria-hidden />
@@ -938,7 +938,7 @@ function KindGlyph({ kind }: { kind: LineKind }) {
       return null;
     case "heading":
       return (
-        <span className="font-mono text-[10px] font-semibold">
+        <span className="font-mono text-3xs font-semibold">
           H{kind.level}
         </span>
       );
@@ -947,7 +947,7 @@ function KindGlyph({ kind }: { kind: LineKind }) {
     case "ordered":
       if (typeof kind.renderedNumber === "number") {
         return (
-          <span className="font-mono text-[10px] font-semibold tabular-nums">
+          <span className="font-mono text-3xs font-semibold tabular-nums">
             {kind.renderedNumber}.
           </span>
         );

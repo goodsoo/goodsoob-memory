@@ -39,7 +39,7 @@ export function JournalTextArea({
       placeholder={placeholder}
       className={`w-full resize-none bg-transparent leading-relaxed outline-none ${autoGrow ? "overflow-hidden" : "h-full"}`}
       style={{
-        color: "var(--text-primary)",
+        color: "var(--ink)",
         fontFamily: "inherit",
         fontSize: "inherit",
       }}

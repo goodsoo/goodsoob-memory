@@ -77,7 +77,7 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
           variant="caption"
           color="muted"
           as="p"
-          className="mt-1 text-[11px] leading-relaxed"
+          className="mt-1 text-2xs leading-relaxed"
         >
           PR 없이 카드를 추가합니다. 새 카테고리는 카테고리 입력란에서 바로
           만들고, 새 폴더는 사이드바에서 만듭니다.
@@ -85,7 +85,7 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
 
         <label className="mt-4 block">
           <Text variant="caption" color="secondary" as="span" weight="medium">
-            제목 <span style={{ color: "var(--accent-red)" }}>*</span>
+            제목 <span style={{ color: "var(--down)" }}>*</span>
           </Text>
           <input
             type="text"
@@ -97,9 +97,9 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             maxLength={200}
             className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--line)",
+              color: "var(--ink)",
             }}
           />
         </label>
@@ -116,9 +116,9 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             maxLength={120}
             className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--line)",
+              color: "var(--ink)",
             }}
           />
         </label>
@@ -134,8 +134,8 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             <div
               className="mt-1 rounded-md px-2 py-1.5"
               style={{
-                backgroundColor: "var(--bg-surface)",
-                border: "1px solid var(--border-default)",
+                backgroundColor: "var(--surface)",
+                border: "1px solid var(--line)",
               }}
             >
               <LooseDateInput value={date} onCommit={setDate} fullWidth />
@@ -160,9 +160,9 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             onChange={(e) => setFolder(e.target.value)}
             className="mt-1 w-full rounded-md px-2 py-1.5 text-sm"
             style={{
-              backgroundColor: "var(--bg-surface)",
-              border: "1px solid var(--border-default)",
-              color: "var(--text-primary)",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--line)",
+              color: "var(--ink)",
             }}
           >
             <option value="">(폴더 없음)</option>
@@ -179,7 +179,7 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             variant="caption"
             as="p"
             className="mt-3"
-            style={{ color: "var(--accent-red-text)" }}
+            style={{ color: "var(--down-ink)" }}
           >
             {error}
           </Text>

@@ -85,7 +85,7 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
     <Modal open ariaLabel="내보내기" onClose={onClose} size="sm">
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        style={{ borderBottom: "1px solid var(--line-2)" }}
       >
         <div className="min-w-0">
           <Text variant="body" weight="semibold" as="div">
@@ -105,7 +105,7 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
           variant="icon"
           onClick={onClose}
           aria-label="닫기"
-          style={{ color: "var(--text-muted)" }}
+          style={{ color: "var(--faint)" }}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -128,12 +128,12 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
                   aria-checked={checked}
                   onClick={() => toggle(s)}
                   className="w-full justify-start gap-2 px-2 py-1.5"
-                  style={{ color: "var(--text-primary)" }}
+                  style={{ color: "var(--ink)" }}
                 >
                   <span
                     className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm"
                     style={{
-                      border: `1px solid ${checked ? "var(--btn-primary)" : "var(--border-default)"}`,
+                      border: `1px solid ${checked ? "var(--btn-primary)" : "var(--line)"}`,
                       backgroundColor: checked
                         ? "var(--btn-primary)"
                         : "transparent",
@@ -175,7 +175,7 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
 
       <div
         className="flex items-center justify-end gap-2 px-3 py-3"
-        style={{ borderTop: "1px solid var(--border-subtle)" }}
+        style={{ borderTop: "1px solid var(--line-2)" }}
       >
         <Button variant="secondary" size="sm" onClick={onClose}>
           취소

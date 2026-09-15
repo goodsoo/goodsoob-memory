@@ -20,7 +20,7 @@ export function SaveIndicator({ isPending, isError, onRetry }: Props) {
       : "success";
 
   const dotColor =
-    state === "error" ? "var(--accent-red)" : "var(--accent-green)";
+    state === "error" ? "var(--down)" : "var(--ok)";
 
   const title =
     state === "error"
@@ -38,7 +38,7 @@ export function SaveIndicator({ isPending, isError, onRetry }: Props) {
       <Loader2
         className="absolute inset-0 h-3.5 w-3.5"
         style={{
-          color: "var(--text-muted)",
+          color: "var(--faint)",
           opacity: state === "spinner" ? 1 : 0,
           transition: "opacity 180ms ease",
           animation: "spin 1.6s linear infinite",

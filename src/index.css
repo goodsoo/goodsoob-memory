@@ -27,39 +27,89 @@
 @layer base {
   /* ── Design Tokens ── */
 
+/* DESIGN-SYSTEM:color START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* 공유 색 파운데이션 — tower 이름·값 기준(진실원본). 중립 surface/ink/sub/faint/line
+       · accent 5변형 · ok/warn/down + soft/line. 이름·값 = goodsoob-tower/src/styles/tokens.css.
+       색과 무관한 크기 스케일은 scale.css, 캔버스(--bg)·앱 로컬 파생은 각 consumer 로컬. */
+    --surface: #ffffff;
+    --surface-2: #f7f9fc;
+    --surface-3: #eef1f6;
+    --line: #e4e8f1;
+    --line-2: #eef1f7;
+    --line-3: #d9deea;
+    --ink: #1d1d1f;
+    --sub: #5c5f68;
+    --faint: #868a94;
+    --dim: #a7aeb8;
+    --dot: #c4ccd5;
+    --tie: #9bb6d6;
+    --accent: #0071e3;
+    --accent-2: #005bbf;
+    --accent-soft: #e8f1fd;
+    --accent-line: #cfe2fb;
+    --accent-ink: #005bbf;
+    --ok: #248a3d;
+    --ok-soft: #e7f4ec;
+    --warn: #c2610a;
+    --warn-soft: #fbeede;
+    --warn-line: #f97316;
+    --down: #d33a2f;
+    --down-soft: #fbe9e7;
+    --down-line: #f3c7c1;
+  }
+
+  :root[data-theme="dark"] {
+    --surface: #161b24;
+    --surface-2: #1c222d;
+    --surface-3: #252d3a;
+    --line: #2b3441;
+    --line-2: #232b36;
+    --line-3: #3a4553;
+    --ink: #eef1f6;
+    --sub: #b0b8c4;
+    --faint: #7c8592;
+    --dim: #5c6572;
+    --dot: #39424f;
+    --tie: #4a6a8f;
+    --accent: #2f8fff;
+    --accent-2: #1f6fd6;
+    --accent-soft: #15263b;
+    --accent-line: #274a72;
+    --accent-ink: #7fbcff;
+    --ok: #3fbf5f;
+    --ok-soft: #122619;
+    --warn: #e0902f;
+    --warn-soft: #2d2211;
+    --warn-line: #fb923c;
+    --down: #ff5a4d;
+    --down-soft: #331810;
+    --down-line: #5a2a22;
+  }
+/* DESIGN-SYSTEM:color END */
+
 /* DESIGN-SYSTEM:tokens START — managed by goodsoob-design-system, do not edit */
   :root {
     color-scheme: light;
 
-    /* Background — 통합 팔레트(tower 앵커, 쿨 블루그레이). 단 --bg(캔버스)는
-       흰색 유지: work 은 카드형이 아니라 본문이 캔버스에 직접 얹혀서 (docs/palette-unification.md) */
+    /* work 고유·비공유 토큰만. 공유 색 파운데이션은 color.css(tokens 앞 color 블록),
+       크기 스케일은 scale.css(tokens-scale 블록)로 분리됨. 여기엔 캔버스·앱 로컬
+       파생 + work 컴포넌트 전용(speaker·cat·btn·focus·layout·z·opacity·shadow·motion). */
+
+    /* --bg(앱 캔버스)는 앱별 오버라이드 대상 — work 은 카드형이 아니라 본문이
+       캔버스에 직접 얹혀서 흰색 유지 (docs/palette-unification.md). */
     --bg: #ffffff;
-    --surface: #f7f9fc;
-    --surface-2: #eef1f6;
-    --surface-3: #d9deea;
+
+    /* App-local: 캔버스 파생 오버레이·프로스트(캔버스 색에 종속 → 앱 로컬). */
     --bg-overlay: rgba(255, 255, 255, 0.92);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-
-    /* Text — 통합 팔레트 */
-    --ink: #1d1d1f;
-    --sub: #5c5f68;
-    --faint: #868a94;
     --text-inverse: #ffffff;
 
-    /* Border — 통합 팔레트 */
-    --line: #e4e8f1;
-    --line-2: #eef1f7;
-
-    /* Accent — 통합 팔레트(애플블루). red/green 은 상태색(tower down/ok) */
-    --down: #d33a2f;
-    --down-soft: #fbe9e7;
+    /* App-local accent/상태 파생 잉크(work 컴포넌트 전용, 파운데이션 아님).
+       tower 이름 체계에 맞춰 down(위험) 계열 잉크로 명명. */
     --down-ink: #991b1b;
-    --accent: #0071e3;
-    --accent-soft: #e8f1fd;
-    --accent-ink: #005bbf;
-    --ok: #248a3d;
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
     --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
 
@@ -107,10 +157,6 @@
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
 
-    /* ── 크기 스케일(spacing·radius·icon·control-height)은 scale.css 로 분리 ──
-       모든 앱(work·growth·tower)이 공유하는 값. 색과 달리 앱 무관하게 동일하므로
-       별도 블록(tokens-scale)으로 관리 → 색 안 쓰는 growth 도 크기만 받아감. */
-
     /* ── 시맨틱 토큰 (raw 자리 var() 참조용) ──
        @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
        scale 을 교체해 raw 자리 깨짐. :root 로 옮겨 default utility 보존 + 시맨틱
@@ -152,34 +198,18 @@
   :root[data-theme="dark"] {
     color-scheme: dark;
 
-    /* Background — 통합 팔레트 다크(tower 앵커, 딥네이비). 다크는 캔버스도 통일. */
+    /* --bg(앱 캔버스) 다크 — 앱별 오버라이드. tower 앵커 딥네이비. */
     --bg: #0c0f16;
-    --surface: #161b24;
-    --surface-2: #1c222d;
-    --surface-3: #252d3a;
+
+    /* App-local: 캔버스 파생 오버레이·프로스트 (dark) */
     --bg-overlay: rgba(12, 15, 22, 0.92);
     --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
-
-    /* Text — 통합 팔레트 다크 */
-    --ink: #eef1f6;
-    --sub: #b0b8c4;
-    --faint: #7c8592;
     --text-inverse: #1d1d1f;
 
-    /* Border — 통합 팔레트 다크 */
-    --line: #2b3441;
-    --line-2: #232b36;
-
-    /* Accent (desaturated for dark) — 통합 팔레트 */
-    --down: #ff5a4d;
-    --down-soft: rgba(255, 90, 77, 0.1);
+    /* App-local accent/상태 파생 잉크 (dark) */
     --down-ink: #fca5a5;
-    --accent: #2f8fff;
-    --accent-soft: rgba(47, 143, 255, 0.1);
-    --accent-ink: #7fbcff;
-    --ok: #3fbf5f;
     --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
     --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
 
@@ -249,6 +279,33 @@
     /* ── Control height (responsive) ── var(--ctl-h) 쓰는 버튼·아이콘버튼은
        데스크탑 28 / 터치 44 로 자동 적응. 하단 @media (pointer: coarse) 참조. */
     --ctl-h: 28px;
+
+    /* ── Type scale ── tower 기준(dense 대시보드). 폰트 배율(--fscale)만 곱해
+       '글자 크기만' 바뀌게(레이아웃/간격 고정, zoom 아님). 값·이름 = tower tokens.css. */
+    --fscale: 1;
+    --fs-3xs: calc(10px * var(--fscale));
+    --fs-2xs: calc(11px * var(--fscale));
+    --fs-xs: calc(12px * var(--fscale));
+    --fs-sm: calc(13px * var(--fscale));
+    --fs-base: calc(14px * var(--fscale));
+    --fs-md: calc(15px * var(--fscale));
+    --fs-lg: calc(17px * var(--fscale));
+    --fs-xl: calc(19px * var(--fscale));
+    --fs-2xl: calc(22px * var(--fscale));
+    --fs-3xl: calc(27px * var(--fscale));
+    --fs-4xl: calc(30px * var(--fscale));
+
+    /* ── Line-height scale ── 읽기 텍스트용(tower 참고: 본문 1.55). */
+    --lh-tight: 1.3;
+    --lh-snug: 1.45;
+    --lh-normal: 1.5;
+    --lh-relaxed: 1.55;
+    --lh-loose: 1.65;
+
+    /* ── Font-weight scale ── */
+    --fw-med: 500;
+    --fw-semi: 600;
+    --fw-bold: 700;
   }
 
   /* 터치 기기 = 컨트롤 높이를 44 로. Apple HIG 최소 터치 타깃. */

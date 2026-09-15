@@ -233,7 +233,7 @@ export function TodayPage({
                         >
                           {t.title}
                         </span>
-                        <span className="flex shrink-0 items-center gap-1.5 text-[11px] tabular-nums">
+                        <span className="flex shrink-0 items-center gap-1.5 text-2xs tabular-nums">
                           {t.due_date ? (
                             <span
                               style={{
@@ -304,7 +304,7 @@ export function TodayPage({
                       </span>
                       {isTodayView ? (
                         <span
-                          className="shrink-0 text-[11px]"
+                          className="shrink-0 text-2xs"
                           style={{ color: "var(--faint)" }}
                         >
                           {relativeDateLabel(todayIso(new Date(m.mtime)))}
@@ -373,7 +373,7 @@ function Section({
         </Text>
         {typeof count === "number" && count > 0 ? (
           <span
-            className="text-[12px] tabular-nums"
+            className="text-xs tabular-nums"
             style={{ color: "var(--faint)" }}
           >
             {count}
@@ -405,7 +405,7 @@ function Row({
           onClick();
         }
       }}
-      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--surface-2)]"
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-base transition hover:bg-[var(--surface-2)]"
     >
       {children}
     </div>

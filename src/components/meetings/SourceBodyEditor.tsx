@@ -938,7 +938,7 @@ function KindGlyph({ kind }: { kind: LineKind }) {
       return null;
     case "heading":
       return (
-        <span className="font-mono text-[10px] font-semibold">
+        <span className="font-mono text-3xs font-semibold">
           H{kind.level}
         </span>
       );
@@ -947,7 +947,7 @@ function KindGlyph({ kind }: { kind: LineKind }) {
     case "ordered":
       if (typeof kind.renderedNumber === "number") {
         return (
-          <span className="font-mono text-[10px] font-semibold tabular-nums">
+          <span className="font-mono text-3xs font-semibold tabular-nums">
             {kind.renderedNumber}.
           </span>
         );

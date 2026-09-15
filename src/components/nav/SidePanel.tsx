@@ -645,7 +645,7 @@ function PinnedSection({
   return (
     <div className="border-b" style={{ borderColor: "var(--line-2)" }}>
       <div
-        className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider"
+        className="px-3 pt-2 pb-1 text-3xs uppercase tracking-wider"
         style={{ color: "var(--faint)" }}
       >
         고정됨
@@ -660,7 +660,7 @@ function PinnedSection({
                 e.preventDefault();
                 onContextMenu(m.id, e.clientX, e.clientY);
               }}
-              className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-[13px] font-normal"
+              className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
               style={{
                 paddingLeft: "8px",
                 backgroundColor:
@@ -920,14 +920,14 @@ function MarkdownHelpPanel({ onClose }: { onClose: () => void }) {
           <Fragment key={i}>
             {h.section ? (
               <div
-                className="col-span-2 mb-0.5 mt-3 text-[10px] font-semibold uppercase tracking-wider first:mt-0"
+                className="col-span-2 mb-0.5 mt-3 text-3xs font-semibold uppercase tracking-wider first:mt-0"
                 style={{ color: "var(--faint)" }}
               >
                 {h.section}
               </div>
             ) : null}
             <code
-              className="whitespace-nowrap rounded px-1.5 py-0.5 text-left font-mono text-[11px]"
+              className="whitespace-nowrap rounded px-1.5 py-0.5 text-left font-mono text-2xs"
               style={{ backgroundColor: "var(--surface-3)", color: "var(--sub)" }}
             >
               {h.syntax}
@@ -1080,7 +1080,7 @@ function SidePanelSectionHeader({
       <Button
         variant="ghost"
         onClick={onToggle}
-        className="flex-1 justify-between gap-1.5 rounded-none py-1 pr-2 text-[13px] font-normal"
+        className="flex-1 justify-between gap-1.5 rounded-none py-1 pr-2 text-sm font-normal"
         style={{ paddingLeft: "8px", color: "var(--sub)" }}
       >
         <span className="inline-flex items-center gap-1.5">
@@ -1093,7 +1093,7 @@ function SidePanelSectionHeader({
         </span>
         {typeof count === "number" ? (
           <span
-            className="text-[11px] tabular-nums"
+            className="text-2xs tabular-nums"
             style={{ color: "var(--faint)" }}
           >
             {count}
@@ -1302,7 +1302,7 @@ export function TodosSidePanel({
                     }
                   }}
                   placeholder="프로젝트 이름"
-                  className="mx-2 my-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-[13px] outline-none"
+                  className="mx-2 my-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-sm outline-none"
                   style={{
                     backgroundColor: "var(--surface)",
                     border: "1px solid var(--line)",
@@ -1379,14 +1379,14 @@ function ProjectItem({
       <button
         type="button"
         onClick={onSelect}
-        className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-[13px]"
+        className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-sm"
         style={{ color: "var(--ink)" }}
       >
         <Folder className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
         <span className="min-w-0 flex-1 truncate">{project.name}</span>
         {count > 0 ? (
           <span
-            className="shrink-0 text-[11px] tabular-nums"
+            className="shrink-0 text-2xs tabular-nums"
             style={{ color: "var(--faint)" }}
           >
             {count}
@@ -1440,7 +1440,7 @@ function RoutineSidebarItem({
           onSelect();
         }
       }}
-      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--surface-2)]"
+      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm transition hover:bg-[var(--surface-2)]"
       style={{
         backgroundColor: active ? "var(--surface-3)" : undefined,
       }}
@@ -1460,7 +1460,7 @@ function RoutineSidebarItem({
       </span>
       {routine.frontmatter.time ? (
         <span
-          className="shrink-0 text-[11px] tabular-nums"
+          className="shrink-0 text-2xs tabular-nums"
           style={{ color: "var(--faint)" }}
         >
           {routine.frontmatter.time}
@@ -1493,7 +1493,7 @@ function ArchivedRoutineSidebarItem({
           onSelect();
         }
       }}
-      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-[13px] transition hover:bg-[var(--surface-2)]"
+      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm transition hover:bg-[var(--surface-2)]"
       style={{
         backgroundColor: active ? "var(--surface-3)" : undefined,
       }}
@@ -1506,7 +1506,7 @@ function ArchivedRoutineSidebarItem({
       </span>
       {ends ? (
         <span
-          className="shrink-0 text-[11px] tabular-nums"
+          className="shrink-0 text-2xs tabular-nums"
           style={{ color: "var(--faint)" }}
           title={`종료일 ${ends}`}
         >
@@ -1599,7 +1599,7 @@ export function RoutinesSidePanel({
                 variant="caption"
                 color="muted"
                 as="div"
-                className="px-2 py-1 text-[13px]"
+                className="px-2 py-1 text-sm"
               >
                 아직 루틴이 없어요
               </Text>

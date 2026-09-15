@@ -72,14 +72,14 @@ function EventRow({ event }: { event: ScheduleEvent }) {
             setEditing(true);
           }
         }}
-        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] transition hover:bg-[var(--surface-2)]"
+        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-base transition hover:bg-[var(--surface-2)]"
       >
         {/* 내용-날짜-시간 순으로 통일(할일·노트와 동일): 제목 먼저, 시각·범위는 우측. */}
         <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink)" }}>
           {event.text}
         </span>
         <span
-          className="flex shrink-0 items-center gap-1.5 text-[11px] tabular-nums"
+          className="flex shrink-0 items-center gap-1.5 text-2xs tabular-nums"
           style={{ color: "var(--faint)" }}
         >
           {range ? <span>{range.trim()}</span> : null}

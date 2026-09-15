@@ -48,7 +48,7 @@ export function ManualPasteFallback({
         variant="caption"
         color="muted"
         as="summary"
-        className="cursor-pointer text-[11px]"
+        className="cursor-pointer text-2xs"
       >
         {manualFallbackSummary(requestError)}
       </Text>

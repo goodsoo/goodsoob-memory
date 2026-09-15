@@ -147,7 +147,7 @@ function MonthBlock({
         {WEEKDAY_LABELS.map((w, i) => (
           <span
             key={i}
-            className="text-center text-[10px] leading-none"
+            className="text-center text-3xs leading-none"
             style={{ color: "var(--faint)", width: CELL }}
           >
             {w}

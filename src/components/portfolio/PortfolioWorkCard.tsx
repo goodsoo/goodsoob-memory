@@ -123,7 +123,7 @@ export function PortfolioWorkCard({ work }: Props) {
             color="secondary"
             as="span"
             truncate
-            className="font-mono text-[11px]"
+            className="font-mono text-2xs"
             title={fm.github_title}
           >
             {fm.github_title}
@@ -241,7 +241,7 @@ export function PortfolioWorkCard({ work }: Props) {
             color="secondary"
             as="span"
             truncate
-            className="font-mono text-[11px]"
+            className="font-mono text-2xs"
             title={fm.github_title}
           >
             {fm.github_title}

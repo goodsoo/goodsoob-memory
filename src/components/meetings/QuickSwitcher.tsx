@@ -126,7 +126,7 @@ export function QuickSwitcher({ open, onClose, onSelect }: Props) {
             style={{ color: "var(--ink)" }}
           />
           <kbd
-            className="rounded px-1.5 py-0.5 text-[10px]"
+            className="rounded px-1.5 py-0.5 text-3xs"
             style={{
               backgroundColor: "var(--surface)",
               color: "var(--faint)",
@@ -213,14 +213,14 @@ function ResultRow({
               variant="caption"
               color="muted"
               as="span"
-              className="shrink-0 text-[11px] tabular-nums"
+              className="shrink-0 text-2xs tabular-nums"
             >
               {entry.metaLabel}
             </Text>
           ) : null}
           {/* 도메인 chip 은 항상 행 가장 우측 — 모든 행 통일 위치로 시각 anchor */}
           <span
-            className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-3xs"
             style={{
               backgroundColor: meta.bg,
               color: meta.color,

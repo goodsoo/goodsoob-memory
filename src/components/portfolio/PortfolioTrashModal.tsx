@@ -165,7 +165,7 @@ export function PortfolioTrashModal({ open, onClose }: Props) {
             <Text
               variant="caption"
               as="div"
-              className="mx-3 mt-2 rounded-md px-2 py-1.5 text-[11px] leading-relaxed"
+              className="mx-3 mt-2 rounded-md px-2 py-1.5 text-2xs leading-relaxed"
               style={{
                 backgroundColor: "var(--accent-soft)",
                 color: "var(--accent-ink)",
@@ -313,7 +313,7 @@ function TrashListItem({
             variant="caption"
             color="muted"
             as="span"
-            className="text-[11px]"
+            className="text-2xs"
           >
             {work.deletedAt
               ? `${formatDisplayDateTime(new Date(work.deletedAt).toISOString())} 삭제`

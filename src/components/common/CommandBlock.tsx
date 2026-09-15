@@ -26,13 +26,13 @@ export function CommandBlock({ command, caption, size = "md" }: Props) {
   }
 
   const padding = size === "sm" ? "px-2.5 py-1.5" : "px-3 py-2";
-  const fontSize = size === "sm" ? "text-[11px]" : "text-xs";
+  const fontSize = size === "sm" ? "text-2xs" : "text-xs";
 
   return (
     <div className="flex flex-col gap-1">
       {caption ? (
         <span
-          className="text-[10px] uppercase tracking-wider"
+          className="text-3xs uppercase tracking-wider"
           style={{ color: "var(--faint)" }}
         >
           {caption}

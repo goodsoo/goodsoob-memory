@@ -494,7 +494,7 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
           onClick={() => setOpen((v) => !v)}
           title={vaultRoot}
           aria-label={`vault: ${activeName}`}
-          className="h-7 max-w-full gap-1 px-2 text-[13px]"
+          className="h-7 max-w-full gap-1 px-2 text-sm"
           style={{ color: "var(--ink)" }}
         >
           <span className="truncate">{activeName}</span>

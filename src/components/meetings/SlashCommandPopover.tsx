@@ -216,7 +216,7 @@ export function SlashCommandPopover({
               variant="caption"
               color="muted"
               as="span"
-              className="font-mono text-[10px] tabular-nums"
+              className="font-mono text-3xs tabular-nums"
             >
               {o.hint}
             </Text>

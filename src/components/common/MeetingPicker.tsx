@@ -109,7 +109,7 @@ export function MeetingPicker({ value, onChange }: Props) {
                   onChange(null);
                   setOpen(false);
                 }}
-                className="shrink-0 px-1.5 py-0.5 text-[11px] font-normal"
+                className="shrink-0 px-1.5 py-0.5 text-2xs font-normal"
                 style={{ color: "var(--faint)" }}
               >
                 연결 해제
@@ -156,7 +156,7 @@ export function MeetingPicker({ value, onChange }: Props) {
                           variant="caption"
                           color="muted"
                           as="span"
-                          className="shrink-0 font-mono text-[10px]"
+                          className="shrink-0 font-mono text-3xs"
                         >
                           {formatDateShortWithDay(m.date)}
                         </Text>

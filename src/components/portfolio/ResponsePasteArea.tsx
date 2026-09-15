@@ -57,7 +57,7 @@ export function ResponsePasteArea({ onParsed, onError }: Props) {
         <Text
           variant="caption"
           as="span"
-          className="text-[11px]"
+          className="text-2xs"
           style={{ color: "var(--down-ink)" }}
         >
           응답 형식 못 알아봄 — 직접 입력

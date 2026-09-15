@@ -135,7 +135,7 @@ const TYPOGRAPHY_SCALE = [
   { sample: "사이드 패널 헤더", className: "text-sm font-semibold", size: "14px", usage: "사이드 패널 헤더" },
   { sample: "본문 텍스트", className: "text-base", size: "16px", usage: "본문" },
   { sample: "라벨 / 메타", className: "text-xs", size: "12px", usage: "라벨, 메타" },
-  { sample: "캘린더 이벤트", className: "text-[11px]", size: "11px", usage: "캘린더 이벤트" },
+  { sample: "캘린더 이벤트", className: "text-2xs", size: "11px", usage: "캘린더 이벤트" },
 ];
 
 const SPACING = [

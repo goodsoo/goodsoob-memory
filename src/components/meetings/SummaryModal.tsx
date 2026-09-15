@@ -340,7 +340,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
                 <Text
                   variant="caption"
                   as="div"
-                  className="rounded-md px-2.5 py-1.5 text-[12px] leading-relaxed whitespace-pre-line"
+                  className="rounded-md px-2.5 py-1.5 text-xs leading-relaxed whitespace-pre-line"
                   style={{
                     backgroundColor: "var(--down-soft)",
                     color: "var(--down-ink)",
@@ -475,7 +475,7 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
                   <Text
                     variant="caption"
                     as="span"
-                    className="text-[11px]"
+                    className="text-2xs"
                     style={{ color: "var(--down-ink)" }}
                   >
                     {pasteError}
@@ -531,7 +531,7 @@ function TemplateChip({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className="rounded-full px-2.5 py-1 text-[12px] transition disabled:cursor-not-allowed disabled:opacity-50"
+      className="rounded-full px-2.5 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50"
       style={{
         backgroundColor: active ? "var(--surface-2)" : "transparent",
         border: `1px solid ${active ? "var(--line)" : "var(--line-2)"}`,

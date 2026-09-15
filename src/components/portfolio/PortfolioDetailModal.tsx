@@ -363,7 +363,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                         variant="caption"
                         color="secondary"
                         as="div"
-                        className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 text-[11px]"
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md px-2 py-0.5 text-2xs"
                         style={{ backgroundColor: "var(--bg-overlay)" }}
                       >
                         {activeShot + 1} / {fm.screenshots.length}
@@ -375,7 +375,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                       variant="caption"
                       color="secondary"
                       as="div"
-                      className="absolute bottom-2 left-2 rounded-md px-2 py-0.5 text-[11px]"
+                      className="absolute bottom-2 left-2 rounded-md px-2 py-0.5 text-2xs"
                       style={{ backgroundColor: "var(--bg-overlay)" }}
                     >
                       {currentShot.label}
@@ -496,7 +496,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                     href={fm.github_pr_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[11px] transition hover:underline"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-2xs transition hover:underline"
                     style={{ color: "var(--sub)" }}
                     title={fm.github_pr_url}
                   >
@@ -565,7 +565,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   variant="caption"
                   color="muted"
                   as="span"
-                  className="text-[11px]"
+                  className="text-2xs"
                 >
                   구독 사용량으로 호출. 본인 머신의 <code>claude</code> CLI 가 필요.
                 </Text>
@@ -573,7 +573,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   <Text
                     variant="caption"
                     as="div"
-                    className="rounded-md px-2.5 py-1.5 text-[11px]"
+                    className="rounded-md px-2.5 py-1.5 text-2xs"
                     style={{
                       backgroundColor: "var(--down-soft)",
                       color: "var(--down-ink)",
@@ -595,7 +595,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                       variant="caption"
                       color="muted"
                       as="span"
-                      className="text-[10px] uppercase tracking-wider"
+                      className="text-3xs uppercase tracking-wider"
                     >
                       Claude 제안
                     </Text>
@@ -666,7 +666,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
               variant="caption"
               color="muted"
               as="div"
-              className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t pt-3 text-[11px]"
+              className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t pt-3 text-2xs"
               style={{ borderColor: "var(--line-2)" }}
             >
               <span>변경:</span>
@@ -741,7 +741,7 @@ function Field({
         variant="caption"
         color="muted"
         as="span"
-        className="text-[11px] uppercase tracking-wider"
+        className="text-2xs uppercase tracking-wider"
       >
         {label}
       </Text>

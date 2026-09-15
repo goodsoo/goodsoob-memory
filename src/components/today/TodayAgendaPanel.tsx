@@ -126,7 +126,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
           {WEEKDAYS.map((w, i) => (
             <div
               key={w}
-              className="text-center text-[11px] font-medium"
+              className="text-center text-2xs font-medium"
               style={{
                 color: i === 0 ? "var(--down)" : "var(--faint)",
               }}
@@ -146,7 +146,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
                 onClick={() => onOpenDay(iso)}
                 title={`${formatDisplayDate(iso)} 상세`}
                 aria-label={`${formatDisplayDate(iso)} 상세`}
-                className="relative mx-auto flex h-7 w-7 flex-col items-center justify-center rounded-md text-[12px] tabular-nums transition hover:bg-[var(--surface-2)]"
+                className="relative mx-auto flex h-7 w-7 flex-col items-center justify-center rounded-md text-xs tabular-nums transition hover:bg-[var(--surface-2)]"
                 style={
                   isToday(iso)
                     ? {
@@ -184,7 +184,7 @@ export function TodayAgendaPanel({ onOpenDay, selectedDay }: Props) {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
         <div className="flex items-center justify-between px-1 pb-1">
           <span
-            className="text-[12px] font-semibold"
+            className="text-xs font-semibold"
             style={{ color: "var(--sub)" }}
           >
             다가오는 일정
@@ -237,7 +237,7 @@ function UpcomingRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition hover:bg-[var(--surface-2)]"
+      className="flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-[var(--surface-2)]"
     >
       {/* 내용-날짜-시간 순으로 통일(할일·노트와 동일): 제목 먼저, 날짜·시각은 우측. */}
       <span
@@ -247,7 +247,7 @@ function UpcomingRow({
         {event.text}
       </span>
       <span
-        className="shrink-0 whitespace-nowrap text-[11px] tabular-nums"
+        className="shrink-0 whitespace-nowrap text-2xs tabular-nums"
         style={{ color: "var(--faint)" }}
       >
         {formatDisplayDate(event.start)}

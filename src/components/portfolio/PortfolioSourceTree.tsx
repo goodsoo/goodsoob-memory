@@ -295,7 +295,7 @@ export const PortfolioSourceTree = forwardRef<
       />
       {!collapse.manual && rootManualCount > 0 ? (
         <FilterItem
-          label={<Text variant="caption" color="muted" as="span" className="text-[12px]">(폴더 없음)</Text>}
+          label={<Text variant="caption" color="muted" as="span" className="text-xs">(폴더 없음)</Text>}
           count={rootManualCount}
           active={activeFilter.kind === "folder" && activeFilter.path === ""}
           onClick={() => onFilterChange({ kind: "folder", path: "" })}
@@ -373,7 +373,7 @@ export const PortfolioSourceTree = forwardRef<
         <Text
           variant="caption"
           as="p"
-          className="mt-1 px-2 text-[11px]"
+          className="mt-1 px-2 text-2xs"
           style={{ color: "var(--down-ink)" }}
         >
           {error}
@@ -431,7 +431,7 @@ function SectionLabel({
         variant="caption"
         color="muted"
         as="span"
-        className="text-[11px] tracking-wide"
+        className="text-2xs tracking-wide"
       >
         {label}
       </Text>
@@ -449,7 +449,7 @@ function renderRepo(name: string): React.ReactNode {
         variant="caption"
         color="muted"
         as="span"
-        className="text-[10px]"
+        className="text-3xs"
       >
         {name.slice(0, slashIdx)}
       </Text>
@@ -489,7 +489,7 @@ const ProjectContextMenu = forwardRef<
         variant="caption"
         color="muted"
         as="div"
-        className="truncate px-3 pt-2 pb-1 text-[11px]"
+        className="truncate px-3 pt-2 pb-1 text-2xs"
       >
         {name}
       </Text>

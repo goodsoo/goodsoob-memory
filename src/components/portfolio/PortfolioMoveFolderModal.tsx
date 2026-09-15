@@ -96,7 +96,7 @@ export function PortfolioMoveFolderModal({ open, onClose, work }: Props) {
           variant="caption"
           color="muted"
           as="p"
-          className="mb-3 text-[11px] leading-relaxed"
+          className="mb-3 text-2xs leading-relaxed"
         >
           "{work.frontmatter.github_title}" 카드의 새 위치를 고르세요. 카드의
           첨부 스크린샷 (`{PORTFOLIO_DIR}/_attachments/`) 은 함께 이동하지
@@ -195,7 +195,7 @@ function FolderRow({
             variant="caption"
             color="muted"
             as="span"
-            className="text-[10px]"
+            className="text-3xs"
           >
             현재 위치
           </Text>

@@ -96,7 +96,7 @@ export function PortfolioGuideModal({
                 GitHub 로그인 / 계정 변경
               </Button>
             </div>
-            <p className="muted mt-2 text-[11px]">
+            <p className="muted mt-2 text-2xs">
               회사 GitHub Enterprise 면 로그인 가이드 안에{" "}
               <Code>--hostname github.your-company.com</Code> 옵션 안내.
             </p>
@@ -148,7 +148,7 @@ export function PortfolioGuideModal({
                   variant="caption"
                   color="muted"
                   as="span"
-                  className="text-[11px]"
+                  className="text-2xs"
                 >
                   옛 PR 메타 갱신 / 카드 살리기용
                 </Text>
@@ -157,7 +157,7 @@ export function PortfolioGuideModal({
                 variant="caption"
                 color="muted"
                 as="p"
-                className="text-[11px] leading-relaxed"
+                className="text-2xs leading-relaxed"
               >
                 평소엔 안 누름. 이런 때 가끔 사용:
               </Text>
@@ -165,7 +165,7 @@ export function PortfolioGuideModal({
                 variant="caption"
                 color="muted"
                 as="ul"
-                className="ml-4 list-disc text-[11px] leading-relaxed"
+                className="ml-4 list-disc text-2xs leading-relaxed"
               >
                 <li>본인이 GitHub 에서 repo 이름 / owner 옮긴 직후 — 옛 PR 의 owner/repo 갱신을 따라가기 위해.</li>
                 <li>옛 PR 의 제목 / body / +N −M 변경 반영.</li>
@@ -174,7 +174,7 @@ export function PortfolioGuideModal({
             </div>
 
             <div
-              className="mt-3 rounded-md p-3 text-[11px] leading-relaxed"
+              className="mt-3 rounded-md p-3 text-2xs leading-relaxed"
               style={{
                 backgroundColor: "var(--accent-soft)",
                 color: "var(--accent-ink)",
@@ -304,7 +304,7 @@ function PromptRow({
         variant="caption"
         color="muted"
         as="p"
-        className="text-[11px] leading-relaxed"
+        className="text-2xs leading-relaxed"
       >
         {description}
       </Text>
@@ -323,7 +323,7 @@ function Kbd({ children }: { children: React.ReactNode }) {
 function Code({ children }: { children: React.ReactNode }) {
   return (
     <code
-      className="rounded px-1 py-px font-mono text-[11px]"
+      className="rounded px-1 py-px font-mono text-2xs"
       style={{
         backgroundColor: "var(--surface-2)",
         color: "var(--sub)",

@@ -150,7 +150,7 @@ export function AttachmentsSection() {
             className="flex max-h-64 flex-col gap-1 overflow-y-auto rounded-md p-2 font-mono"
             style={{
               background: "var(--surface)",
-              fontSize: "0.75rem",
+              fontSize: "var(--fs-xs)",
               color: "var(--sub)",
             }}
           >

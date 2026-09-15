@@ -74,7 +74,7 @@ export function AuthGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-2 text-[11px] leading-relaxed"
+            className="mt-2 text-2xs leading-relaxed"
           >
             대화형 안내가 뜸 — <strong>GitHub.com</strong> → <strong>HTTPS</strong> →{" "}
             <strong>Login with a web browser</strong> 권장. 일회용 코드가 표시되고
@@ -96,7 +96,7 @@ export function AuthGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-2 text-[11px] leading-relaxed"
+            className="mt-2 text-2xs leading-relaxed"
           >
             여러 계정을 동시에 두고 전환만 하려면{" "}
             <code className="font-mono">gh auth switch</code> (gh 2.40+).
@@ -115,7 +115,7 @@ export function AuthGuideModal({
               variant="caption"
               color="muted"
               as="p"
-              className="mt-2 text-[11px]"
+              className="mt-2 text-2xs"
             >
               GitHub.com 계정과 별개로 저장돼 둘 다 로그인 가능.
             </Text>
@@ -165,7 +165,7 @@ function Section({
     <section className="mb-5 last:mb-0">
       <div className="mb-2 flex items-baseline gap-2">
         <span
-          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold"
           style={{
             backgroundColor: "var(--surface-3)",
             color: "var(--ink)",

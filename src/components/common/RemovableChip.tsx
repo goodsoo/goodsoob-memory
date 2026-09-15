@@ -17,7 +17,7 @@ type Props = {
 export function RemovableChip({ children, onRemove, ariaLabel }: Props) {
   return (
     <span
-      className="inline-flex h-5 shrink-0 items-center gap-0.5 rounded pl-1.5 pr-0.5 text-[12px] leading-none"
+      className="inline-flex h-5 shrink-0 items-center gap-0.5 rounded pl-1.5 pr-0.5 text-xs leading-none"
       style={{
         backgroundColor: "var(--surface-2)",
         color: "var(--ink)",

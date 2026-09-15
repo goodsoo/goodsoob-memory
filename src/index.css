@@ -15,6 +15,24 @@
      낮춤. 코드의 `lg:` 유틸리티 + raw @media (min-width: ...) 모두 이 값 기준. */
   --breakpoint-lg: 640px;
 
+  /* ── Typography scale rewire ── Tailwind `text-*` 유틸을 canonical --fs-* 스케일에
+     재배선. Tailwind v4 는 --text-<name> = font-size 로 유틸을 생성 → var() 참조가
+     그대로 :root 에 emit 되어 런타임 해석됨 (text-sm → var(--text-sm) → var(--fs-sm) → 13px).
+     실증: goodsoob-work 4.2.4 compile probe 통과.
+     line-height 는 의도적으로 미정의 → Tailwind 기본(font-size 비례 ratio) 유지해 회귀 최소화.
+     값(px)은 canonical scale.css --fs-* 참조(진실원본) — 여기 숫자 하드코딩 금지.
+       text-3xs=10 · text-2xs=11 · text-xs=12 · text-sm=13(기존14↓) · text-base=14(기존16↓)
+       · text-lg=17(기존18↓) · text-xl=19(기존20↓) · text-2xl=22(기존24↓) · text-3xl=27(기존30↓) */
+  --text-3xs: var(--fs-3xs);
+  --text-2xs: var(--fs-2xs);
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-base: var(--fs-base);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-2xl: var(--fs-2xl);
+  --text-3xl: var(--fs-3xl);
+
   /* ── 시맨틱 토큰 ──
      opacity / z-index / shadow / motion 시맨틱은 `:root` (아래 base layer) 로
      이동. @theme 안에 박으면 Tailwind v4 가 default `z-10/20/50` / `opacity-50`
@@ -365,13 +383,13 @@
 
   /* portfolio 가이드북 본문 — 일반적인 doc-like 스타일 (tailwind reset 가 list 제거하므로 복원) */
   .guide-body {
-    font-size: 12px;
+    font-size: var(--fs-xs);
     line-height: 1.6;
     color: var(--sub);
   }
   .guide-body p { margin: 0 0 0.5rem; }
   .guide-body p:last-child { margin-bottom: 0; }
-  .guide-body p.muted { color: var(--faint); font-size: 11px; }
+  .guide-body p.muted { color: var(--faint); font-size: var(--fs-2xs); }
   .guide-body strong { color: var(--ink); font-weight: 600; }
   .guide-body em { color: var(--ink); font-style: italic; }
   .guide-body ul, .guide-body ol {
@@ -416,7 +434,7 @@
     border-radius: var(--radius-6);
     border: 1px solid var(--line);
     padding: 4px 22px 4px 8px;
-    font-size: 13px;
+    font-size: var(--fs-sm);
     color: var(--ink);
     background-color: var(--surface);
     transition: border-color 0.15s;
@@ -432,7 +450,7 @@
     border-radius: var(--radius-6);
     border: 1px solid var(--line);
     padding: 4px 8px;
-    font-size: 13px;
+    font-size: var(--fs-sm);
     color: var(--ink);
     background-color: var(--surface);
     transition: border-color 0.15s;
@@ -500,7 +518,7 @@
     outline: none;
     padding: 0;
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--fs-base);
     line-height: 1.625rem;
     color: var(--ink);
     font-family: inherit;

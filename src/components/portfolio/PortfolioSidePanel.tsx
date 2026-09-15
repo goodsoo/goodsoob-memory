@@ -234,7 +234,7 @@ function SyncErrorRow({
           <X className="h-3 w-3" />
         </Button>
       </div>
-      <Text variant="caption" color="secondary" as="p" className="text-[11px] leading-snug">
+      <Text variant="caption" color="secondary" as="p" className="text-2xs leading-snug">
         {detail}
       </Text>
       {action ? (
@@ -242,7 +242,7 @@ function SyncErrorRow({
           variant="ghost"
           size="sm"
           onClick={action.onClick}
-          className="self-start px-2 py-1 text-[11px]"
+          className="self-start px-2 py-1 text-2xs"
           style={{
             color: "var(--down)",
             textDecoration: "underline",

@@ -9,7 +9,7 @@ type Props = Omit<HTMLAttributes<HTMLElement>, "children"> & {
 export function Kbd({ children, className = "", style, ...rest }: Props) {
   return (
     <kbd
-      className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded px-1 py-px font-mono text-[11px] font-medium leading-none ${className}`}
+      className={`inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded px-1 py-px font-mono text-2xs font-medium leading-none ${className}`}
       style={{
         backgroundColor: "var(--surface-2)",
         color: "var(--ink)",

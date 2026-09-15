@@ -400,13 +400,13 @@ function GcalAction({ task }: { task: Task }) {
 function DueChip({ task }: { task: Task }) {
   if (task.done || task.cancelled || !task.due_date) return null;
   const diff = daysFromToday(task.due_date);
-  const base = "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium";
+  const base = "shrink-0 rounded px-1.5 py-0.5 text-3xs font-medium";
   if (diff === 0) {
     // "오늘 = 마감 D-day" → 지남과 같은 빨강 시그널. 색 가짓수 줄임.
     // 위계: 오늘 = filled bold (액션 강조), 지남 = outline (정보).
     return (
       <span
-        className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold"
+        className="shrink-0 rounded px-1.5 py-0.5 text-3xs font-bold"
         style={{
           backgroundColor: "var(--down)",
           color: "var(--text-inverse)",
@@ -545,7 +545,7 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
                 variant="caption"
                 color="muted"
                 as="div"
-                className="mt-0.5 text-[11px]"
+                className="mt-0.5 text-2xs"
               >
                 메모를 찾을 수 없어요. (md 안 연결 id 는 그대로 보존)
               </Text>
@@ -566,7 +566,7 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
                     color="muted"
                     as="div"
                     truncate
-                    className="mt-1 text-[11px]"
+                    className="mt-1 text-2xs"
                   >
                     {meeting.date ? formatDateShortWithDay(meeting.date) : null}
                     {meeting.time ? ` · ${meeting.time}` : null}

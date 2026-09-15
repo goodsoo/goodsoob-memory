@@ -449,7 +449,7 @@ function FolderItem({
           onDragOver={(e) => onDragOverFolder(e, node.path)}
           onDragLeave={() => onDragLeaveFolder(node.path)}
           onDrop={(e) => onDropFolder(e, node.path)}
-          className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-[13px] font-normal"
+          className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
           style={
             {
               paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
@@ -611,7 +611,7 @@ function FolderRowEditing({
   }, []);
   return (
     <div
-      className="flex w-full min-w-0 items-center gap-1.5 rounded py-1 pr-2 text-[13px]"
+      className="flex w-full min-w-0 items-center gap-1.5 rounded py-1 pr-2 text-sm"
       style={{
         paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
         backgroundColor: "var(--surface-3)",
@@ -645,7 +645,7 @@ function FolderRowEditing({
         }}
         onBlur={() => onCommit?.()}
         disabled={pending}
-        className="h-5 min-w-0 flex-1 appearance-none rounded border-0 bg-transparent p-0 text-[13px] font-medium leading-5 outline-none"
+        className="h-5 min-w-0 flex-1 appearance-none rounded border-0 bg-transparent p-0 text-sm font-medium leading-5 outline-none"
         style={{
           color: "var(--ink)",
           boxShadow: "0 0 0 1px var(--line) inset",
@@ -697,7 +697,7 @@ function MeetingRow({
         }}
         onDragStart={(e) => onDragStart(e, meeting.uid)}
         onDragEnd={onDragEnd}
-        className="w-full justify-start gap-1.5 rounded py-1 pr-2 text-[13px] font-normal"
+        className="w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
         style={
           {
             paddingLeft: `${ROW_BASE_PAD_LEFT + TITLE_OFFSET}px`,
@@ -720,7 +720,7 @@ function MeetingRow({
             variant="caption"
             color="muted"
             as="span"
-            className="shrink-0 pl-2 text-[11px] tabular-nums"
+            className="shrink-0 pl-2 text-2xs tabular-nums"
           >
             {meta}
           </Text>

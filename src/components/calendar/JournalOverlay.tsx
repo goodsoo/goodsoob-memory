@@ -143,7 +143,7 @@ export function JournalOverlay({ open, date, onClose }: Props) {
           </div>
         </header>
         {/* 평문 일기 — 컨테이너 높이를 채우는 textarea(자체 스크롤). px-6 py-5 + font-serif 로 일기 느낌. */}
-        <div className="flex min-h-0 flex-1 flex-col px-6 py-5 font-serif text-[15px]">
+        <div className="flex min-h-0 flex-1 flex-col px-6 py-5 font-serif text-base">
           <JournalTextArea
             content={content}
             onChange={handleChange}

@@ -155,7 +155,7 @@ export function QuickCapturePanel() {
           }}
           onBlur={() => void flush()}
           placeholder="떠오른 생각을 적어두세요"
-          className="min-h-0 w-full flex-1 resize-none rounded-md px-2 py-1.5 text-[13px] leading-relaxed outline-none"
+          className="min-h-0 w-full flex-1 resize-none rounded-md px-2 py-1.5 text-sm leading-relaxed outline-none"
           style={{
             backgroundColor: "var(--bg)",
             border: "1px solid var(--line)",

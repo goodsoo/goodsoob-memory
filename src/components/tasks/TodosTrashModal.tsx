@@ -366,7 +366,7 @@ function RoutineRow({
           </Text>
         </div>
         <div
-          className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]"
+          className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-2xs"
           style={{ color: "var(--faint)" }}
         >
           {time ? <span>{time}</span> : null}
@@ -445,7 +445,7 @@ function TaskMeta({
   if (!hasDate && !hasTime) return null;
   return (
     <div
-      className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]"
+      className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-2xs"
       style={{ color: "var(--faint)" }}
     >
       {hasDate ? <span>{formatDisplayDate(task.due_date)}</span> : null}

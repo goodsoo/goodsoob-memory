@@ -42,7 +42,7 @@ export function BottomTabs({ activeTab, onTabChange }: Props) {
               type="button"
               onClick={() => onTabChange(id)}
               aria-current={active ? "page" : undefined}
-              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition"
+              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-3xs transition"
               style={{ color: active ? "var(--ink)" : "var(--faint)" }}
             >
               <Icon className="h-5 w-5" strokeWidth={active ? 2 : 1.5} />

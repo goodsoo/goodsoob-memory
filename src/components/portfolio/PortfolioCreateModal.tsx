@@ -77,7 +77,7 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
           variant="caption"
           color="muted"
           as="p"
-          className="mt-1 text-[11px] leading-relaxed"
+          className="mt-1 text-2xs leading-relaxed"
         >
           PR 없이 카드를 추가합니다. 새 카테고리는 카테고리 입력란에서 바로
           만들고, 새 폴더는 사이드바에서 만듭니다.

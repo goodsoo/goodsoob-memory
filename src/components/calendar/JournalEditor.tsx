@@ -64,7 +64,7 @@ export function JournalEditor({
 
   return (
     <div
-      className="rounded-md px-3 py-2 font-serif text-[14px]"
+      className="rounded-md px-3 py-2 font-serif text-base"
       style={{
         backgroundColor: "var(--surface)",
         border: "1px solid var(--line)",

@@ -52,7 +52,7 @@ export function InstallGuideModal({
         <Text variant="body" color="secondary" as="p" className="mb-4">
           포트폴리오 동기화는 본인 머신의{" "}
           <code
-            className="rounded px-1 py-px font-mono text-[11px]"
+            className="rounded px-1 py-px font-mono text-2xs"
             style={{
               backgroundColor: "var(--surface-2)",
               color: "var(--sub)",
@@ -69,7 +69,7 @@ export function InstallGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-1 text-[11px]"
+            className="mt-1 text-2xs"
           >
             Homebrew 가 없으면{" "}
             <a
@@ -90,11 +90,11 @@ export function InstallGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-1 text-[11px]"
+            className="mt-1 text-2xs"
           >
             Scoop 쓰면{" "}
             <code
-              className="rounded px-1 py-px font-mono text-[11px]"
+              className="rounded px-1 py-px font-mono text-2xs"
               style={{
                 backgroundColor: "var(--surface-2)",
                 color: "var(--sub)",
@@ -112,11 +112,11 @@ export function InstallGuideModal({
             variant="caption"
             color="muted"
             as="p"
-            className="mt-1 text-[11px]"
+            className="mt-1 text-2xs"
           >
             Fedora:{" "}
             <code
-              className="rounded px-1 py-px font-mono text-[11px]"
+              className="rounded px-1 py-px font-mono text-2xs"
               style={{
                 backgroundColor: "var(--surface-2)",
                 color: "var(--sub)",
@@ -155,7 +155,7 @@ export function InstallGuideModal({
 
         {/* 트러블슛 */}
         <section
-          className="mt-4 rounded-md p-3 text-[11px] leading-relaxed"
+          className="mt-4 rounded-md p-3 text-2xs leading-relaxed"
           style={{
             backgroundColor: "var(--accent-soft)",
             color: "var(--accent-ink)",
@@ -213,7 +213,7 @@ function OsSection({
           {title}
         </Text>
         {subtitle ? (
-          <Text variant="caption" color="muted" as="span" className="text-[11px]">
+          <Text variant="caption" color="muted" as="span" className="text-2xs">
             {subtitle}
           </Text>
         ) : null}

@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "짱수메모리",
   "version": "0.1.0",
-  "identifier": "com.goodsoob.goodsoob-work",
+  "identifier": "com.goodsoob.goodsoob-memory",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:7030",

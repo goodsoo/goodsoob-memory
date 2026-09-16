@@ -1,0 +1,29 @@
+/* modal.css — canonical .ds-modal class layer.
+ *
+ * Spec: docs/components.md §9-1.
+ * All values from design tokens — no raw px except contract-fixed literals.
+ */
+
+/* ── Backdrop ────────────────────────────────────────────────────────── */
+.ds-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Panel ───────────────────────────────────────────────────────────── */
+.ds-modal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-16);
+  padding: var(--space-24);
+  box-shadow: var(--shadow-modal);
+  /* z-index inherited from backdrop stacking context */
+  position: relative;
+  width: max-content;
+  max-width: calc(100vw - var(--space-32));
+}

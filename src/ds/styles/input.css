@@ -1,0 +1,54 @@
+/* input.css — canonical Input component classes.
+ *
+ * Spec: docs/components.md §7.
+ * All values from design tokens — no raw px.
+ */
+
+/* ── Base ────────────────────────────────────────────────────────────── */
+.ds-input {
+  display: flex;
+  align-items: center;
+  height: var(--ctl-h);
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-8);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-base);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--motion-base, 150ms) ease;
+  outline: none;
+}
+
+/* ── Placeholder ─────────────────────────────────────────────────────── */
+.ds-input::placeholder {
+  color: var(--faint);
+}
+
+/* ── Focus ───────────────────────────────────────────────────────────── */
+.ds-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────── */
+.ds-input--error {
+  border-color: var(--down);
+}
+
+.ds-input--error:focus {
+  border-color: var(--down);
+}
+
+/* ── Disabled ────────────────────────────────────────────────────────── */
+.ds-input:disabled,
+.ds-input[aria-disabled="true"] {
+  opacity: var(--opacity-disabled, 0.4);
+  pointer-events: none;
+  cursor: not-allowed;
+}

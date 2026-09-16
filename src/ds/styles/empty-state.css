@@ -1,0 +1,49 @@
+/* empty-state.css — canonical .ds-empty class layer.
+ *
+ * Spec: docs/components.md §10-5.
+ * All values from design tokens — no raw px except the 40px decorative-icon
+ * allowance noted in the §10-5 snap note (not enforced here; caller decides).
+ */
+
+/* ── EmptyState base ─────────────────────────────────────────────────── */
+.ds-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-12);
+  padding: var(--space-24) var(--space-16);
+}
+
+/* ── Icon slot ───────────────────────────────────────────────────────── */
+/* Standard size = --icon-24 (24px). Decorative 40px variant is caller's
+ * responsibility (pass explicit size to the icon component). */
+.ds-empty__icon {
+  color: var(--faint);
+  /* prevent icon from growing if caller doesn't set explicit size */
+  flex-shrink: 0;
+}
+
+/* ── Heading (h3 variant) ────────────────────────────────────────────── */
+.ds-empty__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Description body ────────────────────────────────────────────────── */
+.ds-empty__description {
+  font-size: var(--fs-base);
+  color: var(--sub);
+  margin: 0;
+  /* tighten so the CTA feels closer */
+  line-height: var(--lh-relaxed, 1.55);
+}
+
+/* ── CTA slot ────────────────────────────────────────────────────────── */
+/* No layout rules — the caller renders a <Button> here; gap handles spacing. */
+.ds-empty__action {
+  display: contents;
+}

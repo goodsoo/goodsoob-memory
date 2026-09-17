@@ -1,0 +1,54 @@
+name: px-guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/ds/**/*.css'
+      - 'src/index.css'
+      - 'scripts/px-guard.mjs'
+      - '**/*.px-guard-baseline.json'
+  pull_request:
+    paths:
+      - 'src/ds/**/*.css'
+      - 'src/index.css'
+      - 'scripts/px-guard.mjs'
+      - '**/*.px-guard-baseline.json'
+
+jobs:
+  px-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: px-guard (하드코딩 px 회귀 차단)
+        run: |
+          node scripts/px-guard.mjs --check --baseline \
+          src/ds/ds-components.css \
+          src/ds/styles/alert.css \
+          src/ds/styles/avatar.css \
+          src/ds/styles/card.css \
+          src/ds/styles/checkbox.css \
+          src/ds/styles/chip.css \
+          src/ds/styles/commandblock.css \
+          src/ds/styles/dropdown.css \
+          src/ds/styles/empty-state.css \
+          src/ds/styles/filteritem.css \
+          src/ds/styles/header.css \
+          src/ds/styles/icon.css \
+          src/ds/styles/input.css \
+          src/ds/styles/modal.css \
+          src/ds/styles/nav-item.css \
+          src/ds/styles/popover.css \
+          src/ds/styles/radio.css \
+          src/ds/styles/search-field.css \
+          src/ds/styles/segment.css \
+          src/ds/styles/select.css \
+          src/ds/styles/spinnerkbd.css \
+          src/ds/styles/stat-card.css \
+          src/ds/styles/tabs.css \
+          src/ds/styles/toast.css \
+          src/ds/styles/toggle.css \
+          src/ds/styles/tooltip.css

@@ -157,8 +157,8 @@ function buildPRPromptHeader(categories: string[] | undefined): string {
   // vault union 후보가 있으면 그것을 우선 노출. 매칭 없으면 새 슬러그 제안 가능 (옵시디안 tag).
   // 후보가 비어있으면 (vault 첫 사용) "자유 입력" 안내.
   const candidatesLine = categories && categories.length > 0
-    ? `현재 vault 의 카테고리 후보: ${categories.map((c) => `\`${c}\``).join(", ")}. 적절한 게 없으면 새 카테고리 슬러그 제안 가능 (영문/한글 단어 1-2개, 공백 X).`
-    : `현재 vault 에 카테고리가 없습니다. 자유 슬러그 1개 제안 (영문/한글 단어 1-2개, 공백 X). 예: \`ui_ux\`, \`backend\`, \`infra\`, \`fix\`, \`other\`.`;
+    ? `현재 vault 의 카테고리 후보: ${categories.map((c) => `\`${c}\``).join(", ")}. 적절한 게 없으면 새 카테고리 슬러그 제안 가능 (영문/한글 단어 1-2개, 공백·괄호·설명 X).`
+    : `현재 vault 에 카테고리가 없습니다. 자유 슬러그 1개 제안 (영문/한글 단어 1-2개, 공백·괄호·설명 X). 예: \`ui_ux\`, \`backend\`, \`infra\`, \`fix\`, \`other\`.`;
   return `다음 PR 정보를 보고 한 줄 임팩트 요약 + 카테고리를 정해주세요.
 
 ## 출력 형식
@@ -167,10 +167,10 @@ function buildPRPromptHeader(categories: string[] | undefined): string {
 (한 문장, 비즈니스/사용자 임팩트 중심, 30자 이내. bullet 안 붙임)
 
 ### 카테고리
-(슬러그 1개만, 한 줄)
+(슬러그 1개만, 한 줄 — 괄호·설명·부연 없이 순수 슬러그만. 예: \`ui_ux\` O / \`ui_ux(디자인시스템)\` X)
 \`\`\`
 
-규칙: PR title + body + 변경 파일 수/줄 수를 종합. 코드 변경 사실보다 "그래서 뭐가 좋아졌는지" 우선.
+규칙: PR title + body + 변경 파일 수/줄 수를 종합. 코드 변경 사실보다 "그래서 뭐가 좋아졌는지" 우선. 카테고리는 절대 괄호·설명을 붙이지 말 것 — 슬러그 한 단어만.
 
 ${candidatesLine}`;
 }

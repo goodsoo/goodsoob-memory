@@ -7,7 +7,8 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createTauriAdapter, type VaultAdapter } from "./adapter";
+import type { VaultAdapter } from "./adapter";
+import { selectAdapter } from "./selectAdapter";
 import { createVaultWatcher, type VaultWatcher } from "./watcher";
 import { ensureVaultStructure } from "./scan";
 import {
@@ -48,7 +49,7 @@ export type { VaultContextValue };
 
 export function VaultProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [adapter] = useState<VaultAdapter>(() => createTauriAdapter());
+  const [adapter] = useState<VaultAdapter>(() => selectAdapter());
   const [watcher] = useState<VaultWatcher>(() =>
     createVaultWatcher(adapter, queryClient),
   );

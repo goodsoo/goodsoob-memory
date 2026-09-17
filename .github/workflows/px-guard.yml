@@ -24,7 +24,8 @@ jobs:
         with:
           node-version: '20'
       - name: px-guard (하드코딩 px 회귀 차단)
-        run: node scripts/px-guard.mjs --check --baseline \
+        run: |
+          node scripts/px-guard.mjs --check --baseline \
           src/ds/ds-components.css \
           src/ds/styles/alert.css \
           src/ds/styles/avatar.css \

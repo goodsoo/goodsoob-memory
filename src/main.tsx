@@ -8,10 +8,12 @@ import { queryClient } from "./lib/queryClient";
 import { VaultProvider } from "./lib/vault/VaultProvider";
 import { applyPlatformClasses, applyDevWindowTitle } from "./lib/platform";
 import { applyStoredZoom } from "./hooks/useZoom";
+import { registerSW } from "./pwa/registerSW";
 
 applyPlatformClasses();
 applyDevWindowTitle();
 applyStoredZoom();
+registerSW();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,0 +1,61 @@
+/* filteritem.css — canonical FilterItem component styles.
+ *
+ * Spec: docs/components.md §12.
+ */
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+.ds-filteritem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-6);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--sub);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background var(--motion-base, 150ms) ease,
+    color var(--motion-base, 150ms) ease;
+}
+
+/* ── Label ─────────────────────────────────────────────────────────────── */
+.ds-filteritem__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Count badge ───────────────────────────────────────────────────────── */
+.ds-filteritem__count {
+  font-size: var(--fs-2xs);
+  color: var(--faint);
+  flex-shrink: 0;
+  margin-left: var(--space-4);
+}
+
+/* ── States ────────────────────────────────────────────────────────────── */
+.ds-filteritem:hover {
+  background: var(--surface-2);
+}
+
+.ds-filteritem--active {
+  background: var(--surface-3);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.ds-filteritem--active .ds-filteritem__count {
+  color: var(--sub);
+}
+
+.ds-filteritem--muted {
+  color: var(--faint);
+}

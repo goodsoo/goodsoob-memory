@@ -1,0 +1,55 @@
+/* nav-item.css — canonical NavItem component styles.
+ *
+ * Spec: docs/components.md §17.
+ * All values from design tokens — no raw px.
+ */
+
+/* ── Base ────────────────────────────────────────────────────────────── */
+.ds-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-6);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--sub);
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition:
+    background var(--motion-base, 150ms) ease,
+    color var(--motion-base, 150ms) ease;
+}
+
+/* ── Icon slot ───────────────────────────────────────────────────────── */
+.ds-nav-item__icon {
+  width: var(--icon-16);
+  height: var(--icon-16);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Hover ───────────────────────────────────────────────────────────── */
+.ds-nav-item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* ── Active ──────────────────────────────────────────────────────────── */
+.ds-nav-item--active {
+  background: var(--surface-3);
+  color: var(--ink);
+  font-weight: var(--fw-semi);
+}
+
+.ds-nav-item--active:hover {
+  background: var(--surface-3);
+}

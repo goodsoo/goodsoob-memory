@@ -1,0 +1,78 @@
+/* select.css — canonical Select component classes.
+ *
+ * Spec: docs/components.md §7.
+ * All values from design tokens — no raw px.
+ */
+
+/* ── Wrapper (positions the chevron) ────────────────────────────────── */
+.ds-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────── */
+.ds-select {
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  height: var(--ctl-h);
+  /* right padding reserves room for the chevron (--icon-16 = 16px + space-8 each side) */
+  padding: 0 calc(var(--icon-16, 16px) + var(--space-8) + var(--space-8)) 0 var(--space-12);
+  border-radius: var(--radius-8);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-base);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color var(--motion-base, 150ms) ease;
+  outline: none;
+}
+
+/* ── Placeholder (empty / first option unselected) ───────────────────── */
+.ds-select:invalid,
+.ds-select option[value=""] {
+  color: var(--faint);
+}
+
+/* ── Chevron icon ────────────────────────────────────────────────────── */
+.ds-select-chevron {
+  position: absolute;
+  right: var(--space-8);
+  width: var(--icon-16, 16px);
+  height: var(--icon-16, 16px);
+  color: var(--sub);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* ── Focus ───────────────────────────────────────────────────────────── */
+.ds-select:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* ── Error ───────────────────────────────────────────────────────────── */
+.ds-select--error {
+  border-color: var(--down);
+}
+
+.ds-select--error:focus {
+  border-color: var(--down);
+}
+
+/* ── Disabled ────────────────────────────────────────────────────────── */
+.ds-select:disabled,
+.ds-select[aria-disabled="true"] {
+  opacity: var(--opacity-disabled, 0.4);
+  pointer-events: none;
+  cursor: not-allowed;
+}

@@ -22,7 +22,7 @@ export function applyDevWindowTitle(): void {
   if (!branch) return;
   void import("@tauri-apps/api/window").then(({ getCurrentWindow }) => {
     void getCurrentWindow()
-      .setTitle(`짱수 · ${branch}`)
+      .setTitle(`짱수메모리 · ${branch}`)
       .catch(() => {});
   });
 }

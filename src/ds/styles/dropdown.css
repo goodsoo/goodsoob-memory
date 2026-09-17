@@ -1,0 +1,53 @@
+/* dropdown.css — canonical .ds-dropdown class layer.
+ *
+ * Spec: docs/components.md §9-2.
+ * All values from design tokens — no raw px except contract-fixed literals.
+ */
+
+/* ── Wrapper (positions the panel relative to trigger) ───────────────── */
+.ds-dropdown__wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* ── Container (the floating panel) ─────────────────────────────────── */
+.ds-dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-4));
+  left: 0;
+  z-index: var(--z-dropdown);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-8);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-popover);
+  min-width: 160px;
+}
+
+/* ── Item ────────────────────────────────────────────────────────────── */
+.ds-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-6);
+  font-size: var(--fs-sm);
+  color: var(--sub);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ds-dropdown__item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* selected state */
+.ds-dropdown__item[aria-selected='true'],
+.ds-dropdown__item--selected {
+  background: var(--surface-3);
+  color: var(--ink);
+}

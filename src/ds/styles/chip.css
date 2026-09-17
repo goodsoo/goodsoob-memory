@@ -1,0 +1,79 @@
+/* chip.css — canonical Chip/Tag component styles.
+ *
+ * Spec: docs/components.md §8.
+ */
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  border-radius: var(--radius-full);
+  padding: var(--space-4) var(--space-8);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* ── Icon sizing ───────────────────────────────────────────────────────── */
+.ds-chip__icon {
+  width: var(--icon-12);
+  height: var(--icon-12);
+  flex-shrink: 0;
+}
+
+/* ── Remove button ─────────────────────────────────────────────────────── */
+.ds-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-12);
+  height: var(--icon-12);
+  color: var(--faint);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ds-chip__remove:hover {
+  color: var(--sub);
+}
+
+/* ── Variants ──────────────────────────────────────────────────────────── */
+.ds-chip--neutral {
+  background: var(--surface-2);
+  color: var(--sub);
+}
+
+.ds-chip--outline {
+  background: transparent;
+  color: var(--sub);
+  border-color: var(--line);
+}
+
+.ds-chip--accent {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.ds-chip--ok {
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+
+.ds-chip--warn {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+
+.ds-chip--down {
+  background: var(--down-soft);
+  color: var(--down-ink);
+}

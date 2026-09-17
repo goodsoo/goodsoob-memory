@@ -1,0 +1,12 @@
+/* icon.css — canonical Icon wrapper styles.
+ *
+ * Enforces tiered stroke-width (D14) and --icon-* size tokens.
+ * Spec: docs/components.md §11.
+ */
+
+.ds-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

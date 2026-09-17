@@ -1,0 +1,29 @@
+/* tooltip.css — canonical .ds-tooltip class layer.
+ *
+ * Spec: docs/components.md §9-4.
+ * All values from design tokens — no raw px except contract-fixed literals.
+ */
+
+/* ── Wrapper (positions tooltip relative to trigger) ─────────────────── */
+.ds-tooltip__wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ── Tooltip panel ───────────────────────────────────────────────────── */
+.ds-tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--space-4));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-tooltip);
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-6);
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--fs-xs);
+  color: var(--ink);
+  white-space: nowrap;
+  pointer-events: none;
+}

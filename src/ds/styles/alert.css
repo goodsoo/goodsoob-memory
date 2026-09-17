@@ -1,0 +1,75 @@
+/* alert.css — canonical .ds-alert class layer.
+ *
+ * Spec: docs/components.md §10-1.
+ * All values from design tokens — no raw px except contract-fixed literals.
+ */
+
+/* ── Alert base ──────────────────────────────────────────────────────── */
+.ds-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-8);
+  border: 1px solid transparent;
+}
+
+/* ── Icon slot ───────────────────────────────────────────────────────── */
+.ds-alert__icon {
+  flex-shrink: 0;
+  width: var(--icon-16);
+  height: var(--icon-16);
+  margin-top: 1px; /* optical align with first text line */
+}
+
+/* ── Content ─────────────────────────────────────────────────────────── */
+.ds-alert__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.ds-alert__title {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ds-alert__body {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed, 1.55);
+}
+
+/* ── Variants ────────────────────────────────────────────────────────── */
+.ds-alert--info {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent-ink);
+}
+
+.ds-alert--ok {
+  background: var(--ok-soft);
+  border-color: color-mix(in srgb, var(--ok) 20%, transparent);
+  color: var(--ok-ink);
+}
+
+.ds-alert--warn {
+  background: var(--warn-soft);
+  border-color: color-mix(in srgb, var(--warn) 20%, transparent);
+  color: var(--warn-ink);
+}
+
+.ds-alert--down {
+  background: var(--down-soft);
+  border-color: color-mix(in srgb, var(--down) 20%, transparent);
+  color: var(--down-ink);
+}
+
+/* Body text is slightly softer than title/icon color — use inherited color */
+.ds-alert--info .ds-alert__body,
+.ds-alert--ok .ds-alert__body,
+.ds-alert--warn .ds-alert__body,
+.ds-alert--down .ds-alert__body {
+  opacity: 0.85;
+}

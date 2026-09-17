@@ -1,0 +1,44 @@
+/* tabs.css — canonical Tabs component styles.
+ *
+ * Spec: docs/components.md §10-2.
+ */
+
+/* ── Container ─────────────────────────────────────────────────────────── */
+.ds-tabs {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--line);
+  gap: 0;
+}
+
+/* ── Tab item ──────────────────────────────────────────────────────────── */
+.ds-tabs__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-12);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fs-base);
+  font-weight: 400;
+  color: var(--sub);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--motion-base, 150ms) ease,
+    border-color var(--motion-base, 150ms) ease;
+}
+
+.ds-tabs__item:hover {
+  color: var(--ink);
+}
+
+/* ── Active state ──────────────────────────────────────────────────────── */
+.ds-tabs__item--active {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}

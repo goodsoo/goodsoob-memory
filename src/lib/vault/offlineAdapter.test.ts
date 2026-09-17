@@ -10,6 +10,13 @@
  *  #6  4xx/5xx → outbox 에 안 들어감(propagate)
  *  #7  seq 단조 증가 — 재기동 후 max+1 에서 재개(충돌 없음)
  *  #8  동시 flush guard — double-send 없음
+ *  #T6  읽기 캐시 (T6)
+ *    T6-1  온라인 read 성공 → 캐시 저장
+ *    T6-2  오프라인 read + 캐시 HIT → 캐시 콘텐츠 반환
+ *    T6-3  오프라인 read + 캐시 MISS → OfflineCacheMissError
+ *    T6-4  오프라인 list("") + 캐시 HIT → 캐시 경로 반환
+ *    T6-5  N=50 초과 eviction — 오래된 항목 삭제, 최신 N 유지
+ *    T6-6  pending outbox write → 캐시 서빙 금지(OfflineCacheMissError)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -26,6 +33,14 @@ import {
   flushOutbox,
   requestPersistence,
 } from "./offlineAdapter";
+import {
+  __clearReadCache,
+  __resetReadCacheDb,
+  getCachedRead,
+  READ_CACHE_MAX_N,
+  OfflineCacheMissError,
+  cacheRead,
+} from "./readCache";
 import type { VaultAdapter, FileMeta, VaultWatchEvent } from "./adapter";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,10 +121,12 @@ let restore: () => void;
 beforeEach(() => {
   restore = installFakeIndexedDB();
   __resetOutboxDb();
+  __resetReadCacheDb();
 });
 
 afterEach(async () => {
   await __clearOutbox().catch(() => {});
+  await __clearReadCache().catch(() => {});
   restore();
 });
 
@@ -664,5 +681,253 @@ describe("offlineAdapter — delete/rename/mkdir 낙관 큐잉", () => {
       path: "folder",
       recursive: true,
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// #T6 — 읽기 캐시 (T6)
+
+/** 온라인 read 성공을 반환하는 inner. */
+function makeReadInner(opts: {
+  readResult?: string | { throw: Error };
+  listResult?: string[] | { throw: Error };
+} = {}): VaultAdapter & { calls: CallRecord[] } {
+  const calls: CallRecord[] = [];
+  return {
+    calls,
+    setRoot(_p: string) {},
+    getRoot() { return null; },
+    async list(_s: string): Promise<string[]> {
+      calls.push({ method: "list", args: [_s] });
+      if (opts.listResult && "throw" in opts.listResult) throw opts.listResult.throw;
+      return (opts.listResult as string[]) ?? [];
+    },
+    listRecursive(_s: string) { return Promise.resolve([]); },
+    listFoldersRecursive(_s: string) { return Promise.resolve([]); },
+    async read(p: string): Promise<string> {
+      calls.push({ method: "read", args: [p] });
+      if (opts.readResult && typeof opts.readResult === "object" && "throw" in opts.readResult) {
+        throw opts.readResult.throw;
+      }
+      return (opts.readResult as string) ?? "cached content";
+    },
+    readMeta(_p: string) { return Promise.resolve({ mtime: 0, size: 0 }); },
+    exists(_p: string) { return Promise.resolve(false); },
+    watch(_cb: (e: VaultWatchEvent) => void) { return Promise.resolve(() => {}); },
+    async write(_p: string, content: string): Promise<FileMeta> {
+      calls.push({ method: "write", args: [_p, content] });
+      return { mtime: Date.now(), size: content.length };
+    },
+    async writeBinary(_p: string, bytes: Uint8Array): Promise<FileMeta> {
+      calls.push({ method: "writeBinary", args: [_p] });
+      return { mtime: Date.now(), size: bytes.length };
+    },
+    async delete(p: string, o?: { recursive?: boolean }): Promise<void> {
+      calls.push({ method: "delete", args: [p, o] });
+    },
+    async rename(from: string, to: string): Promise<void> {
+      calls.push({ method: "rename", args: [from, to] });
+    },
+    async mkdir(p: string): Promise<void> {
+      calls.push({ method: "mkdir", args: [p] });
+    },
+  };
+}
+
+describe("#T6-1 온라인 read 성공 → 캐시 저장", () => {
+  it("온라인 read 가 성공하면 해당 path 가 readcache 에 저장된다", async () => {
+    const inner = makeReadInner({ readResult: "hello world" });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    const result = await adapter.read("meetings/note.md");
+    expect(result).toBe("hello world");
+
+    // cacheRead 는 void/async — 마이크로태스크 후 저장됨.
+    // 짧은 flush 로 확인.
+    await new Promise<void>((r) => setTimeout(r, 0));
+    const cached = await getCachedRead("meetings/note.md");
+    expect(cached).not.toBeNull();
+    expect(cached!.content).toBe("hello world");
+  });
+
+  it("온라인 read 가 성공하면 반환값은 inner 그대로다", async () => {
+    const inner = makeReadInner({ readResult: "server content" });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    const result = await adapter.read("notes/a.md");
+    expect(result).toBe("server content");
+  });
+});
+
+describe("#T6-2 오프라인 read + 캐시 HIT → 캐시 콘텐츠 반환", () => {
+  it("네트워크 실패 시 캐시에 있으면 캐시 콘텐츠를 반환한다", async () => {
+    // 캐시에 미리 저장
+    await cacheRead("meetings/cached.md", "offline content", Date.now());
+
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    const result = await adapter.read("meetings/cached.md");
+    expect(result).toBe("offline content");
+  });
+
+  it("오프라인 read 가 캐시 HIT 이면 throw 하지 않는다", async () => {
+    await cacheRead("notes/b.md", "b content", Date.now());
+
+    const inner = makeReadInner({ readResult: { throw: netErr("Failed to fetch") } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    await expect(adapter.read("notes/b.md")).resolves.toBe("b content");
+  });
+});
+
+describe("#T6-3 오프라인 read + 캐시 MISS → OfflineCacheMissError", () => {
+  it("네트워크 실패 + 캐시 없으면 OfflineCacheMissError 를 throw 한다", async () => {
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    await expect(adapter.read("notes/not-cached.md")).rejects.toBeInstanceOf(
+      OfflineCacheMissError,
+    );
+  });
+
+  it("OfflineCacheMissError 의 path 프로퍼티가 요청 경로와 일치한다", async () => {
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    try {
+      await adapter.read("meetings/missing.md");
+      throw new Error("expected throw");
+    } catch (e) {
+      expect(e).toBeInstanceOf(OfflineCacheMissError);
+      expect((e as OfflineCacheMissError).path).toBe("meetings/missing.md");
+    }
+  });
+
+  it("HttpError(4xx/5xx) 는 OfflineCacheMissError 가 아니라 원래 에러를 throw 한다", async () => {
+    const inner = makeReadInner({ readResult: { throw: httpErr(404) } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    await expect(adapter.read("notes/gone.md")).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+});
+
+describe("#T6-4 오프라인 list('') + 캐시 HIT → 캐시 경로 반환", () => {
+  it("온라인 list('') 성공 시 경로 배열이 listcache 에 저장된다", async () => {
+    const paths = ["meetings/a.md", "meetings/b.md"];
+    const inner = makeReadInner({ listResult: paths });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    const result = await adapter.list("");
+    expect(result).toEqual(paths);
+
+    // listcache void async flush
+    await new Promise<void>((r) => setTimeout(r, 0));
+    // 오프라인에서 재조회
+    const offlineInner = makeReadInner({ listResult: { throw: netErr() } });
+    const offlineAdapter = createOfflineAdapter({
+      inner: offlineInner,
+      installTriggers: false,
+    });
+    offlineAdapter.setRoot("/vault");
+    const offline = await offlineAdapter.list("");
+    expect(offline).toEqual(paths);
+  });
+
+  it("오프라인 list('') + 캐시 없으면 원래 에러를 throw 한다", async () => {
+    const inner = makeReadInner({ listResult: { throw: netErr("offline") } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    await expect(adapter.list("")).rejects.toThrow();
+  });
+
+  it("subdir != '' 인 오프라인 list 는 캐시 없이 throw 한다(최상위만 캐싱)", async () => {
+    const inner = makeReadInner({ listResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    // meetings subdir list — 캐시 없으므로 throw
+    await expect(adapter.list("meetings")).rejects.toThrow();
+  });
+});
+
+describe("#T6-5 READ_CACHE_MAX_N 초과 eviction", () => {
+  it(`N+1 번째 cacheRead 호출 시 가장 오래된 항목이 evict 된다`, async () => {
+    const N = READ_CACHE_MAX_N;
+
+    // N+1 개 순서대로 캐시 (cachedAt 차이를 두기 위해 setTimeout 대신 순서 보장)
+    for (let i = 0; i < N + 1; i++) {
+      // cachedAt 이 순서대로 증가하도록 각기 다른 시각 강제 — cacheRead 내부는 Date.now()
+      // 이므로 실제로는 같은 ms 일 수 있다. 직접 openReadCacheDb 로 쓰는 대신
+      // cacheRead 를 순차 await 해 최소 1ms 차이를 유도.
+      await cacheRead(`notes/note-${i}.md`, `content ${i}`, Date.now());
+      // 다음 cacheRead 가 같은 ms 에 실행되지 않도록 짧은 yield.
+      await new Promise<void>((r) => setTimeout(r, 1));
+    }
+
+    // 첫 번째(가장 오래된) 항목은 evict
+    const oldest = await getCachedRead("notes/note-0.md");
+    expect(oldest).toBeNull();
+
+    // 마지막 항목은 존재
+    const newest = await getCachedRead(`notes/note-${N}.md`);
+    expect(newest).not.toBeNull();
+    expect(newest!.content).toBe(`content ${N}`);
+  });
+});
+
+describe("#T6-6 pending outbox write → 캐시 서빙 금지", () => {
+  it("pending write op 있는 path 는 오프라인 캐시 HIT 이어도 OfflineCacheMissError", async () => {
+    // 캐시에 먼저 저장
+    await cacheRead("meetings/editing.md", "old cached", Date.now());
+
+    // outbox 에 같은 path 의 write op 큐잉
+    await enqueueOp({ type: "write", path: "meetings/editing.md", content: "new offline edit" });
+
+    // 오프라인 read
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    // 캐시 HIT 이지만 pending write 있으니 OfflineCacheMissError
+    await expect(adapter.read("meetings/editing.md")).rejects.toBeInstanceOf(
+      OfflineCacheMissError,
+    );
+  });
+
+  it("pending write op 없으면 캐시 HIT 경로에서 정상 서빙", async () => {
+    await cacheRead("meetings/clean.md", "clean cached", Date.now());
+
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    // pending 없으므로 캐시 서빙
+    const result = await adapter.read("meetings/clean.md");
+    expect(result).toBe("clean cached");
+  });
+
+  it("다른 path 의 pending write 는 현재 path 캐시 서빙에 영향 없음", async () => {
+    await cacheRead("meetings/target.md", "target content", Date.now());
+    // 다른 path 에만 pending op
+    await enqueueOp({ type: "write", path: "meetings/other.md", content: "other" });
+
+    const inner = makeReadInner({ readResult: { throw: netErr() } });
+    const adapter = createOfflineAdapter({ inner, installTriggers: false });
+    adapter.setRoot("/vault");
+
+    const result = await adapter.read("meetings/target.md");
+    expect(result).toBe("target content");
   });
 });

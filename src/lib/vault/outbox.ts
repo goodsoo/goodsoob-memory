@@ -15,9 +15,12 @@
  */
 
 const DB_NAME = "goodsoob-vault";
-const DB_VERSION = 1;
+/** v1: outbox. v2: + readcache + listcache (T6 추가). */
+const DB_VERSION = 2;
 const STORE = "outbox";
 const SEQ_INDEX = "seq";
+const READ_CACHE_STORE = "readcache";
+const LIST_CACHE_STORE = "listcache";
 
 /** 서버 엔드포인트로 replay 가능한 append-only mutation op. */
 export type OutboxOp =
@@ -47,7 +50,8 @@ function idbFactory(): IDBFactory | null {
   return null;
 }
 
-function openDb(): Promise<IDBDatabase> {
+/** outbox + readcache 가 공유하는 DB 핸들. readCache.ts 가 import 한다. */
+export function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
     const idb = idbFactory();
@@ -56,14 +60,32 @@ function openDb(): Promise<IDBDatabase> {
       return;
     }
     const req = idb.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = (ev) => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, {
-          keyPath: "id",
-          autoIncrement: true,
-        });
-        store.createIndex(SEQ_INDEX, "seq", { unique: false });
+      // oldVersion 이 undefined 인 경우(fakeIndexedDB 셰임 등) → 0 으로 처리
+      // (모든 store 를 새로 만드는 것이 안전).
+      const oldVersion = (ev as IDBVersionChangeEvent | undefined)?.oldVersion ?? 0;
+
+      // v1: outbox store
+      if (oldVersion < 1) {
+        if (!db.objectStoreNames.contains(STORE)) {
+          const store = db.createObjectStore(STORE, {
+            keyPath: "id",
+            autoIncrement: true,
+          });
+          store.createIndex(SEQ_INDEX, "seq", { unique: false });
+        }
+      }
+
+      // v2: readcache + listcache store (T6)
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains(READ_CACHE_STORE)) {
+          const s = db.createObjectStore(READ_CACHE_STORE, { keyPath: "path" });
+          s.createIndex("cachedAt", "cachedAt", { unique: false });
+        }
+        if (!db.objectStoreNames.contains(LIST_CACHE_STORE)) {
+          db.createObjectStore(LIST_CACHE_STORE, { keyPath: "key" });
+        }
       }
     };
     req.onsuccess = () => resolve(req.result);

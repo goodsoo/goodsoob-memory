@@ -1,8 +1,14 @@
 /**
- * createOfflineAdapter (T5) — http 어댑터를 감싼 capture-first 오프라인 어댑터.
+ * createOfflineAdapter (T5 + T6) — http 어댑터를 감싼 capture-first 오프라인 어댑터.
  *
  * 동작:
- *  - 읽기(list/read/meta/exists/watch): http 어댑터에 그대로 위임(온라인 전용, T6 이 캐시 추가).
+ *  - 읽기(list/read): 온라인 성공 시 읽기 캐시(IndexedDB `readcache`)에 저장.
+ *    오프라인(네트워크 실패) 시 캐시 HIT → 캐시 콘텐츠 반환, MISS → OfflineCacheMissError.
+ *    단, pending outbox write op 가 있는 path 는 캐시에서 서빙하지 않는다
+ *    (design doc "replica refresh vs dirty buffer" — pending 편집이 있는 노트에
+ *    오래된 캐시를 덮지 않음. outbox 에 큐잉된 op 의 content 를 직접 반환하는 것보다
+ *    OfflineCacheMissError 를 던지는 것이 더 안전 — stale 캐시를 silent 서빙하지 않음).
+ *  - readMeta/exists/watch: 온라인 전용 위임(T6 범위 밖).
  *  - 쓰기(write/delete/rename/mkdir): http 어댑터로 먼저 시도 → fetch 가 FAIL(오프라인/서버다운)
  *    하면 op 를 outbox 에 append 하고 낙관적으로 resolve. 절대 throw 로 사용자 입력을 버리지 않음.
  *  - flush: window "online" + visibilitychange→visible(iOS Background Sync 없음) 에서
@@ -20,6 +26,13 @@ import {
   deleteOp,
   type OutboxOp,
 } from "./outbox";
+import {
+  cacheRead,
+  cacheList,
+  getCachedRead,
+  getCachedList,
+  OfflineCacheMissError,
+} from "./readCache";
 
 export interface OfflineAdapterOptions {
   /** 감쌀 대상(보통 createHttpAdapter()). 테스트에선 memory adapter 주입 가능. */
@@ -146,11 +159,60 @@ export function createOfflineAdapter(
       return inner.getRoot();
     },
 
-    // ── 읽기: 온라인 전용 위임(T6 이 캐시 추가) ──
-    list: (subdir) => inner.list(subdir),
+    // ── 읽기: 캐시 통합(T6) ──
+    async list(subdir: string): Promise<string[]> {
+      try {
+        const result = await inner.list(subdir);
+        // 성공 시 캐시 갱신(subdir="" 의 최상위 list 만 캐싱 — 사이드바 오프라인용).
+        if (subdir === "") {
+          void cacheList(result);
+        }
+        return result;
+      } catch (e) {
+        if (isNetworkFailure(e) && subdir === "") {
+          const cached = await getCachedList();
+          if (cached) return cached.paths;
+        }
+        throw e;
+      }
+    },
     listRecursive: (subdir) => inner.listRecursive(subdir),
     listFoldersRecursive: (subdir) => inner.listFoldersRecursive(subdir),
-    read: (relPath) => inner.read(relPath),
+
+    async read(relPath: string): Promise<string> {
+      // pending outbox write 여부 확인 — 있으면 캐시 서빙 금지(dirty buffer 원칙).
+      // 비동기 조회지만 read-path 이므로 outbox listOps() 는 가볍다(IDB read-only).
+      let hasPendingWrite = false;
+      try {
+        const ops = await listOps();
+        hasPendingWrite = ops.some(
+          (r) => r.op.type === "write" && r.op.path === relPath,
+        );
+      } catch {
+        // listOps 실패 시 안전쪽으로 — 캐시 서빙 안 함.
+        hasPendingWrite = true;
+      }
+
+      try {
+        const content = await inner.read(relPath);
+        // 성공 시 캐시 갱신(mtime = 서버 응답 기준 이상적이지만 readMeta 별도 호출
+        // 비용이 있어 Date.now() 로 대체 — 정렬용 mtime 이 아니라 캐시 관리용).
+        void cacheRead(relPath, content, Date.now());
+        return content;
+      } catch (e) {
+        if (isNetworkFailure(e)) {
+          // pending write 있으면 stale 캐시를 절대 서빙하지 않음.
+          if (hasPendingWrite) {
+            throw new OfflineCacheMissError(relPath);
+          }
+          const cached = await getCachedRead(relPath);
+          if (cached) return cached.content;
+          throw new OfflineCacheMissError(relPath);
+        }
+        throw e;
+      }
+    },
+
     readMeta: (relPath) => inner.readMeta(relPath),
     exists: (relPath) => inner.exists(relPath),
     watch: (cb: (e: VaultWatchEvent) => void) => inner.watch(cb),

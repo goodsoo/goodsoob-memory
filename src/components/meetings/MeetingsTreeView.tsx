@@ -9,7 +9,7 @@ import {
 } from "../../lib/meetingsTree";
 import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { formatDisplayDate } from "../../lib/dates";
-import { Button } from "../common/Button";
+import { NavItem } from "../../ds/NavItem";
 import { Text } from "../common/Text";
 
 const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpand";
@@ -436,8 +436,7 @@ function FolderItem({
           onCancel={onEditingFolderCancel}
         />
       ) : (
-        <Button
-          variant="ghost"
+        <NavItem
           draggable
           onClick={() => onToggle(node.path)}
           onContextMenu={(e) => {
@@ -449,7 +448,7 @@ function FolderItem({
           onDragOver={(e) => onDragOverFolder(e, node.path)}
           onDragLeave={() => onDragLeaveFolder(node.path)}
           onDrop={(e) => onDropFolder(e, node.path)}
-          className="group w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
+          className="group gap-1.5 rounded py-1 pr-2"
           style={
             {
               paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
@@ -510,7 +509,7 @@ function FolderItem({
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </span>
-        </Button>
+        </NavItem>
       )}
       {!isCollapsed ? (
         <div
@@ -687,9 +686,9 @@ function MeetingRow({
   const meta = formatMeetingMeta(meeting);
   return (
     <li className="list-none">
-      <Button
-        variant="ghost"
+      <NavItem
         draggable
+        active={selected}
         onClick={onClick}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -697,11 +696,10 @@ function MeetingRow({
         }}
         onDragStart={(e) => onDragStart(e, meeting.uid)}
         onDragEnd={onDragEnd}
-        className="w-full justify-start gap-1.5 rounded py-1 pr-2 text-sm font-normal"
+        className="gap-1.5 rounded py-1 pr-2"
         style={
           {
             paddingLeft: `${ROW_BASE_PAD_LEFT + TITLE_OFFSET}px`,
-            backgroundColor: selected ? "var(--surface-3)" : undefined,
             color: "var(--ink)",
             opacity: isDragging ? 0.5 : 1,
             boxShadow: isContextTarget
@@ -725,7 +723,7 @@ function MeetingRow({
             {meta}
           </Text>
         ) : null}
-      </Button>
+      </NavItem>
     </li>
   );
 }

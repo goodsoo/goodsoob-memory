@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { formatAttendees, parseAttendees } from "../../lib/attendees";
-import { Button } from "../common/Button";
+import { NavItem } from "../../ds/NavItem";
 import { RemovableChip } from "../common/RemovableChip";
 
 type Props = {
@@ -143,21 +143,20 @@ export function AttendeeTagInput({
         >
           {filtered.map((s, i) => (
             <li key={s}>
-              <Button
-                variant="ghost"
+              <NavItem
                 onMouseDown={(e) => {
                   e.preventDefault();
                   addTag(s);
                 }}
                 onMouseEnter={() => setHighlight(i)}
-                className="w-full justify-start rounded-none px-3 py-1.5 font-normal"
+                className="rounded-none px-3 py-1.5"
                 style={{
                   backgroundColor: i === highlight ? "var(--surface)" : undefined,
                   color: i === highlight ? "var(--ink)" : "var(--sub)",
                 }}
               >
                 {s}
-              </Button>
+              </NavItem>
             </li>
           ))}
         </ul>

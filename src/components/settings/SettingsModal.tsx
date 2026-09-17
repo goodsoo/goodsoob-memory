@@ -9,6 +9,7 @@ import { GcalSection } from "./GcalSection";
 import { DisplaySection } from "./DisplaySection";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
+import { NavItem } from "../../ds/NavItem";
 import { Text } from "../common/Text";
 
 export type SettingsSection = "vault" | "backup" | "attachments" | "gcal" | "display" | "shortcuts" | "help";
@@ -54,21 +55,20 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
             {SECTIONS.map(({ id, label, icon: Icon }) => {
               const active = id === section;
               return (
-                <Button
+                <NavItem
                   key={id}
-                  variant="ghost"
+                  active={active}
+                  icon={<Icon className="h-4 w-4" strokeWidth={active ? 2 : 1.5} />}
                   onClick={() => setSection(id)}
-                  aria-current={active ? "page" : undefined}
-                  className="w-full justify-start gap-2 rounded-none px-4 py-2"
+                  className="rounded-none px-4 py-2"
                   style={{
                     background: active ? "var(--surface)" : "transparent",
                     color: active ? "var(--ink)" : "var(--sub)",
                     fontWeight: active ? 500 : 400,
                   }}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={active ? 2 : 1.5} />
                   {label}
-                </Button>
+                </NavItem>
               );
             })}
           </nav>

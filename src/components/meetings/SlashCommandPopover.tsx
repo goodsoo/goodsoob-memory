@@ -13,7 +13,7 @@ import {
   Table,
 } from "lucide-react";
 import type { SlashTargetKind } from "../../lib/markdownTyping";
-import { Button } from "../common/Button";
+import { NavItem } from "../../ds/NavItem";
 import { Text } from "../common/Text";
 
 export type SlashOption = {
@@ -191,10 +191,10 @@ export function SlashCommandPopover({
       {options.map((o, i) => {
         const active = i === selectedIndex;
         return (
-          <Button
+          <NavItem
             key={o.id}
-            variant="ghost"
-            size="sm"
+            icon={<o.Icon className="h-3.5 w-3.5 flex-shrink-0" />}
+            active={active}
             role="option"
             aria-selected={active}
             data-index={i}
@@ -204,13 +204,12 @@ export function SlashCommandPopover({
               e.preventDefault();
               onSelect(o);
             }}
-            className="w-full justify-start gap-2 rounded-none px-3 py-1.5 font-normal"
+            className="rounded-none px-3 py-1.5"
             style={{
               color: active ? "var(--ink)" : "var(--sub)",
               backgroundColor: active ? "var(--surface-3)" : undefined,
             }}
           >
-            <o.Icon className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="flex-1">{o.label}</span>
             <Text
               variant="caption"
@@ -220,7 +219,7 @@ export function SlashCommandPopover({
             >
               {o.hint}
             </Text>
-          </Button>
+          </NavItem>
         );
       })}
     </div>,

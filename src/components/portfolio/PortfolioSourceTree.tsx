@@ -25,7 +25,7 @@ import {
 } from "../../hooks/usePortfolio";
 import { FilterItem } from "../common/FilterItem";
 import { Text } from "../common/Text";
-import { Button } from "../common/Button";
+import { NavItem } from "../../ds/NavItem";
 
 // portfolio 사이드바 두 그룹 필터.
 // - github(repo): nameWithOwner. 카드 frontmatter.github_owner/github_repo 로 derive.
@@ -493,29 +493,27 @@ const ProjectContextMenu = forwardRef<
       >
         {name}
       </Text>
-      <Button
-        variant="ghost"
-        onClick={onRename}
-        className="w-full justify-start gap-2 rounded-none px-3 py-2"
-        leftIcon={
+      <NavItem
+        icon={
           <Pencil
             className="h-3.5 w-3.5 shrink-0"
             style={{ color: "var(--faint)" }}
           />
         }
+        onClick={onRename}
+        className="rounded-none px-3 py-2"
         style={{ color: "var(--ink)" }}
       >
         이름 변경...
-      </Button>
-      <Button
-        variant="ghost"
+      </NavItem>
+      <NavItem
+        icon={<Trash2 className="h-3.5 w-3.5 shrink-0" />}
         onClick={onDelete}
-        className="w-full justify-start gap-2 rounded-none px-3 py-2"
-        leftIcon={<Trash2 className="h-3.5 w-3.5 shrink-0" />}
+        className="rounded-none px-3 py-2"
         style={{ color: "var(--down)" }}
       >
         폴더 삭제...
-      </Button>
+      </NavItem>
     </div>
   );
 });

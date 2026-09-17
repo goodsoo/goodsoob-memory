@@ -25,6 +25,12 @@ import { join, extname } from "node:path";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { VaultCore, type FileMeta } from "./vaultCore.ts";
+import {
+  runShell,
+  runShellStream,
+  ShellRejectedError,
+  type ShellResult,
+} from "./shell.ts";
 
 // ── Bun 런타임 ambient (⚠️ @types/bun 미설치 — 우리가 쓰는 표면만 최소 선언) ──
 declare const Bun: {
@@ -186,14 +192,28 @@ async function handle(req: Request): Promise<Response> {
     }
   }
 
+  // ── /api/shell/* (T3 — CLI 탈출구: gh/claude/curl/zip/open) ─────────────────
+  if (pathname === "/api/shell/exec" && req.method === "POST") {
+    return handleShellExec(req);
+  }
+  if (pathname === "/api/shell/stream" && req.method === "POST") {
+    return handleShellStream(req);
+  }
+
+  // ── /api/attachment (T3 — asset:// 대체: vault 안 이미지 서빙) ──────────────
+  if (pathname === "/api/attachment" && req.method === "GET") {
+    return handleAttachment(url);
+  }
+
   // ── 정적 서빙 + SPA fallback ────────────────────────────────────────────────
-  // hash 라우팅(#today, #meeting-{uid})이라 fragment 는 서버에 안 온다 →
-  // fallback = 그냥 index.html.
+  // hash 라우팅(#today, #meeting-{uid})이라 fragment 는 서버에 안 온다.
+  // 규칙: dist/ 밑(root 든 하위 든)에 실제 파일이 있으면 그걸 서빙(manifest.json·
+  // sw.js·icons·favicon — T4 가 추가), 없으면 SPA shell(index.html).
   if (req.method === "GET") {
     if (pathname === "/" || pathname === "/index.html") return serveIndexHtml();
     const asset = await serveStatic(pathname);
     if (asset) return asset;
-    return serveIndexHtml(); // unknown non-api path → SPA shell
+    return serveIndexHtml(); // 실제 파일 없음 → SPA shell
   }
   return err("Not Found", 404);
 }
@@ -306,6 +326,142 @@ function requireParam(p: URLSearchParams, name: string): string {
   const v = p.get(name);
   if (v === null) throw new Error(`missing param: ${name}`);
   return v;
+}
+
+// ── /api/shell/* — CLI 탈출구 (gh/claude/curl/zip/open) ──────────────────────
+// client(runtime.ts)가 { program: "bash"|"sh", args: [...] } 를 보냄. args 는
+// 이미 loginShellArgs(bash -lc)/shellSingleQuote 로 조립됨 — 서버는 spawn 만.
+async function handleShellExec(req: Request): Promise<Response> {
+  let body: { program?: unknown; args?: unknown };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return err("잘못된 요청 본문(JSON 파싱 실패)", 400);
+  }
+  if (typeof body.program !== "string" || !Array.isArray(body.args)) {
+    return err("program(string)·args(string[]) 필수", 400);
+  }
+  try {
+    const result: ShellResult = await runShell(
+      body.program,
+      body.args as string[],
+    );
+    return json(result);
+  } catch (e) {
+    if (e instanceof ShellRejectedError) return err(e.message, 400);
+    return err(`shell 실행 실패: ${(e as Error).message}`, 500);
+  }
+}
+
+// SSE 스트리밍 — claude 자동 요약(stream-json). event: chunk {stream,data} /
+// event: done {code}. 클라이언트 abort(연결 끊김) → 프로세스 kill.
+function handleShellStream(req: Request): Response {
+  const encoder = new TextEncoder();
+  let handle: { cancel: () => void } | null = null;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      let body: { program?: unknown; args?: unknown };
+      try {
+        body = (await req.json()) as typeof body;
+      } catch {
+        controller.enqueue(
+          encoder.encode(
+            `event: error\ndata: ${JSON.stringify({ error: "JSON 파싱 실패" })}\n\n`,
+          ),
+        );
+        controller.close();
+        return;
+      }
+      if (typeof body.program !== "string" || !Array.isArray(body.args)) {
+        controller.enqueue(
+          encoder.encode(
+            `event: error\ndata: ${JSON.stringify({ error: "program·args 필수" })}\n\n`,
+          ),
+        );
+        controller.close();
+        return;
+      }
+      controller.enqueue(encoder.encode("retry: 3000\n\n"));
+      let closed = false;
+      try {
+        handle = runShellStream(body.program, body.args as string[], {
+          onChunk: (streamName, data) => {
+            if (closed) return;
+            try {
+              controller.enqueue(
+                encoder.encode(
+                  `event: chunk\ndata: ${JSON.stringify({ stream: streamName, data })}\n\n`,
+                ),
+              );
+            } catch {
+              closed = true;
+            }
+          },
+          onDone: (code) => {
+            if (closed) return;
+            closed = true;
+            try {
+              controller.enqueue(
+                encoder.encode(
+                  `event: done\ndata: ${JSON.stringify({ code })}\n\n`,
+                ),
+              );
+              controller.close();
+            } catch {
+              /* 이미 닫힘 */
+            }
+          },
+        });
+      } catch (e) {
+        const msg =
+          e instanceof ShellRejectedError
+            ? e.message
+            : `shell 실행 실패: ${(e as Error).message}`;
+        controller.enqueue(
+          encoder.encode(
+            `event: error\ndata: ${JSON.stringify({ error: msg })}\n\n`,
+          ),
+        );
+        controller.close();
+      }
+    },
+    cancel() {
+      handle?.cancel();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "content-type": "text/event-stream; charset=utf-8",
+      "cache-control": "no-cache",
+      connection: "keep-alive",
+    },
+  });
+}
+
+// ── /api/attachment?path= — asset:// 대체. VAULT_DIR 밑 파일을 서빙. ──────────
+// vaultCore 의 traversal 가드(joinVaultAbs)를 readBinary 가 경유하므로 재사용.
+async function handleAttachment(url: URL): Promise<Response> {
+  const rel = url.searchParams.get("path");
+  if (!rel) return err("path 필수", 400);
+  try {
+    const buf = await vault.readBinary(rel);
+    const mime =
+      MIME[extname(rel).toLowerCase()] ?? "application/octet-stream";
+    return new Response(new Uint8Array(buf), {
+      headers: {
+        "content-type": mime,
+        // vault 안 이미지는 사적 — 캐시는 브라우저 세션 내로만.
+        "cache-control": "private, max-age=60",
+      },
+    });
+  } catch (e) {
+    const msg = (e as Error).message || String(e);
+    if (/path traversal|expected relative/.test(msg)) return err(msg, 400);
+    if (/ENOENT|no such file/i.test(msg)) return err("파일 없음", 404);
+    return err(msg, 500);
+  }
 }
 
 // ── SSE ──────────────────────────────────────────────────────────────────────

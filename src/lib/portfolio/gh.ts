@@ -9,7 +9,7 @@
 //   - dev 가 됐던 건 -l 이 아니라 부모 터미널 PATH 상속 덕분이었고, release 는
 //     상속이 없어 gh: command not found / code 127 로 깨졌다.
 
-import { Command } from "@tauri-apps/plugin-shell";
+import { runShellCommand } from "../runtime";
 
 export class GhError extends Error {
   stderr: string;
@@ -102,8 +102,12 @@ export function classifyGhError(
 
 export async function runGh(args: string[]): Promise<ShCommandResult> {
   const cmdStr = `gh ${args.map(shellSingleQuote).join(" ")}`;
-  const cmd = Command.create(LOGIN_SHELL_PROGRAM, loginShellArgs(cmdStr));
-  const output = await cmd.execute();
+  // Tauri: Command.create(bash, -lc). 브라우저: 서버가 대신 실행 (runtime.ts).
+  // 둘 다 loginShellArgs(bash -lc) 그대로 — release PATH fix single source 유지.
+  const output = await runShellCommand(
+    LOGIN_SHELL_PROGRAM,
+    loginShellArgs(cmdStr),
+  );
   if (output.code !== 0) {
     throw classifyGhError(output.stderr, output.code);
   }

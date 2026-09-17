@@ -868,13 +868,19 @@ export async function upsertPortfolioWork(
   // 신규 카드 + 빈 default 필드 채움. 본인이 한 번이라도 수정한 필드는 보존 (3A).
   const parsed = parsePRResponse(rawDescription);
 
+  // 기존 category 가 유효(순수 슬러그)하면 보존, "other" 이거나 괄호 등 무효 형식이면
+  // 재파싱(sanitize 적용)값으로 교체 — 과거 "ui_ux(설명)" 처럼 오염된 카드가 재동기화 때 정제됨.
+  const existingCategoryValid =
+    existing != null &&
+    existing.frontmatter.category !== "other" &&
+    !/[()（）]/.test(existing.frontmatter.category);
+
   const userFields: PortfolioUserFields = existing
     ? {
         included: existing.frontmatter.included,
-        category:
-          existing.frontmatter.category !== "other"
-            ? existing.frontmatter.category
-            : (parsed?.category ?? "other"),
+        category: existingCategoryValid
+          ? existing.frontmatter.category
+          : (parsed?.category ?? "other"),
         impact_summary:
           existing.frontmatter.impact_summary !== ""
             ? existing.frontmatter.impact_summary

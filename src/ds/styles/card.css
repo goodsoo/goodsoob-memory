@@ -46,3 +46,8 @@
 .ds-card__body {
   padding: var(--space-16);
 }
+
+/* flush — removes body padding; use <Card.Body flush> */
+.ds-card__body--flush {
+  padding: 0;
+}

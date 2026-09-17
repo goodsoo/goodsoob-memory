@@ -426,6 +426,8 @@ const NEXT_HEADER = /^#{2,3}\s/m;
 // 슬러그 sanitize — 공백 / 백틱 / 따옴표 / 일반 markdown 노이즈 제거. underscore 와
 // 하이픈은 slug 의 valid char 라 유지 (예: `ui_ux`).
 // V0.7.3: 카테고리는 vault union 으로 풀려있어 enum 강제 X. 모델이 박은 슬러그를 그대로 받음.
+// V0.7.4: 괄호+설명 패턴 제거 — "other(문구자동도구)" → "other".
+const CATEGORY_PAREN_RE = /\([^)]*\)/g;
 const CATEGORY_SANITIZE_RE = /[`"'*\s]/g;
 
 export function parsePRResponse(
@@ -447,8 +449,11 @@ export function parsePRResponse(
     .map((l) => l.replace(/^[\s\-•*]+/, "").trim())
     .filter(Boolean)[0] ?? "";
 
-  // 자유 슬러그 — 노이즈 sanitize 후 첫 토큰. 빈 = "other" fallback.
-  const sanitized = categoryFirstLine.replace(CATEGORY_SANITIZE_RE, "").toLowerCase();
+  // 자유 슬러그 — 괄호+설명 제거 후 노이즈 sanitize. 빈 = "other" fallback.
+  const sanitized = categoryFirstLine
+    .replace(CATEGORY_PAREN_RE, "")
+    .replace(CATEGORY_SANITIZE_RE, "")
+    .toLowerCase();
   const category = sanitized || "other";
 
   if (!impact) return null; // 파싱 실패

@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import './styles/filteritem.css';
 
 export interface FilterItemProps {
-  /** Display label. */
-  label: string;
+  /** Display label. Accepts a string or any ReactNode. */
+  label: ReactNode;
   /** Optional count badge rendered on the right. */
   count?: number;
   /** Whether this item is currently selected. Default: false. */

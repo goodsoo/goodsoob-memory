@@ -12,10 +12,11 @@
 
 import { isTauri } from "../isTauri";
 import { createTauriAdapter, createMemoryAdapter, type VaultAdapter } from "./adapter";
+import { createHttpAdapter } from "./httpAdapter";
 
 export function selectAdapter(): VaultAdapter {
   if (isTauri) {
-    // Tauri desktop — preserves current production behavior.
+    // Tauri desktop — preserves current production behavior (T8 에서 삭제 예정).
     return createTauriAdapter();
   }
 
@@ -24,10 +25,6 @@ export function selectAdapter(): VaultAdapter {
     return createMemoryAdapter();
   }
 
-  // Browser / PWA runtime — HTTP adapter will be wired here in T2.
-  // TODO T2: return createHttpAdapter();
-  throw new Error(
-    "HTTP adapter not yet implemented (T2). " +
-      "Running in a non-Tauri browser context is not supported yet.",
-  );
+  // Browser / PWA runtime — 같은 origin 의 로컬 서버(server/index.ts, :7080)에 접속.
+  return createHttpAdapter();
 }

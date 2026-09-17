@@ -15,6 +15,8 @@ export interface TabsProps {
   /** Called with the key of the clicked tab. */
   onChange: (key: string) => void;
   className?: string;
+  /** Active 탭 밑줄색 override. 없으면 CSS 기본값 var(--accent). */
+  accentColor?: string;
 }
 
 /**
@@ -25,7 +27,7 @@ export interface TabsProps {
  *
  * Spec: docs/components.md §10-2.
  */
-export function Tabs({ items, active, onChange, className }: TabsProps) {
+export function Tabs({ items, active, onChange, className, accentColor }: TabsProps) {
   const containerClass = ['ds-tabs', className ?? ''].filter(Boolean).join(' ');
 
   return (
@@ -47,6 +49,7 @@ export function Tabs({ items, active, onChange, className }: TabsProps) {
             className={itemClass}
             aria-selected={isActive}
             onClick={() => onChange(item.key)}
+            style={isActive && accentColor ? { borderBottomColor: accentColor } : undefined}
           >
             {item.label}
           </button>

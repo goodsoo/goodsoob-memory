@@ -56,6 +56,7 @@ import { TitleConflictError } from "../../lib/vault/scan";
 import { formatDisplayDate } from "../../lib/dates";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
+import { Tabs } from "../../ds/Tabs";
 
 // 파일시스템 + 옵시디안 link syntax 금지 문자. title input commit 시 검사.
 const TITLE_UNSAFE_RE = /[/\\:*?"<>|#^[\]]/;
@@ -1156,26 +1157,16 @@ export function MeetingForm({
               backgroundColor: "var(--bg-overlay)",
             }}
           >
-            <div className="flex gap-1">
-              <TabBtn
-                label="메모"
-                active={activeTab === "body"}
-                accentColor={tabAccentColor}
-                onClick={() => setActiveTab("body")}
-              />
-              <TabBtn
-                label="음성 기록"
-                active={activeTab === "transcript"}
-                accentColor={tabAccentColor}
-                onClick={() => setActiveTab("transcript")}
-              />
-              <TabBtn
-                label="요약"
-                active={activeTab === "summary"}
-                accentColor={tabAccentColor}
-                onClick={() => setActiveTab("summary")}
-              />
-            </div>
+            <Tabs
+              items={[
+                { key: "body", label: "메모" },
+                { key: "transcript", label: "음성 기록" },
+                { key: "summary", label: "요약" },
+              ]}
+              active={activeTab}
+              onChange={(key) => setActiveTab(key as ActiveTab)}
+              accentColor={tabAccentColor}
+            />
             <div className="flex items-center gap-1.5 pb-1">
               {/* 탭별 액션 — 편집 토글 왼쪽. 음성 기록 업로드(편집 모드만) /
                   요약 자동요약·붙여넣기(항상). */}
@@ -1684,88 +1675,6 @@ function EmptyBodyCTA({ onStartEdit }: { onStartEdit: () => void }) {
           >
             ⌘⇧E
           </Kbd>
-        </Text>
-      ) : null}
-    </Button>
-  );
-}
-
-function TabBtn({
-  label,
-  badge,
-  badgeAccent,
-  onBadgeClick,
-  badgeTitle,
-  active,
-  accentColor = "var(--ink)",
-  onClick,
-}: {
-  label: string;
-  badge?: string | null;
-  badgeAccent?: boolean;
-  onBadgeClick?: () => void;
-  badgeTitle?: string;
-  active: boolean;
-  // 활성 탭 밑줄 색 (편집 모드 파랑 / 보기 모드 모노톤). 라벨은 항상 검정. 기본 모노톤.
-  accentColor?: string;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      variant="ghost"
-      onClick={onClick}
-      title={label}
-      aria-current={active ? "page" : undefined}
-      className="rounded-none px-3 py-2"
-      style={{
-        color: active ? "var(--ink)" : "var(--sub)",
-        borderBottom: active
-          ? `2px solid ${accentColor}`
-          : "2px solid transparent",
-        marginBottom: "-1px",
-        fontWeight: active ? 600 : 400,
-      }}
-    >
-      <span>{label}</span>
-      {badge ? (
-        <Text
-          variant="caption"
-          as="span"
-          role={onBadgeClick ? "button" : undefined}
-          tabIndex={onBadgeClick ? 0 : undefined}
-          title={badgeTitle}
-          onClick={
-            onBadgeClick
-              ? (e) => {
-                  e.stopPropagation();
-                  onBadgeClick();
-                }
-              : undefined
-          }
-          onKeyDown={
-            onBadgeClick
-              ? (e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onBadgeClick();
-                  }
-                }
-              : undefined
-          }
-          className="rounded-md px-1.5 py-0.5"
-          style={{
-            backgroundColor: badgeAccent
-              ? "var(--accent-soft)"
-              : "var(--surface-2)",
-            color: badgeAccent
-              ? "var(--accent-ink)"
-              : "var(--sub)",
-            fontWeight: 400,
-            cursor: onBadgeClick ? "pointer" : undefined,
-          }}
-        >
-          {badge}
         </Text>
       ) : null}
     </Button>

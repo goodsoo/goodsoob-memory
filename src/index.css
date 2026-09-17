@@ -15,6 +15,28 @@
      낮춤. 코드의 `lg:` 유틸리티 + raw @media (min-width: ...) 모두 이 값 기준. */
   --breakpoint-lg: 640px;
 
+  /* ── Tailwind 폰트 스케일 브리지 (Phase 5) ──
+     Tailwind text-* 유틸을 canonical --fs-* 로 정렬해, work 의 text-sm/base 등이
+     기본 Tailwind 크기(14/16) 대신 DS dense 스케일(13/14)을 가리키게 한다 —
+     tower·growth 와 타이포 통일. work 은 유일한 @theme(Tailwind) consumer 라
+     tower/growth(비-Tailwind)엔 영향 없음. line-height 는 Tailwind 기본 페어링 유지.
+     (값은 --fs-* 라 --fscale 배율도 자동 상속.) */
+  --text-3xs: var(--fs-3xs);    /* 10 — 초소형(D-day칩·하단탭 라벨 등). text-3xs 유틸 생성용 */
+  --text-2xs: var(--fs-2xs);    /* 11 — 초소형(요일헤더·배지 등). text-2xs 유틸 생성용 */
+  --text-xs: var(--fs-xs);      /* 12 (변화 없음) */
+  --text-sm: var(--fs-sm);      /* 14 → 13 */
+  --text-base: var(--fs-base);  /* 16 → 14 */
+  --text-md: var(--fs-md);      /* 15 — D9: h4=fs-md(15) 에 대응하는 Tailwind 유틸 ('md' 는 Tailwind 기본 없음) */
+  --text-lg: var(--fs-lg);      /* 18 → 17 */
+  --text-xl: var(--fs-xl);      /* 20 → 19 */
+  --text-2xl: var(--fs-2xl);    /* 24 → 22 */
+  --text-3xl: var(--fs-3xl);    /* 30 → 27 */
+  --text-4xl: var(--fs-4xl);    /* 36 → 30 */
+
+  /* radius 브리지: rounded-xl(큰 모달·패널) 12 → DS radius-16. md(6)·lg(8)는
+     Tailwind 기본이 이미 DS 와 일치해 두지 않는다(기본 utility 보존). */
+  --radius-xl: var(--radius-16);
+
   /* ── 시맨틱 토큰 ──
      opacity / z-index / shadow / motion 시맨틱은 `:root` (아래 base layer) 로
      이동. @theme 안에 박으면 Tailwind v4 가 default `z-10/20/50` / `opacity-50`

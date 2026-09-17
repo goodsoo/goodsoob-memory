@@ -3,6 +3,7 @@ import { FileText, Search } from "lucide-react";
 import { useMeetings } from "../../hooks/useMeetings";
 import { formatDateShortWithDay } from "../../lib/dates";
 import { Button } from "./Button";
+import { NavItem } from "../../ds/NavItem";
 import { Text } from "./Text";
 import { Popover } from "./Popover";
 
@@ -131,14 +132,13 @@ export function MeetingPicker({ value, onChange }: Props) {
                 const active = m.uid === value;
                 return (
                   <li key={m.uid}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <NavItem
+                      active={active}
                       onClick={() => {
                         onChange(m.uid);
                         setOpen(false);
                       }}
-                      className="w-full justify-start gap-2 rounded-none px-3 py-1.5 font-normal"
+                      className="rounded-none px-3 py-1.5"
                       style={{
                         backgroundColor: active
                           ? "var(--surface-3)"
@@ -161,7 +161,7 @@ export function MeetingPicker({ value, onChange }: Props) {
                           {formatDateShortWithDay(m.date)}
                         </Text>
                       ) : null}
-                    </Button>
+                    </NavItem>
                   </li>
                 );
               })

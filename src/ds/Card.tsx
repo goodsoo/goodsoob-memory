@@ -16,6 +16,8 @@ export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export interface CardBodyProps extends HTMLAttributes<HTMLDivElement> {
+  /** Removes body padding. Replaces ad-hoc className overrides like `adm-flush-body`. */
+  flush?: boolean;
   children?: ReactNode;
 }
 
@@ -70,8 +72,14 @@ function CardHeader({ className, children, ...rest }: CardHeaderProps) {
  * Card.Body — body region.
  * Padding: --space-16.
  */
-function CardBody({ className, children, ...rest }: CardBodyProps) {
-  const classes = ['ds-card__body', className ?? ''].filter(Boolean).join(' ');
+function CardBody({ flush = false, className, children, ...rest }: CardBodyProps) {
+  const classes = [
+    'ds-card__body',
+    flush ? 'ds-card__body--flush' : '',
+    className ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className={classes} {...rest}>
       {children}

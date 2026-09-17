@@ -1,6 +1,6 @@
 // Adapter: delegates to canonical DS FilterItem.
 // Props mapping:
-//   label: ReactNode → string (DS accepts string only; ReactNode callers pass string in practice)
+//   label: ReactNode — DS now accepts ReactNode directly; passed through as-is
 //   leading: dropped (DS has no leading icon slot)
 //   onClick: required in memory → optional in DS, safe to pass through
 import type { ReactNode } from "react";
@@ -25,11 +25,9 @@ export function FilterItem({
   onClick,
   className,
 }: Props) {
-  // DS label is string — cast safely (callers pass string or simple ReactNode)
-  const labelStr = typeof label === "string" ? label : String(label ?? "");
   return (
     <DsFilterItem
-      label={labelStr}
+      label={label}
       count={count}
       active={active}
       muted={muted}

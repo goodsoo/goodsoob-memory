@@ -13,6 +13,7 @@
 import { isTauri } from "../isTauri";
 import { createTauriAdapter, createMemoryAdapter, type VaultAdapter } from "./adapter";
 import { createHttpAdapter } from "./httpAdapter";
+import { createOfflineAdapter } from "./offlineAdapter";
 
 export function selectAdapter(): VaultAdapter {
   if (isTauri) {
@@ -25,6 +26,8 @@ export function selectAdapter(): VaultAdapter {
     return createMemoryAdapter();
   }
 
-  // Browser / PWA runtime — 같은 origin 의 로컬 서버(server/index.ts, :7080)에 접속.
-  return createHttpAdapter();
+  // Browser / PWA runtime — 같은 origin 의 로컬 서버(server/index.ts)에 http 로 접속하되,
+  // capture outbox 로 감싸 오프라인/서버다운 시 쓰기를 큐잉(T5). 온라인 복귀·포그라운드에
+  // flush. 읽기는 온라인 위임(T6 이 캐시 추가).
+  return createOfflineAdapter({ inner: createHttpAdapter() });
 }

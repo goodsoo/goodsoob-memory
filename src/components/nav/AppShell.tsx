@@ -26,6 +26,7 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Popover } from "../common/Popover";
 import { BottomTabs, TABS, type Tab } from "./BottomTabs";
+import { SyncIndicator } from "./SyncIndicator";
 
 const MOBILE_DRAWER_WIDTH = 288;
 const SWIPE_CLOSE_THRESHOLD = 60;
@@ -180,8 +181,9 @@ export function AppShell({
         </div>
         {/* 좁은 창에선 시계가 빠지므로 우측 버튼이 끝으로 가게 flex-1 스페이서(드래그). */}
         <div data-tauri-drag-region className="flex-1 lg:hidden" />
-        {/* 우측: search + settings + theme. button 자체는 click, 사이 gap 은 drag region. */}
+        {/* 우측: sync + search + settings + theme. button 자체는 click, 사이 gap 은 drag region. */}
         <div data-tauri-drag-region className="flex items-center gap-0.5 pr-2">
+          <SyncIndicator />
           {onOpenSearch ? (
             <Button
               variant="icon"

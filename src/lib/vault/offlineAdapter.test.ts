@@ -98,6 +98,7 @@ function makeInner(
     async mkdir(p: string): Promise<void> {
       await next("mkdir", [p]);
     },
+    scanAll(_d: string) { return Promise.resolve([]); },
   };
 }
 
@@ -731,6 +732,7 @@ function makeReadInner(opts: {
     async mkdir(p: string): Promise<void> {
       calls.push({ method: "mkdir", args: [p] });
     },
+    scanAll(_d: string) { return Promise.resolve([]); },
   };
 }
 

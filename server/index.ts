@@ -266,6 +266,13 @@ async function handleVaultApi(
     return json({ paths });
   }
 
+  // GET /api/vault/scanAll?dir=
+  if (pathname === "/api/vault/scanAll" && req.method === "GET") {
+    const dir = p.get("dir") ?? "";
+    const entries = await vault.scanAll(dir);
+    return json({ entries });
+  }
+
   // GET /api/vault/history?path=
   if (pathname === "/api/vault/history" && req.method === "GET") {
     const rel = requireParam(p, "path");

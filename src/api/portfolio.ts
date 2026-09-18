@@ -356,16 +356,17 @@ export function isGithubCard(fm: PortfolioWorkFrontmatter): boolean {
 export async function scanPortfolio(
   adapter: VaultAdapter,
 ): Promise<PortfolioWorkMeta[]> {
-  const files = await adapter.listRecursive(PORTFOLIO_DIR);
+  // scanAll = 서버 batch 1회(HTTP) 또는 로컬 병렬(Tauri/memory).
+  // before: listRecursive(1) + read(N) + readMeta(N) = 1 + 2N 왕복.
+  // after:  scanAll(1) = 1 왕복.
+  const allEntries = await adapter.scanAll(PORTFOLIO_DIR);
   const results: PortfolioWorkMeta[] = [];
-  for (const path of files) {
+  for (const { path, content: raw, meta } of allEntries) {
     if (!path.endsWith(".md")) continue;
     if (PORTFOLIO_SKIP.has(path)) continue;
     if (path.startsWith(`${PORTFOLIO_TRASH_DIR}/`)) continue;
     if (isAttachmentPath(path)) continue;
     try {
-      const raw = await adapter.read(path);
-      const meta = await adapter.readMeta(path);
       const work = fileToPortfolioWork(path, raw, meta.mtime);
       if (!work) continue; // type 불일치 / 손상 → skip
       results.push({

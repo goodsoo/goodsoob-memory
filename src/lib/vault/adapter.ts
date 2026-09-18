@@ -37,6 +37,12 @@ export class ConflictError extends Error {
   }
 }
 
+export interface ScanEntry {
+  path: string;
+  content: string;
+  meta: FileMeta;
+}
+
 export interface VaultAdapter {
   setRoot(absPath: string): void;
   getRoot(): string | null;
@@ -51,6 +57,10 @@ export interface VaultAdapter {
   listFoldersRecursive(subdir: string): Promise<string[]>;
   read(relPath: string): Promise<string>;
   readMeta(relPath: string): Promise<FileMeta>;
+  // batch scan — dir 아래 모든 파일의 content + meta 를 한 번에 반환.
+  // HTTP adapter 에서는 서버 batch 엔드포인트 1회 호출로 처리.
+  // Tauri/memory adapter 에서는 로컬 병렬 read+readMeta.
+  scanAll(dir: string): Promise<ScanEntry[]>;
   // expectedMtime: 마지막으로 읽었을 때의 mtime. 디스크가 더 새 거면 ConflictError throw.
   write(
     relPath: string,
@@ -287,6 +297,25 @@ export function createTauriAdapter(): VaultAdapter {
       const abs = joinAbs(requireRoot(), relPath);
       if (await tauriExists(abs)) return;
       await tauriMkdir(abs, { recursive: true });
+    },
+
+    async scanAll(dir: string): Promise<ScanEntry[]> {
+      // Tauri = 로컬 fs, 왕복 비용 없음 → 병렬 read+readMeta 단순 구현.
+      const paths = await this.listRecursive(dir);
+      const entries = await Promise.all(
+        paths.map(async (path) => {
+          try {
+            const [content, meta] = await Promise.all([
+              this.read(path),
+              this.readMeta(path),
+            ]);
+            return { path, content, meta } satisfies ScanEntry;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      return entries.filter((e): e is ScanEntry => e !== null);
     },
 
     async watch(
@@ -559,6 +588,25 @@ export function createMemoryAdapter(): VaultAdapter & {
     async mkdir(relPath: string): Promise<void> {
       requireRoot();
       dirs.add(relPath);
+    },
+
+    async scanAll(dir: string): Promise<ScanEntry[]> {
+      requireRoot();
+      const paths = await this.listRecursive(dir);
+      const entries = await Promise.all(
+        paths.map(async (path) => {
+          try {
+            const [content, meta] = await Promise.all([
+              this.read(path),
+              this.readMeta(path),
+            ]);
+            return { path, content, meta } satisfies ScanEntry;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      return entries.filter((e): e is ScanEntry => e !== null);
     },
 
     async watch(

@@ -10,7 +10,7 @@
  *  - readMeta().mtime: 소스 = 서버 git 커밋 시각(서버가 반환).
  */
 
-import type { VaultAdapter, VaultWatchEvent, FileMeta } from "./adapter";
+import type { VaultAdapter, VaultWatchEvent, FileMeta, ScanEntry } from "./adapter";
 
 export interface HttpAdapterOptions {
   /** 서버 base URL. 기본 = 같은 origin(''), 즉 상대경로 fetch. */
@@ -142,6 +142,14 @@ export function createHttpAdapter(opts: HttpAdapterOptions = {}): VaultAdapter {
     async readMeta(relPath: string): Promise<FileMeta> {
       // mtime 소스 = 서버 git 커밋 시각 (서버 readMeta 가 그렇게 채움).
       return getJson<FileMeta>(`/api/vault/meta?path=${enc(relPath)}`);
+    },
+
+    async scanAll(dir: string): Promise<ScanEntry[]> {
+      // 서버 batch 엔드포인트 1회 호출 — listRecursive(N) + read(N) + readMeta(N) 왕복 대신.
+      const { entries } = await getJson<{ entries: ScanEntry[] }>(
+        `/api/vault/scanAll?dir=${enc(dir)}`,
+      );
+      return entries;
     },
 
     async write(

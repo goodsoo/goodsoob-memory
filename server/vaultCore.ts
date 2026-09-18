@@ -177,6 +177,25 @@ export class VaultCore {
     return results;
   }
 
+  // batch scan — dir 아래 모든 파일의 content + meta 를 Promise.all 병렬로 수집.
+  async scanAll(dir: string): Promise<Array<{ path: string; content: string; meta: FileMeta }>> {
+    const paths = this.listRecursive(dir);
+    const results = await Promise.all(
+      paths.map(async (rel) => {
+        try {
+          const [content, meta] = await Promise.all([
+            this.read(rel),
+            this.readMeta(rel),
+          ]);
+          return { path: rel, content, meta };
+        } catch {
+          return null;
+        }
+      }),
+    );
+    return results.filter((e): e is { path: string; content: string; meta: FileMeta } => e !== null);
+  }
+
   // ── 쓰기 (atomic + per-path lock + debounce commit) ──────────────────────
   async write(rel: string, content: string): Promise<FileMeta> {
     const abs = this.abs(rel);

@@ -284,6 +284,10 @@ export function createOfflineAdapter(
       }
     },
 
+    // scanAll — inner(http) 로 위임. 오프라인 시 캐시 미지원(batch 특성상 캐싱 복잡도 높음).
+    // 포트폴리오 탭은 온라인 전용으로 간주 — 실패 시 throw 그대로 전파.
+    scanAll: (dir) => inner.scanAll(dir),
+
     flush,
   };
 }

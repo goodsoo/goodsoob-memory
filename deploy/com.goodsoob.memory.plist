@@ -20,7 +20,7 @@
     <!-- VAULT_DIR: 정본 brain md 경로. T0(.git iCloud 밖 분리 + gc + gbrain 데몬 writer 정리) 완료 전엔
          절대 실제 brain 을 가리키지 말 것. 아래 placeholder 는 존재하지 않는 경로라 서버가 fast-fail 한다. -->
     <key>VAULT_DIR</key>
-    <string>__SET_TO_BRAIN_PATH_AFTER_T0__</string>
+    <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/brain</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>

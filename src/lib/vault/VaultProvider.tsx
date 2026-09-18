@@ -20,6 +20,7 @@ import {
   setActiveVaultId,
   type VaultEntry,
 } from "./registry";
+import { isTauri } from "../isTauri";
 
 interface VaultContextValue {
   adapter: VaultAdapter;
@@ -150,6 +151,29 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     if (!disconnectedFrom) return;
     await setVaultRoot(disconnectedFrom);
   }, [disconnectedFrom, setVaultRoot]);
+
+  // 브라우저(웹앱) 모드 — 마운트 1회: 서버가 소유한 vault 를 자동 등록·활성화.
+  // Tauri 이거나 이미 활성 vault 가 있으면 즉시 return (데스크탑·재방문 무손상).
+  useEffect(() => {
+    if (isTauri) return;
+    if (activeVaultId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/vault/init");
+        if (!res.ok || cancelled) return;
+        const { vaultPath } = (await res.json()) as { vaultPath?: string };
+        if (!vaultPath || cancelled) return;
+        await setVaultRoot(vaultPath);
+      } catch {
+        // fetch 실패 → 폴더 선택 화면으로 자연 폴백
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 1회만 — activeVaultId/setVaultRoot 의존성 의도적으로 제외
 
   // activeVaultId 변화에 반응해서 watcher 재시작 + queryClient 초기화.
   useEffect(() => {

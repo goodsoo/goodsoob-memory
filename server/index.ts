@@ -225,6 +225,11 @@ async function handleVaultApi(
 ): Promise<Response> {
   const p = url.searchParams;
 
+  // GET /api/vault/init — 웹앱 모드 자동 연결: 서버가 소유한 VAULT_DIR 반환
+  if (pathname === "/api/vault/init" && req.method === "GET") {
+    return json({ vaultPath: VAULT_DIR });
+  }
+
   // GET /api/vault/watch — SSE
   if (pathname === "/api/vault/watch" && req.method === "GET") {
     return watchSse();
@@ -481,14 +486,14 @@ function watchSse(): Response {
         );
       };
       sseClients.add(send);
-      // keepalive comment (프록시 idle timeout 방지).
+      // keepalive comment (Bun idleTimeout 방지 — 8초마다, idleTimeout=255 이내).
       const ka = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(": keepalive\n\n"));
         } catch {
           clearInterval(ka);
         }
-      }, 25000);
+      }, 8000);
       (controller as unknown as { _ka?: ReturnType<typeof setInterval> })._ka =
         ka;
     },
@@ -517,7 +522,10 @@ async function shutdown(): Promise<void> {
 process.on("SIGTERM", () => void shutdown());
 process.on("SIGINT", () => void shutdown());
 
-const server = Bun.serve({ port: PORT, hostname: HOST, fetch: handle });
+// Bun 기본 idleTimeout=10s 는 SSE·대량 스캔 요청(포트폴리오 492 파일 순차 read)을
+// 끊어 ERR_INCOMPLETE_CHUNKED_ENCODING 을 유발한다. 최대값(uint8=255)으로 설정.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const server = Bun.serve({ port: PORT, hostname: HOST, fetch: handle, idleTimeout: 255 } as any);
 console.log(
   `[server] goodsoob-memory listening on http://${server.hostname}:${server.port}` +
     ` — VAULT_DIR=${VAULT_DIR}`,

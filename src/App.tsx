@@ -58,7 +58,6 @@ import { maybeAutoBackup } from "./lib/backup";
 import { DrawerProvider, useDrawer } from "./hooks/useDrawer";
 import { useSidebarCollapsed } from "./hooks/useSidebarCollapsed";
 import { todayIso } from "./lib/dates";
-import { isTauri } from "./lib/isTauri";
 
 function readTabFromHash(): Tab {
   const h = window.location.hash;
@@ -247,7 +246,7 @@ function AppContent() {
   // 본인 매일 앱 켜면 silent fetch — 의식 0 으로 카드 누적. Tauri 만 (gh 호출 필요).
   // useGhSync 의 callId 가드 + cancel 강제 리셋 덕분에 stuck 회복 가능 (V0.7.x).
   useEffect(() => {
-    if (!isTauri || !isReady || autoSyncDone.current) return;
+    if (!isReady || autoSyncDone.current) return;
     autoSyncDone.current = true;
     const t = setTimeout(() => {
       portfolioSync.run({ incremental: true }).catch((err) => {
@@ -262,7 +261,7 @@ function AppContent() {
   // 자동 백업 — vault ready 후 10초 뒤 1회. interval/keepCount 설정에 따라 실행.
   // 1초+ 걸리면 progress toast 로 freeze 같은 체감 차단.
   useEffect(() => {
-    if (!isTauri || !isReady || autoBackupDone.current) return;
+    if (!isReady || autoBackupDone.current) return;
     autoBackupDone.current = true;
     const t = setTimeout(async () => {
       let progressId: number | null = null;

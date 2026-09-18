@@ -28,6 +28,7 @@ import type { TaskInsert } from "./api/tasks";
 import { TodosTrashModal } from "./components/tasks/TodosTrashModal";
 import { Text } from "./components/common/Text";
 import { EmptyState } from "./components/common/EmptyState";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { PageHeaderBar } from "./components/common/PageHeaderBar";
 import { TodayPage } from "./pages/TodayPage";
 import { TodayAgendaPanel } from "./components/today/TodayAgendaPanel";
@@ -109,18 +110,20 @@ export default function App() {
   if (hash === "#styleguide") return <StyleguidePage />;
 
   return (
-    <VaultGate>
-      <VaultImageIndexProvider>
-        <GlobalTooltip />
-        <ToastProvider>
-          <GcalSyncProvider>
-            <DrawerProvider>
-              <AppContent />
-            </DrawerProvider>
-          </GcalSyncProvider>
-        </ToastProvider>
-      </VaultImageIndexProvider>
-    </VaultGate>
+    <ErrorBoundary>
+      <VaultGate>
+        <VaultImageIndexProvider>
+          <GlobalTooltip />
+          <ToastProvider>
+            <GcalSyncProvider>
+              <DrawerProvider>
+                <AppContent />
+              </DrawerProvider>
+            </GcalSyncProvider>
+          </ToastProvider>
+        </VaultImageIndexProvider>
+      </VaultGate>
+    </ErrorBoundary>
   );
 }
 

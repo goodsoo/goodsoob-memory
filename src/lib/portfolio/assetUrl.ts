@@ -1,14 +1,16 @@
 // V0.7 step 9 — vault root 상대경로 (예: "portfolio/_attachments/owner-repo-42/before-1.jpg")
-// → Tauri asset URL. 토스만 (`asset:` protocol) 으로 변환 — fs scope 안에서만 동작.
+// → Tauri: asset:// URL / 브라우저: /api/attachment?path=<relPath>.
+//
+// 내부는 runtime.ts 의 attachmentUrl() 에 위임 — isTauri 분기를 한 곳에서만 관리.
+// convertFileSrc 를 직접 import 하지 않으므로 브라우저(서버) 모드에서 TypeError 없음.
 
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { attachmentUrl } from "../runtime";
 
 export function vaultAssetSrc(
   vaultRoot: string | null,
   relPath: string,
 ): string {
-  if (!vaultRoot) return relPath;
-  const r = vaultRoot.endsWith("/") ? vaultRoot.slice(0, -1) : vaultRoot;
-  const absPath = `${r}/${relPath}`;
-  return convertFileSrc(absPath);
+  // 이미 절대 URL / 데이터 URL 이면 그대로 (기존 동작 보존).
+  if (/^(https?:|data:|blob:|asset:)/i.test(relPath)) return relPath;
+  return attachmentUrl(vaultRoot, relPath);
 }

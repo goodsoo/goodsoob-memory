@@ -1,7 +1,6 @@
 // 메모 마크다운 복사 / .md 내보내기 — 사이드바 컨텍스트 메뉴와 메모 타이틀바 …
 // 메뉴가 공유하는 단일 source. 복사는 copyText 2단 경로, 내보내기는 섹션별 파일을
-// 사용자가 고른 폴더에 쓴다 (Tauri fs, 데스크탑 전용).
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+// 브라우저 download (<a download>) 로 내려받는다.
 import type { Meeting } from "../api/meetings";
 import { copyText } from "./clipboard";
 import {
@@ -69,19 +68,27 @@ export async function copyMeetingMarkdown(
   return copyText(meetingToMarkdown(meeting, section));
 }
 
-// 선택한 섹션들을 dir 안에 각각 .md 파일로 저장. 같은 이름 파일은 덮어씀.
-// 쓰기 실패는 throw → 호출자가 toast. 저장된 파일명 목록 반환.
-export async function exportMeetingSections(
-  dir: string,
+// 브라우저 download API 로 .md 파일 하나를 내려받는다.
+function downloadMarkdown(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// 선택한 섹션들을 각각 브라우저 download 로 내려받는다. 저장된 파일명 목록 반환.
+export function exportMeetingSections(
   meeting: MeetingMarkdownInput,
   sections: MeetingMarkdownSection[],
-): Promise<string[]> {
-  const root = dir.replace(/\/$/, "");
+): string[] {
   const written: string[] = [];
   for (const section of sections) {
     const name = sectionFilename(meeting.title, section);
     const md = meetingToMarkdown(meeting, section);
-    await writeTextFile(`${root}/${name}`, md);
+    downloadMarkdown(name, md);
     written.push(name);
   }
   return written;

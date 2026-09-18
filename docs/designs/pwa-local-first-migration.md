@@ -7,6 +7,7 @@ Status: APPROVED (revised)
 Mode: Builder
 Revised: 2026-09-17 /plan-eng-review — Approach B(폰 full 복제본) → **capture-first**로 축소. 외부 voice가 실제 머신 측정으로 B의 전제를 반증(아래 "eng-review 방향 수정").
 Revised: 2026-09-17 (2차) — **Tauri 전면 제거 → 웹앱 단일화** + tower·growth 참조 아키텍처 채택. 데스크탑도 서버 클라이언트(브라우저)로 통일, 맥 간 공유 = iCloud, air = Pro 다운 시 로컬 서버 fallback. (아래 "2차 개정: 웹앱 단일화 + 참조 아키텍처")
+Revised: 2026-09-18 (3차) — **T0을 gc-only로 축소** (`.git`은 iCloud 유지 → 여러 맥 git 히스토리 공유 유지). 2차의 ".git 밖 로컬 분리, 히스토리 맥마다 독립"은 철회. 상세는 선결조건·T0 항목.
 
 ## Problem Statement
 
@@ -22,7 +23,7 @@ Revised: 2026-09-17 (2차) — **Tauri 전면 제거 → 웹앱 단일화** + to
 
 **수정된 방향 = capture-first.** 폰은 복제본을 안 든다. 오프라인 = 새 메모·편집을 로컬 outbox에 쌓기, 온라인 = 서버로 POST. 오프라인 읽기 = 최근 N개 캐시만, 과거 노트는 온라인 fetch. → iOS eviction 리스크를 outbox(작음)로 한정, 456MB 복제·양방향 sync·divergence 배지 대부분 제거. P1(빠른 폰 캡처)은 그대로 충족.
 
-**선결조건 (2차 개정에서 재정의):** `~/brain`의 무거운 **`.git`(467MB)만 iCloud 밖 로컬로** 분리(md working tree는 iCloud 공유 유지 → 맥 간 데이터 일치는 iCloud가 담당, `.git` 부분sync 손상 위험은 제거) · `.git` gc(loose 2445 → pack) · `~/brain` 통합 마무리 · gbrain 데몬과 앱 서버 writer 관계 정리. git은 growth 패턴처럼 **로컬 복구 안전망**이라 히스토리가 맥마다 독립이어도 정상(맥 간 공유는 iCloud md). 상세는 "2차 개정" 참조.
+**선결조건 (2차 정의 → 3차 gc-only로 축소, 2026-09-18 완료):** ~~`.git`(467MB)만 iCloud 밖 로컬 분리~~ → **gc-only로 결정.** `.git` gc(loose 2445 → pack 1)만 실행하고 **`.git`은 iCloud에 유지**한다. 근거: iCloud+git 함정의 실질 pain은 loose object mtime-churn(iCloud가 감시하는 수천 개 작은 파일)인데, gc가 pack 1개로 압축해 그 churn을 해소한다. 부분sync 손상·동시 writer 충돌은 아직 미발생한 예방적 우려라, 이를 막으려 확정 편익(맥 간 git 히스토리 공유)을 포기하지 않는다 — 실제로 겪으면 그때 `.git`을 분리해도 늦지 않다(국소·되돌리기 가능). **잔여 리스크**: air fallback(T9) 중 Pro·air가 iCloud `.git`에 겹쳐 커밋하면 충돌 가능 → T9 설계에서 다룸. gbrain 데몬과 앱 서버 writer 관계 정리는 T2로 이관(현재 데몬이 단일 writer라 무해). 상세는 "2차 개정" 참조.
 
 ## What Makes This Cool
 
@@ -92,7 +93,7 @@ _capture-first에선 폰이 복제본을 안 들어 "같은 노트 동시 오프
 - **Pro 맥**: 정본 brain(iCloud) + Bun 서버(자기 포트, launchd 상주) + PWA 서빙. **단일 writer.** 폰·air·Pro 자신이 브라우저로 접속.
 - **air 맥**: 평소엔 Pro 서버에 브라우저로 접속(자기 데이터 안 씀). **Pro 다운 시에만** iCloud로 받은 brain에 대해 자기 로컬 서버를 띄워 단일 writer로 fallback. Pro 복귀 시 iCloud가 md를 다시 일치시킴(Pro가 안 도는 동안 air만 썼으니 덮어쓰기 충돌 없음).
 - **폰**: PWA capture-first. 오프라인 = outbox, Pro 다운 시 쌓아뒀다 복귀 시 flush(air로 라우팅 안 함, v1 범위 밖).
-- **`.git` 위치**: brain md working tree는 iCloud 공유(맥 간 데이터 일치), 무거운 **`.git`(467MB)만 iCloud 밖 로컬**. git은 growth처럼 로컬 복구 안전망이라 히스토리가 맥마다 독립이어도 정상.
+- **`.git` 위치** (3차 갱신, 2026-09-18): brain md working tree + **`.git` 모두 iCloud 공유**(맥 간 데이터·git 히스토리 일치). 무거운 loose churn만 gc(loose 2445 → pack 1)로 제거하고 `.git` 자체는 iCloud 유지. (2차의 "`.git`만 iCloud 밖 로컬, 히스토리 맥마다 독립"은 철회 — 근거는 선결조건 참조.)
 
 **철회된 것 (앞선 논의에서 과설계로 판명):**
 - ~~git remote push/pull로 맥 간 공유~~ → iCloud가 담당(두 참조 앱 모두 git remote 안 씀).
@@ -217,7 +218,7 @@ M1→M2 순차(M2가 M1 서버·어댑터 의존). M1 내부:
 실행: A 먼저 → B+C 병렬 → M2 순차.
 
 ### Implementation Tasks
-- [ ] **T0 (P1)** — precond — `~/brain` `.git`만 iCloud 밖 로컬 분리 + gc(loose→pack) + gbrain 데몬/앱 writer 관계 정리. (다른 세션과 조율, 착수 전 완료)
+- [x] **T0 (P1)** — ✅ 완료 2026-09-18 (**gc-only**) — `git gc` 로 loose 2445 → pack 1 (466MB→459MB, iCloud churn 해소). `.git`은 iCloud 유지(맥 간 히스토리 공유). gbrain 데몬 unload → gc → 재load 로 write 충돌 회피. `.git` 밖 로컬 분리는 철회(선결조건 참조), 앱 서버 writer 정리는 T2로 이관.
 - [ ] **T1 (P1)** — vault — 어댑터 선택 seam: `VaultProvider.tsx:51` 하드코딩 → 런타임 감지(브라우저=http). (step 1의 전제조건)
 - [ ] **T2 (P1)** — server — 최소 Bun 서버 + `createHttpAdapter` (read/write/list, SSE watch) + `~/brain` subtree 스쿼시 커밋 + git log 복구 API + 정적 빌드 서빙(SPA fallback). **단일 writer.**
 - [ ] **T3 (P1)** — server — Tauri 탈출구 이전(gh/claude/curl/zip/asset/gcal) → 서버 엔드포인트 + 폰 degraded 표시.

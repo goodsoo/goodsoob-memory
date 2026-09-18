@@ -200,6 +200,11 @@ async function handle(req: Request): Promise<Response> {
     return handleShellStream(req);
   }
 
+  // ── /api/health (T9 — air fallback 헬스체크 + 모니터링) ────────────────────
+  if (pathname === "/api/health" && req.method === "GET") {
+    return json({ ok: true, vaultDir: VAULT_DIR, pid: process.pid, uptime: process.uptime() });
+  }
+
   // ── /api/attachment (T3 — asset:// 대체: vault 안 이미지 서빙) ──────────────
   if (pathname === "/api/attachment" && req.method === "GET") {
     return handleAttachment(url);

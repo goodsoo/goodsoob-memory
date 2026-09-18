@@ -30,7 +30,6 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SaveIndicator } from "../common/SaveIndicator";
 import { PageHeaderBar } from "../common/PageHeaderBar";
-import { Kbd } from "../common/Kbd";
 import { EmptyState } from "../common/EmptyState";
 import { SummaryModal } from "./SummaryModal";
 import { MeetingActionMenu } from "./MeetingActionMenu";
@@ -50,7 +49,6 @@ import { MeetingExportModal } from "./MeetingExportModal";
 import type { TaskInsert, TaskPriority } from "../../api/tasks";
 import { extractTasks } from "../../lib/vault/tasks";
 import { useViewMode } from "../../hooks/useViewMode";
-import { isTauri } from "../../lib/isTauri";
 import { formatError } from "../../lib/errors";
 import { TitleConflictError } from "../../lib/vault/scan";
 import { OfflineCacheMissError } from "../../lib/vault/readCache";
@@ -1671,20 +1669,6 @@ function EmptyBodyCTA({ onStartEdit }: { onStartEdit: () => void }) {
       <Text variant="body" as="div">
         편집을 시작하려면 클릭하세요
       </Text>
-      {isTauri ? (
-        <Text variant="caption" as="div" className="flex items-center gap-1.5">
-          <span>또는</span>
-          <Kbd
-            style={{
-              borderColor: "var(--line-2)",
-              color: "var(--faint)",
-              backgroundColor: "var(--surface)",
-            }}
-          >
-            ⌘⇧E
-          </Kbd>
-        </Text>
-      ) : null}
     </Button>
   );
 }

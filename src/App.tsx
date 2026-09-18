@@ -57,7 +57,6 @@ import { useVault } from "./lib/vault/useVault";
 import { maybeAutoBackup } from "./lib/backup";
 import { DrawerProvider, useDrawer } from "./hooks/useDrawer";
 import { useSidebarCollapsed } from "./hooks/useSidebarCollapsed";
-import { zoomIn, zoomOut, resetZoom } from "./hooks/useZoom";
 import { todayIso } from "./lib/dates";
 import { isTauri } from "./lib/isTauri";
 
@@ -390,27 +389,6 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMeetingId, sidebar.toggle]);
 
-  // 화면 배율 (Tauri only): Cmd+= / Cmd++ 확대, Cmd+- / Cmd+_ 축소, Cmd+0 100% 복귀.
-  // input/textarea 안에서도 동작 (브라우저 줌과 동일 UX). Cmd++·Cmd+_ 는 shift 동반이라
-  // 위 nav 핸들러(shift 시 bail)와 별도 등록. nav 핸들러가 쓰는 키(\,p,1~4)와 안 겹침.
-  useEffect(() => {
-    if (!isTauri) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
-      if (e.key === "=" || e.key === "+") {
-        e.preventDefault();
-        zoomIn();
-      } else if (e.key === "-" || e.key === "_") {
-        e.preventDefault();
-        zoomOut();
-      } else if (e.key === "0") {
-        e.preventDefault();
-        resetZoom();
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
 
   // 메모장 단축키 (Tauri·web·PWA 공통):
   // - Cmd+N: 새 메모 생성 + 자동 선택 (textarea 안에서도 동작)

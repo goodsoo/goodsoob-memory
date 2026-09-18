@@ -20,7 +20,6 @@ import {
   setActiveVaultId,
   type VaultEntry,
 } from "./registry";
-import { isTauri } from "../isTauri";
 
 interface VaultContextValue {
   adapter: VaultAdapter;
@@ -153,9 +152,8 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   }, [disconnectedFrom, setVaultRoot]);
 
   // 브라우저(웹앱) 모드 — 마운트 1회: 서버가 소유한 vault 를 자동 등록·활성화.
-  // Tauri 이거나 이미 활성 vault 가 있으면 즉시 return (데스크탑·재방문 무손상).
+  // 이미 활성 vault 가 있으면 즉시 return (재방문 무손상).
   useEffect(() => {
-    if (isTauri) return;
     if (activeVaultId) return;
     let cancelled = false;
     (async () => {

@@ -1,4 +1,3 @@
-import { isTauri } from "../../lib/isTauri";
 import { Text } from "../common/Text";
 import { Kbd } from "../common/Kbd";
 
@@ -85,20 +84,6 @@ const GROUPS: Group[] = [
 export function ShortcutsSection() {
   return (
     <div className="space-y-5">
-      {!isTauri && (
-        <Text
-          variant="caption"
-          color="secondary"
-          as="p"
-          className="rounded px-3 py-2"
-          style={{
-            background: "var(--bg)",
-            border: "1px solid var(--line-2)",
-          }}
-        >
-          단축키는 데스크탑 앱 (Tauri) 전용. 브라우저에선 시스템 단축키와 충돌해 동작하지 않아요.
-        </Text>
-      )}
       {GROUPS.map((group) => (
         <section key={group.title}>
           <Text

@@ -15,7 +15,6 @@ import {
   SIDE_PANEL_MAX,
 } from "../../hooks/useSidePanelWidth";
 import { useDrawer } from "../../hooks/useDrawer";
-import { isTauri } from "../../lib/isTauri";
 import { SidebarToggleProvider } from "../../hooks/sidebarToggle";
 import { formatClockNow } from "../../lib/dates";
 import { useVault } from "../../lib/vault/useVault";
@@ -376,9 +375,9 @@ function HeaderTabs({
 }) {
   return (
     <nav className="flex h-full items-end gap-0.5" aria-label="primary">
-      {TABS.map(({ id, label, icon: Icon }, i) => {
+      {TABS.map(({ id, label, icon: Icon }) => {
         const active = id === activeTab;
-        const title = isTauri ? `${label}  ⌘${i + 1}` : label;
+        const title = label;
         return (
           <Button
             key={id}

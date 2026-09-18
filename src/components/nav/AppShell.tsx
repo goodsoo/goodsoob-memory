@@ -126,10 +126,10 @@ export function AppShell({
         className="flex items-stretch"
         style={{
           position: "fixed",
-          top: 0,
+          top: "var(--safe-top)",
           left: 0,
           right: 0,
-          height: "var(--titlebar-inset)",
+          height: "var(--header-h)",
           backgroundColor: "var(--line)",
           borderBottom: "1px solid var(--line)",
           zIndex: 50,
@@ -228,7 +228,7 @@ export function AppShell({
           >
             <div
               className="flex h-full flex-col"
-              style={{ paddingTop: "var(--titlebar-inset)" }}
+              style={{ paddingTop: "var(--header-h)" }}
             >
               <div className="relative min-h-0 flex-1">{sidePanel}</div>
               {sidePanelFooter ? (
@@ -267,8 +267,8 @@ export function AppShell({
               width: `${MOBILE_DRAWER_WIDTH}px`,
               backgroundColor: "var(--surface)",
               borderRight: "1px solid var(--line)",
-              // 항상 떠있는 타이틀바 아래로 드로어 내용이 시작하게 inset 확보.
-              paddingTop: "calc(var(--safe-top) + var(--titlebar-inset))",
+              // 항상 떠있는 헤더바 아래로 드로어 내용이 시작하게 inset 확보.
+              paddingTop: "calc(var(--safe-top) + var(--header-h))",
             }}
             aria-hidden={!drawer.isOpen}
           >
@@ -286,7 +286,7 @@ export function AppShell({
             // 하단 탭을 숨겨 더는 72px 여백이 필요 없음 — safe-area 만.
             paddingBottom: "var(--safe-bottom)",
             ["--gs-main-pl" as string]: mainPaddingLeft,
-            ["--gs-main-pt" as string]: "var(--titlebar-inset)",
+            ["--gs-main-pt" as string]: "var(--header-h)",
           } as React.CSSProperties
         }
         className="[padding-top:var(--gs-main-pt)] lg:!pb-0 lg:h-screen lg:overflow-y-auto lg:overscroll-none lg:[padding-left:var(--gs-main-pl)]"

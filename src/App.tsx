@@ -360,10 +360,11 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // Desktop (Tauri) 전용 단축키: Cmd+1/2/3/4 (TABS index 기반), Cmd+\ (사이드바 토글).
-  // 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
+  // 페이지 단축키 (Tauri·web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
+  // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
+  // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
+  //    standalone PWA·Tauri 에선 앱이 받는다.
   useEffect(() => {
-    if (!isTauri) return;
     function onKeyDown(e: KeyboardEvent) {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
       // Cmd+\ — 사이드바 collapse 토글 (input/textarea 안에서도 동작)
@@ -414,12 +415,11 @@ function AppContent() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // 메모장 단축키 (Tauri only):
+  // 메모장 단축키 (Tauri·web·PWA 공통):
   // - Cmd+N: 새 메모 생성 + 자동 선택 (textarea 안에서도 동작)
   // - Cmd+Backspace/Delete: 현재 메모 삭제 (input/textarea 밖에서만)
   // - Cmd+↑/↓: 이전/다음 메모 (input/textarea 밖에서만)
   useEffect(() => {
-    if (!isTauri) return;
     if (tab !== "meetings") return;
 
     function isInTextInput(t: EventTarget | null): boolean {

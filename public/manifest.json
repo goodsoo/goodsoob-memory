@@ -1,6 +1,6 @@
 {
   "name": "짱수메모리",
-  "short_name": "짱수",
+  "short_name": "짱수메모리",
   "description": "개인 시간축 메모·업무관리",
   "display": "standalone",
   "orientation": "portrait",

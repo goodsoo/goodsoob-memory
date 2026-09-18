@@ -176,6 +176,11 @@
     --app-header-h: 3.5rem;
     --titlebar-inset: 0px;
     --titlebar-traffic-inset: 0px;
+    /* AppShell 상단 헤더바 높이 — web/PWA 는 폭 무관 실제 헤더 높이(3.5rem),
+       macOS Tauri 는 OS 타이틀바에 얹는 overlay(titlebar-inset, 36px) 로 축소.
+       ⚠️ --app-header-h 는 @media(min-width:640px) 에서 0 이 되는 별개 변수(모바일
+       레이아웃 높이 계산용) 이므로 여기 묶지 말 것 — 묶으면 데스크탑 web 헤더가 0 이 된다. */
+    --header-h: 3.5rem;
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
 
@@ -215,6 +220,8 @@
     --titlebar-inset: 36px;
     /* macOS traffic lights 좌측 영역 + 약간 여유. 헤더 안 콘텐츠 시작 위치. */
     --titlebar-traffic-inset: 80px;
+    /* Tauri 는 헤더바 = OS 타이틀바 overlay(36px) 로 유지. */
+    --header-h: var(--titlebar-inset);
   }
 
   :root[data-theme="dark"] {

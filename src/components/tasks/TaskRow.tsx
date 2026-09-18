@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Calendar as CalendarIcon,
-  CircleDashed,
   Check,
   Clock,
   FileText,
@@ -11,7 +10,6 @@ import type { Task, TaskPriority } from "../../api/tasks";
 import { projectLabel } from "../../api/taskProjects";
 import { useMeetings } from "../../hooks/useMeetings";
 import { useUpdateTask } from "../../hooks/useTasks";
-import { useGcalSync } from "../../hooks/useGcalSync";
 import { useTaskFlash } from "../../hooks/useTaskHistory";
 import {
   daysFromToday,
@@ -362,34 +360,11 @@ export function TaskRow({
             </Text>
             <ReadOnlyMeta task={task} showProjectChip={showProjectChip} />
           </div>
-          {/* 일정 → Google 캘린더 push / 동기화 상태. DueChip 앞. */}
-          <GcalAction task={task} />
           {/* DueChip — 카드 우측 끝. items-center 라 vertical 가운데 align. */}
           <DueChip task={task} />
         </div>
       )}
     </li>
-  );
-}
-
-// Google 캘린더 동기화 상태 표시 — 예외만. 자동 동기화라 "동기화됨"은 모든 dated
-// task 의 기본값이라 표시하면 노이즈만 됨 → 무표시. 대신 예외인 "대기"(날짜 있는데
-// 아직 캘린더에 안 올라간 활성 task)만 신호한다. 연동 안 됐으면 아무것도 안 띄움
-// (동기화가 안 도니 "대기"가 무의미). 전체 동기화 상태는 헤더의 SyncStatusChip 담당.
-function GcalAction({ task }: { task: Task }) {
-  const { connected } = useGcalSync();
-  if (!connected) return null;
-  if (task.gcal_event_id) return null; // 이미 동기화됨 = 기본값 → 무표시
-  if (task.done || task.cancelled || task.deleted) return null;
-  if (!task.due_date) return null; // 날짜 없으면 캘린더 대상 아님 → 무표시
-  return (
-    <span
-      className="flex h-7 w-7 shrink-0 items-center justify-center"
-      title="다음 동기화 때 캘린더에 올라갑니다"
-      aria-label="동기화 대기"
-    >
-      <CircleDashed className="h-3.5 w-3.5" style={{ color: "var(--faint)" }} />
-    </span>
   );
 }
 

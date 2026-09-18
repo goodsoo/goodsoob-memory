@@ -56,7 +56,6 @@ import { useTasks } from "./hooks/useTasks";
 import { useVault } from "./lib/vault/useVault";
 import { maybeAutoBackup } from "./lib/backup";
 import { DrawerProvider, useDrawer } from "./hooks/useDrawer";
-import { GcalSyncProvider } from "./hooks/useGcalSync";
 import { useSidebarCollapsed } from "./hooks/useSidebarCollapsed";
 import { zoomIn, zoomOut, resetZoom } from "./hooks/useZoom";
 import { todayIso } from "./lib/dates";
@@ -115,11 +114,9 @@ export default function App() {
         <VaultImageIndexProvider>
           <GlobalTooltip />
           <ToastProvider>
-            <GcalSyncProvider>
-              <DrawerProvider>
-                <AppContent />
-              </DrawerProvider>
-            </GcalSyncProvider>
+            <DrawerProvider>
+              <AppContent />
+            </DrawerProvider>
           </ToastProvider>
         </VaultImageIndexProvider>
       </VaultGate>

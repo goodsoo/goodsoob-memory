@@ -1,19 +1,14 @@
-// T3 — 런타임 seam: Tauri 탈출구(gh/claude/curl/zip/asset)를 실행 환경별로 분기한다.
+// 런타임 seam: 탈출구(gh/claude/curl/zip/asset)를 로컬 서버로 위임한다.
 //
-// 폰·air·Pro 브라우저는 CLI(gh/claude/curl/zip)를 직접 못 돌린다 → 서버(server/index.ts,
-// mac 위에서 구동)가 대신 실행하고 결과를 HTTP 로 돌려준다. Tauri 데스크탑은 T8 삭제
-// 전까지 기존 경로(@tauri-apps/plugin-shell 의 Command)를 그대로 쓴다.
-//
-// selectAdapter 와 같은 런타임 감지(isTauri)를 재사용해 한 곳에서만 분기한다. 각
-// 탈출구 모듈(gh.ts/claude.ts/imageDownload.ts/backup.ts/assetUrl.ts)은 여기를 거친다.
+// 브라우저·PWA 는 CLI(gh/claude/curl/zip)를 직접 못 돌린다 → 서버(server/index.ts,
+// mac 위에서 구동)가 대신 실행하고 결과를 HTTP 로 돌려준다. 각 탈출구 모듈
+// (gh.ts/claude.ts/imageDownload.ts/backup.ts/assetUrl.ts)은 여기를 거친다.
 //
 // degraded 표시: 서버가 안 뜨거나(offline/서버 다운) 실패하면 ShellUnavailableError 를
 // 던진다 — 호출부가 이미 error 문자열을 UI 에 노출(silent fail 금지, design "폰에선
 // degraded 표시").
 
-import { isTauri } from "./isTauri";
-
-// ── 공통 결과 타입 (Tauri Command output 과 동형) ─────────────────────────────
+// ── 공통 결과 타입 ───────────────────────────────────────────────────────────
 export interface ShellResult {
   stdout: string;
   stderr: string;
@@ -46,20 +41,12 @@ const SERVER_BASE = "";
 // runShellCommand — 단발 실행(gh/curl/zip/claude -p 비스트리밍).
 //
 // program = "bash" | "sh". args = 이미 조립된 셸 인자(loginShellArgs 결과 등).
-// Tauri: Command.create(program, args).execute().
 // 서버:  POST /api/shell/exec { program, args }.
 // ─────────────────────────────────────────────────────────────────────────────
 export async function runShellCommand(
   program: string,
   args: string[],
 ): Promise<ShellResult> {
-  if (isTauri) {
-    // Tauri 경로 — 기존 동작 그대로(T8 까지 불변).
-    const { Command } = await import("@tauri-apps/plugin-shell");
-    const output = await Command.create(program, args).execute();
-    return { stdout: output.stdout, stderr: output.stderr, code: output.code };
-  }
-
   // 브라우저 경로 — mac 서버가 CLI 를 대신 실행.
   let res: Response;
   try {
@@ -85,81 +72,17 @@ export async function runShellCommand(
 // ─────────────────────────────────────────────────────────────────────────────
 // runShellStream — 스트리밍 실행(claude 자동 요약의 stream-json).
 //
-// Tauri: Command spawn + stdout/stderr 'data' 이벤트를 chunk 로 흘림.
 // 서버:  POST /api/shell/stream (SSE) — event: chunk / event: done.
 //
 // onChunk 로 stdout/stderr 라인이 도착한다(개행 재부착은 호출부 책임 — 기존 claude.ts
-// 동작 보존). cancel 은 Tauri child.kill() 또는 SSE abort → 서버가 프로세스 kill.
+// 동작 보존). cancel 은 SSE abort → 서버가 프로세스 kill.
 // ─────────────────────────────────────────────────────────────────────────────
 export function runShellStream(
   program: string,
   args: string[],
   onChunk: (chunk: StreamChunk) => void,
 ): ShellStreamController {
-  if (isTauri) {
-    return tauriShellStream(program, args, onChunk);
-  }
   return serverShellStream(program, args, onChunk);
-}
-
-function tauriShellStream(
-  program: string,
-  args: string[],
-  onChunk: (chunk: StreamChunk) => void,
-): ShellStreamController {
-  let stderrBuf = "";
-  let canceled = false;
-  // Child 타입은 dynamic import 라 unknown — kill 만 부른다.
-  let childRef: { kill: () => Promise<void> } | null = null;
-
-  const done = new Promise<ShellResult>((resolve) => {
-    let settled = false;
-    const finish = (code: number | null) => {
-      if (settled) return;
-      settled = true;
-      resolve({ stdout: "", stderr: stderrBuf.trim(), code });
-    };
-
-    void import("@tauri-apps/plugin-shell").then(({ Command }) => {
-      const cmd = Command.create(program, args);
-      cmd.stdout.on("data", (chunk: string) =>
-        onChunk({ stream: "stdout", data: chunk }),
-      );
-      cmd.stderr.on("data", (chunk: string) => {
-        stderrBuf += chunk + "\n";
-        onChunk({ stream: "stderr", data: chunk });
-      });
-      cmd.on("close", (payload: { code: number | null }) =>
-        finish(payload?.code ?? null),
-      );
-      cmd.on("error", (err: string) => {
-        stderrBuf += String(err) + "\n";
-        finish(null);
-      });
-      cmd
-        .spawn()
-        .then((child) => {
-          childRef = child as unknown as { kill: () => Promise<void> };
-          if (canceled) void childRef.kill().catch(() => {});
-        })
-        .catch((err) => {
-          stderrBuf += String(err) + "\n";
-          finish(null);
-        });
-    });
-  });
-
-  return {
-    done,
-    cancel: async () => {
-      canceled = true;
-      try {
-        await childRef?.kill();
-      } catch {
-        /* 이미 종료 */
-      }
-    },
-  };
 }
 
 function serverShellStream(
@@ -260,37 +183,21 @@ function parseSseEvent(raw: string): { event: string; data: string } | null {
 // ─────────────────────────────────────────────────────────────────────────────
 // attachmentUrl — vault 안 파일(portfolio 스크린샷/임베드 이미지)의 <img src>.
 //
-// Tauri: convertFileSrc(abs) → asset:// URL (fs scope 안).
 // 서버:  /api/attachment?path=<relPath> (서버가 VAULT_DIR 밑 파일을 서빙, traversal 가드).
 //
-// 입력은 vaultRoot(절대) + relPath(vault 상대). Tauri 는 abs 가 필요, 서버는 rel 만.
+// 입력은 vaultRoot(절대) + relPath(vault 상대). 서버는 rel 만 필요.
 // vaultRoot 가 null 이면 relPath 그대로(테스트/미설정).
 // ─────────────────────────────────────────────────────────────────────────────
 export function attachmentUrl(
-  vaultRoot: string | null,
+  _vaultRoot: string | null,
   relPath: string,
 ): string {
-  if (isTauri) {
-    // dynamic import 안 됨(동기 함수) — 정적 import 는 Tauri 없는 환경에서도 로드되지만
-    // convertFileSrc 자체는 순수 함수라 호출만 Tauri 에서. 브라우저면 아래 서버 경로.
-    return tauriAssetUrl(vaultRoot, relPath);
-  }
-  // 브라우저 — 서버 attachment 엔드포인트. relPath 만 필요(서버가 VAULT_DIR 붙임).
+  // 서버 attachment 엔드포인트. relPath 만 필요(서버가 VAULT_DIR 붙임).
   if (relPath.startsWith("/") || /^(https?:|data:|blob:)/i.test(relPath)) {
     // 이미 절대 URL/데이터 URL 이면 그대로.
     return relPath;
   }
   return `${SERVER_BASE}/api/attachment?path=${encodeURIComponent(relPath)}`;
-}
-
-// convertFileSrc 를 게으르게 참조 — 정적 import 하면 브라우저 번들에도 들어가지만
-// 실행은 isTauri 에서만. 모듈 로드 시점 부작용이 없어 안전.
-import { convertFileSrc } from "@tauri-apps/api/core";
-function tauriAssetUrl(vaultRoot: string | null, relPath: string): string {
-  if (!vaultRoot) return relPath;
-  const r = vaultRoot.endsWith("/") ? vaultRoot.slice(0, -1) : vaultRoot;
-  const absPath = `${r}/${relPath}`;
-  return convertFileSrc(absPath);
 }
 
 async function safeErr(res: Response): Promise<string> {

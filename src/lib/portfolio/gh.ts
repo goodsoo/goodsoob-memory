@@ -102,8 +102,8 @@ export function classifyGhError(
 
 export async function runGh(args: string[]): Promise<ShCommandResult> {
   const cmdStr = `gh ${args.map(shellSingleQuote).join(" ")}`;
-  // Tauri: Command.create(bash, -lc). 브라우저: 서버가 대신 실행 (runtime.ts).
-  // 둘 다 loginShellArgs(bash -lc) 그대로 — release PATH fix single source 유지.
+  // 서버가 대신 실행 (runtime.ts). loginShellArgs(bash -lc) 로 PATH fix single
+  // source 유지.
   const output = await runShellCommand(
     LOGIN_SHELL_PROGRAM,
     loginShellArgs(cmdStr),

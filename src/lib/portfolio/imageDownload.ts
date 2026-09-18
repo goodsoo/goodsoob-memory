@@ -8,7 +8,7 @@
 // curl 이 vault abs path 에 직접 write. tmp .part 거치지 않음 — 1인 사용 도구 단순성 우선,
 // partial 파일은 다음 sync 가 다시 시도.
 
-import { Command } from "@tauri-apps/plugin-shell";
+import { runShellCommand } from "../runtime";
 import type { VaultAdapter } from "../vault/adapter";
 import { shellSingleQuote } from "./gh";
 
@@ -63,8 +63,7 @@ export async function downloadImageToVault(
     `curl -L -sS --fail --max-time ${CURL_MAX_TIME_SEC} ` +
     `--max-filesize ${CURL_MAX_BYTES} ` +
     `-o ${shellSingleQuote(dest)} ${shellSingleQuote(url)}`;
-  const cmd = Command.create("sh", ["-lc", curlCmd]);
-  const result = await cmd.execute();
+  const result = await runShellCommand("sh", ["-lc", curlCmd]);
   if (result.code !== 0) {
     throw new ImageDownloadError(url, result.stderr, result.code);
   }

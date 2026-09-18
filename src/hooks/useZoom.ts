@@ -1,15 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { isTauri } from "../lib/isTauri";
 
 // 앱 화면 배율 (글자 가독성용 확대/축소). 모듈 단일 store —
 // App.tsx 의 단축키 핸들러는 imperative 함수로, Settings UI 는 useZoom 훅으로 같은
 // 상태를 공유한다 (prop drilling 없이).
 //
-// 적용 방식: Tauri 에선 네이티브 webview zoom (getCurrentWebview().setZoom). 진짜
-// 줌이라 vh·getBoundingClientRect·sticky·fixed 가 100% 와 동일하게 동작 → 툴팁/
-// popover/모달 좌표 어긋남 없음 (CSS zoom 의 좌표계 quirk 회피). 브라우저는
-// non-production (styleguide) 라 CSS zoom fallback.
+// 적용 방식: CSS zoom (document.documentElement.style.zoom).
 
 const STORAGE_KEY = "goodsoob:zoom";
 
@@ -37,10 +32,7 @@ let current = readStored();
 const listeners = new Set<() => void>();
 
 function apply(factor: number): void {
-  if (isTauri) {
-    // setZoom 은 async invoke — 실패해도 (권한 누락 등) 앱은 계속 동작.
-    void getCurrentWebview().setZoom(factor).catch(() => {});
-  } else if (typeof document !== "undefined") {
+  if (typeof document !== "undefined") {
     document.documentElement.style.zoom = String(factor);
   }
 }

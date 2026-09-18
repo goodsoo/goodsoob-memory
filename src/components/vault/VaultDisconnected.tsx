@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
 import { useVault } from "../../lib/vault/useVault";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -9,7 +8,7 @@ interface Props {
 }
 
 export function VaultDisconnected({ from }: Props) {
-  const { reconnect, setVaultRoot } = useVault();
+  const { reconnect } = useVault();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,25 +30,6 @@ export function VaultDisconnected({ from }: Props) {
     }
   }
 
-  async function pickAnother() {
-    setError(null);
-    try {
-      const result = await open({
-        directory: true,
-        multiple: false,
-        title: "Vault 폴더 선택",
-        defaultPath: from,
-      });
-      if (typeof result !== "string") return; // 취소 → disconnected 화면 유지
-      setBusy(true);
-      await setVaultRoot(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <main
       className="flex min-h-svh items-center justify-center px-6"
@@ -66,8 +46,8 @@ export function VaultDisconnected({ from }: Props) {
           vault 폴더에 접근할 수 없어요
         </Text>
         <Text variant="body" color="secondary" as="p" className="mb-3">
-          외장 디스크가 빠졌거나 iCloud 동기화가 꺼져있는지 확인한 후 재연결해
-          주세요. 다른 폴더를 vault 로 쓰려면 [다른 폴더 선택] 을 누르세요.
+          서버가 실행 중인지, 외장 디스크나 iCloud 동기화가 정상인지 확인한 후
+          재연결해 주세요.
         </Text>
 
         <Text
@@ -91,15 +71,6 @@ export function VaultDisconnected({ from }: Props) {
           style={{ opacity: busy ? 0.5 : 1 }}
         >
           {busy ? "재연결 중…" : "재연결"}
-        </Button>
-
-        <Button
-          variant="secondary"
-          disabled={busy}
-          onClick={pickAnother}
-          className="mt-2 w-full rounded-lg px-4 py-2"
-        >
-          다른 폴더 선택
         </Button>
 
         {error && (

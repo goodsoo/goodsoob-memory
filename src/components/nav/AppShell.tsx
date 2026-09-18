@@ -7,9 +7,7 @@ import {
   Search,
   ChevronDown,
   Check,
-  Plus,
 } from "lucide-react";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { useTheme } from "../../hooks/useTheme";
 import {
   useSidePanelWidth,
@@ -118,11 +116,8 @@ export function AppShell({
       className="min-h-svh"
       style={{ paddingTop: "var(--safe-top)", backgroundColor: "var(--bg)" }}
     >
-      {/* 데스크탑 윈도우 헤더 — macOS Tauri Overlay titlebar 와 같은 줄.
-          좌측 traffic lights padding + 탭 4개 + 우측 빈 drag region.
-          inset 0 환경 (Windows/Linux/web) 에선 height 0 으로 자연 invisible. */}
+      {/* 데스크탑 윈도우 헤더 — 탭 4개 + 시계 + 우측 버튼. */}
       <header
-        data-tauri-drag-region
         className="flex items-stretch"
         style={{
           position: "fixed",
@@ -136,13 +131,6 @@ export function AppShell({
           gap: "0.5rem",
         }}
       >
-        {/* 좌측 traffic-light inset — VaultBadge 컬럼이 없을 때(좁은 창·사이드바 접힘)
-            신호등 영역 확보 + 드래그. 컬럼이 있을 땐(lg + 사이드바) 컬럼이 inset 담당. */}
-        <div
-          data-tauri-drag-region
-          className={`shrink-0 ${desktopSidePanelVisible ? "lg:hidden" : ""}`}
-          style={{ paddingLeft: "var(--titlebar-traffic-inset)" }}
-        />
         {/* 좁은 창: 사이드바 드로어 토글 (데스크탑은 사이드바 상시 노출이라 lg 에선 숨김). */}
         {hasSidePanel ? (
           <Button
@@ -158,31 +146,26 @@ export function AppShell({
         ) : null}
         {desktopSidePanelVisible ? (
           <div
-            data-tauri-drag-region
             className="hidden shrink-0 items-center lg:flex"
             style={{
               width: `${width}px`,
-              paddingLeft: "var(--titlebar-traffic-inset)",
               paddingRight: "0.5rem",
             }}
           >
             <VaultBadge onOpenSettings={() => setSettingsOpen(true)} />
           </div>
         ) : null}
-        <div data-tauri-drag-region className="flex h-full items-stretch">
+        <div className="flex h-full items-stretch">
           <HeaderTabs activeTab={activeTab} onTabChange={onTabChange} />
         </div>
-        {/* 가운데 flex-1 = drag region — live 시계(날짜·시간)는 좁은 창에선 숨김. */}
-        <div
-          data-tauri-drag-region
-          className="hidden flex-1 items-center justify-center lg:flex"
-        >
+        {/* 가운데 flex-1 스페이서 — live 시계(날짜·시간)는 좁은 창에선 숨김. */}
+        <div className="hidden flex-1 items-center justify-center lg:flex">
           <TitlebarClock />
         </div>
-        {/* 좁은 창에선 시계가 빠지므로 우측 버튼이 끝으로 가게 flex-1 스페이서(드래그). */}
-        <div data-tauri-drag-region className="flex-1 lg:hidden" />
-        {/* 우측: sync + search + settings + theme. button 자체는 click, 사이 gap 은 drag region. */}
-        <div data-tauri-drag-region className="flex items-center gap-0.5 pr-2">
+        {/* 좁은 창에선 시계가 빠지므로 우측 버튼이 끝으로 가게 flex-1 스페이서. */}
+        <div className="flex-1 lg:hidden" />
+        {/* 우측: sync + search + settings + theme. */}
+        <div className="flex items-center gap-0.5 pr-2">
           <SyncIndicator />
           {onOpenSearch ? (
             <Button
@@ -454,37 +437,16 @@ function TitlebarClock() {
 }
 
 // 윈도우 헤더 좌측의 vault 이름 chip — 클릭 시 dropdown 진입점.
-// 항목: vault 목록 (라디오 전환) → "새 vault 추가..." → "Vault 설정" → "스타일가이드".
+// 항목: vault 목록 (라디오 전환) → "Vault 설정" → "스타일가이드".
 // vault > tabs 시각 계층 명시 — vault 가 root container 임을 좌→우 순서로 표현.
 function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
-  const { vaultRoot, vaults, activeVaultId, switchVault, setVaultRoot } = useVault();
+  const { vaultRoot, vaults, activeVaultId, switchVault } = useVault();
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
   if (!vaultRoot) return null;
   const activeName =
     vaults.find((v) => v.id === activeVaultId)?.name ??
     vaultRoot.split("/").filter(Boolean).pop() ??
     vaultRoot;
-
-  async function handleAddVault() {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const result = await openDialog({
-        directory: true,
-        multiple: false,
-        title: "새 vault 폴더 선택",
-      });
-      if (typeof result !== "string") return; // 취소
-      await setVaultRoot(result);
-      setOpen(false);
-    } catch (err) {
-      console.error("vault 추가 실패", err);
-      // setVaultRoot 가 throw 한 경우 disconnected 분기로 빠지므로 별도 UI 없음.
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <Popover
@@ -540,16 +502,6 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
         style={{ background: "var(--line-2)" }}
         aria-hidden
       />
-      <button
-        type="button"
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)] disabled:opacity-50"
-        style={{ color: "var(--ink)" }}
-        disabled={busy}
-        onClick={handleAddVault}
-      >
-        <Plus className="h-3.5 w-3.5" />
-        <span>{busy ? "추가 중…" : "새 vault 추가"}</span>
-      </button>
       <button
         type="button"
         className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"

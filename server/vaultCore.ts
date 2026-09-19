@@ -179,15 +179,29 @@ export class VaultCore {
 
   // batch scan — dir 아래 모든 파일의 content + meta 를 Promise.all 병렬로 수집.
   async scanAll(dir: string): Promise<Array<{ path: string; content: string; meta: FileMeta }>> {
-    const paths = this.listRecursive(dir);
+    // .md 만 읽는다 — listRecursive 는 `_attachments/` 안의 이미지(jpg/png)까지
+    // 반환하는데, 그걸 read(utf8)로 읽으면 content 가 거대 문자열이 되어 payload 가
+    // 폭발했다(notes 본문 0.4MB인데 scanAll 응답이 1GB — 이미지가 전부 utf8 로
+    // 실려서). scanAll 소비자(scanMeetings/scanPortfolio)는 .md 만 쓰고 첨부는
+    // 어차피 버리므로 여기서 걸러 읽기·전송·파싱 비용을 모두 없앤다.
+    const paths = this.listRecursive(dir).filter((p) => p.endsWith(".md"));
     const results = await Promise.all(
       paths.map(async (rel) => {
         try {
-          const [content, meta] = await Promise.all([
-            this.read(rel),
-            this.readMeta(rel),
-          ]);
-          return { path: rel, content, meta };
+          // meta.mtime = disk mtime (statSync) — git 커밋 시각 조회를 의도적으로
+          // 생략. readMeta 는 파일당 gitLastCommitTime → execFileSync("git log")
+          // 를 부르는데, 이게 동기 블로킹이라 Promise.all 병렬이 무의미하고 771개
+          // 순차 spawn 으로 scanAll 이 ~13초 걸렸다(메모장 사이드바가 수십 초 비어
+          // 보이던 진범). scanAll 은 목록 batch 이고 정렬 키는 date→time→mtime 라
+          // disk mtime 으로 충분. 정확한 git 커밋 시각이 필요한 개별 파일 열기는
+          // readMeta 가 그대로 담당.
+          const content = await this.read(rel);
+          const s = statSync(this.abs(rel));
+          return {
+            path: rel,
+            content,
+            meta: { mtime: s.mtimeMs, size: s.size } as FileMeta,
+          };
         } catch {
           return null;
         }

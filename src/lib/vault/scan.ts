@@ -513,19 +513,20 @@ export async function scanMeetingFolders(
 }
 
 export async function scanMeetings(adapter: VaultAdapter): Promise<MeetingMeta[]> {
-  // listRecursive — nav-restructure 이후 `notes/{folder}/...` 중첩 폴더 지원.
-  // sub-folder 안 메모도 사이드바 트리에 잡히도록.
-  const files = await adapter.listRecursive("notes");
+  // scanAll = 서버 batch 1회(HTTP). before: listRecursive(1) + read(N) + readMeta(N)
+  // = 1 + 2N 왕복 (notes/ 400개면 ~800 왕복 + iCloud 파일 지연이 겹쳐 사이드바가
+  // 수십 초 비어 보였음 — portfolio 는 scanAll 로 고쳤는데 여기만 남아있었다).
+  // after: scanAll(1) = 1 왕복. nav-restructure 의 `notes/{folder}/...` 중첩 폴더도
+  // 서버 recursive scan 으로 그대로 잡힘.
+  const entries = await adapter.scanAll("notes");
   const results: MeetingMeta[] = [];
-  for (const path of files) {
+  for (const { path, content, meta } of entries) {
     if (!path.endsWith(".md")) continue;
     if (isInMeetingSystemFolder(path)) continue; // _attachments 등 자산 폴더 제외
     if (isMeetingSidecar(path)) continue; // sidecar 는 scan 대상 X
     if (isSyncNoiseFile(path)) continue; // iCloud/Dropbox 충돌·placeholder skip
     try {
-      const raw = await adapter.read(path);
-      const meta = await adapter.readMeta(path);
-      const m = fileToMeeting(path, raw, "", "", meta.mtime);
+      const m = fileToMeeting(path, content, "", "", meta.mtime);
       results.push({
         id: m.id,
         uid: m.uid,
@@ -541,10 +542,9 @@ export async function scanMeetings(adapter: VaultAdapter): Promise<MeetingMeta[]
         deleted_at: m.deleted_at,
       });
     } catch (err) {
-      // read / readMeta 실패 — yaml 깨짐이 아니라 디스크 access 실패 (iCloud
-      // evict, 권한 등). parseVaultFile 자체는 graceful 이므로 frontmatter 손상
-      // 만으론 안 떨어짐. 디버깅용 path 로깅 — 사용자가 메모가 비어 보이는 이유
-      // 추적 가능.
+      // fileToMeeting throw (frontmatter id 누락 등 — 앱이 안 만든 옛 노트).
+      // parseVaultFile 은 graceful 이라 frontmatter 손상만으론 안 떨어짐. 디버깅용
+      // path 로깅 — 사용자가 특정 노트가 사이드바에서 빠진 이유 추적 가능.
       console.warn(`[scanMeetings] skip ${path}:`, err);
     }
   }

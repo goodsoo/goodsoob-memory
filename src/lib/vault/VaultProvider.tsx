@@ -183,6 +183,11 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     }
     let cancelled = false;
     let aliveTimer: ReturnType<typeof setInterval> | null = null;
+    // 연속 실패 카운터 — 1회 hiccup(서버 재시작·원격 접속 레이턴시·iCloud 순간
+    // 지연)에 바로 끊지 않고, 연속 MAX_ALIVE_FAILURES 회 실패해야 vault-gone 처리.
+    // 성공하면 리셋. 3초 간격 × 3 = ~9초 연속 불통이라야 disconnected 화면.
+    let aliveFailures = 0;
+    const MAX_ALIVE_FAILURES = 3;
 
     function handleVaultGone() {
       if (cancelled) return;
@@ -200,10 +205,15 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       try {
         const ok = await adapter.exists("");
-        if (!ok) handleVaultGone();
+        if (ok) {
+          aliveFailures = 0; // 한 번이라도 살아있으면 카운터 리셋
+          return;
+        }
       } catch {
-        handleVaultGone();
+        // 네트워크/서버 실패 — 아래 실패 처리로 fall through
       }
+      aliveFailures += 1;
+      if (aliveFailures >= MAX_ALIVE_FAILURES) handleVaultGone();
     }
 
     (async () => {

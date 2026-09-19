@@ -24,6 +24,7 @@ import { summaryPath, transcriptPath } from "../lib/vault/scan";
 import { useVault } from "../lib/vault/useVault";
 import type { VaultWatcher } from "../lib/vault/watcher";
 import { setStoredViewMode } from "./useViewMode";
+import { OfflineCacheMissError } from "../lib/vault/readCache";
 
 // 한 회의는 메인 + 2 sidecar 파일이라 자기 write 마크도 셋 다. path 기반.
 function markMeetingSelfWrite(watcher: VaultWatcher, path: string): void {
@@ -203,6 +204,12 @@ export function useMeeting(uid: string | undefined) {
       return getMeeting(adapter, path);
     },
     enabled: !!uid && isReady && list.isSuccess,
+    // OfflineCacheMissError 는 오프라인 + 캐시 없음을 확정 신호로 전달 — retry 불필요.
+    // 다른 에러는 기존 동작(iCloud sync 중 stuck → 재시도 후 복구)을 유지.
+    retry: (failureCount, err) => {
+      if (err instanceof OfflineCacheMissError) return false;
+      return failureCount < 3;
+    },
   });
 }
 

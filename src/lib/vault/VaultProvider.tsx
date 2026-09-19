@@ -7,7 +7,8 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createTauriAdapter, type VaultAdapter } from "./adapter";
+import type { VaultAdapter } from "./adapter";
+import { selectAdapter } from "./selectAdapter";
 import { createVaultWatcher, type VaultWatcher } from "./watcher";
 import { ensureVaultStructure } from "./scan";
 import {
@@ -48,7 +49,7 @@ export type { VaultContextValue };
 
 export function VaultProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const [adapter] = useState<VaultAdapter>(() => createTauriAdapter());
+  const [adapter] = useState<VaultAdapter>(() => selectAdapter());
   const [watcher] = useState<VaultWatcher>(() =>
     createVaultWatcher(adapter, queryClient),
   );
@@ -150,6 +151,28 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     await setVaultRoot(disconnectedFrom);
   }, [disconnectedFrom, setVaultRoot]);
 
+  // 브라우저(웹앱) 모드 — 마운트 1회: 서버가 소유한 vault 를 자동 등록·활성화.
+  // 이미 활성 vault 가 있으면 즉시 return (재방문 무손상).
+  useEffect(() => {
+    if (activeVaultId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/vault/init");
+        if (!res.ok || cancelled) return;
+        const { vaultPath } = (await res.json()) as { vaultPath?: string };
+        if (!vaultPath || cancelled) return;
+        await setVaultRoot(vaultPath);
+      } catch {
+        // fetch 실패 → 폴더 선택 화면으로 자연 폴백
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 1회만 — activeVaultId/setVaultRoot 의존성 의도적으로 제외
+
   // activeVaultId 변화에 반응해서 watcher 재시작 + queryClient 초기화.
   useEffect(() => {
     if (!vaultRoot) {
@@ -160,6 +183,11 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     }
     let cancelled = false;
     let aliveTimer: ReturnType<typeof setInterval> | null = null;
+    // 연속 실패 카운터 — 1회 hiccup(서버 재시작·원격 접속 레이턴시·iCloud 순간
+    // 지연)에 바로 끊지 않고, 연속 MAX_ALIVE_FAILURES 회 실패해야 vault-gone 처리.
+    // 성공하면 리셋. 3초 간격 × 3 = ~9초 연속 불통이라야 disconnected 화면.
+    let aliveFailures = 0;
+    const MAX_ALIVE_FAILURES = 3;
 
     function handleVaultGone() {
       if (cancelled) return;
@@ -177,10 +205,15 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       try {
         const ok = await adapter.exists("");
-        if (!ok) handleVaultGone();
+        if (ok) {
+          aliveFailures = 0; // 한 번이라도 살아있으면 카운터 리셋
+          return;
+        }
       } catch {
-        handleVaultGone();
+        // 네트워크/서버 실패 — 아래 실패 처리로 fall through
       }
+      aliveFailures += 1;
+      if (aliveFailures >= MAX_ALIVE_FAILURES) handleVaultGone();
     }
 
     (async () => {

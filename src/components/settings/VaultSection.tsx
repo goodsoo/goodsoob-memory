@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
-import { Pencil, Plus, Trash2, Unlink } from "lucide-react";
+import { Pencil, Trash2, Unlink } from "lucide-react";
 import { useVault } from "../../lib/vault/useVault";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Modal } from "../common/Modal";
-import { Spinner } from "../common/Spinner";
 
 type Props = {
   onAfterSwitch?: () => void;
@@ -16,7 +14,6 @@ export function VaultSection({ onAfterSwitch }: Props) {
     vaults,
     activeVaultId,
     activeVault,
-    setVaultRoot,
     switchVault,
     removeVault,
     renameVault,
@@ -28,25 +25,6 @@ export function VaultSection({ onAfterSwitch }: Props) {
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState("");
-
-  async function handleAddVault() {
-    setError(null);
-    setBusy(true);
-    try {
-      const result = await open({
-        directory: true,
-        multiple: false,
-        title: "새 vault 폴더 선택",
-      });
-      if (typeof result !== "string") return;
-      await setVaultRoot(result);
-      onAfterSwitch?.();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function handleSwitch(id: string) {
     if (id === activeVaultId) return;
@@ -113,7 +91,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
           {vaults.length === 0 && (
             <li className="px-3 py-3">
               <Text variant="caption" color="muted">
-                등록된 vault 가 없습니다. 아래에서 새 vault 를 추가하세요.
+                연결된 vault 가 없습니다. 서버가 자동으로 연결합니다.
               </Text>
             </li>
           )}
@@ -240,19 +218,8 @@ export function VaultSection({ onAfterSwitch }: Props) {
       </section>
 
       <section className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="primary"
-            disabled={busy}
-            onClick={handleAddVault}
-            leftIcon={
-              busy ? <Spinner size="md" /> : <Plus className="h-4 w-4" />
-            }
-            className="rounded-lg px-3 py-2 active:opacity-80 disabled:opacity-50"
-          >
-            {busy ? "추가 중…" : "새 vault 추가"}
-          </Button>
-          {activeVault && (
+        {activeVault && (
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="secondary"
               disabled={busy}
@@ -263,11 +230,10 @@ export function VaultSection({ onAfterSwitch }: Props) {
             >
               연결 해제
             </Button>
-          )}
-        </div>
+          </div>
+        )}
         <Text variant="caption" color="muted" as="p">
-          새 폴더 추가 시 메모/일기/할 일 구조를 자동 생성. 폴더 안 파일은 그대로
-          남아있어요 (이동 X). 정렬·필터·사이드바 접힘은 vault 별로 따로 기억합니다.
+          정렬·필터·사이드바 접힘은 vault 별로 따로 기억합니다.
         </Text>
 
         {error && (

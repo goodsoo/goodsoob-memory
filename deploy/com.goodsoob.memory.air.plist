@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- air 맥 fallback 전용 plist (T9).
+       평소 unload 상태로 둔다. Pro 다운이 확인됐을 때만 load.
+       Pro 복귀 시 unload 후 이 라벨 제거.
+
+       Label 은 Pro 와 동일(com.goodsoob.memory) — 같은 머신에 둘 다 올리면 충돌하므로
+       air 에서만 이 plist 를 사용하고 Pro plist 는 절대 설치하지 않는다.
+
+       PRO_HEALTH_URL 을 설정해두면 air-fallback.sh 가 매 기동 시 Pro 를 먼저 확인해
+       살아있으면 서버를 띄우지 않는다(이중 writer 방지). -->
+  <key>Label</key>
+  <string>com.goodsoob.memory</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <!-- air-fallback.sh 가 Pro 헬스체크 후 bun server 를 exec 한다 -->
+    <string>/bin/bash</string>
+    <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/projects/goodsoob-memory/deploy/air-fallback.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/projects/goodsoob-memory</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>PORT</key>
+    <string>7080</string>
+
+    <!-- VAULT_DIR: Pro 와 동일한 brain 경로를 기입한다.
+         iCloud 가 md 를 재일치시키므로 air 와 Pro 의 vault 경로가 같아야 한다.
+         T0 완료 후 실제 경로로 교체. -->
+    <key>VAULT_DIR</key>
+    <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/brain</string>
+
+    <!-- PRO_HEALTH_URL: Pro 서버 /api/health URL.
+         tailscale 사용 시: https://pro-macname.tailnet.ts.net/api/health
+         LAN 직접:          http://<pro-lan-ip>:7080/api/health
+         미설정 시 헬스체크 없이 즉시 기동(수동 fallback 모드). -->
+    <key>PRO_HEALTH_URL</key>
+    <string>http://__PRO_LAN_OR_TAILSCALE_IP__:7080/api/health</string>
+  </dict>
+
+  <!-- 평소 unload 상태로 둔다. Pro 다운 시에만 아래 명령으로 load:
+         launchctl load ~/Library/LaunchAgents/com.goodsoob.memory.plist
+       Pro 복귀 후 unload:
+         launchctl unload ~/Library/LaunchAgents/com.goodsoob.memory.plist -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/goodsoob-memory.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/goodsoob-memory.err</string>
+</dict>
+</plist>

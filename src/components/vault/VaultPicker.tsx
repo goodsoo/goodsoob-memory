@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
-import { Check, FolderPlus } from "lucide-react";
+import { Check } from "lucide-react";
 import { useVault } from "../../lib/vault/useVault";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -11,28 +10,9 @@ interface Props {
 }
 
 export function VaultPicker({ initialPath = null, onCancel }: Props) {
-  const { setVaultRoot, vaults, switchVault } = useVault();
+  const { vaults, switchVault } = useVault();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  async function pick() {
-    setError(null);
-    try {
-      const result = await open({
-        directory: true,
-        multiple: false,
-        title: "Vault 폴더 선택",
-        defaultPath: initialPath ?? undefined,
-      });
-      if (typeof result !== "string") return; // 취소
-      setBusy(true);
-      await setVaultRoot(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function useExisting(id: string) {
     setError(null);
@@ -61,11 +41,11 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
         }}
       >
         <Text variant="h2" weight="bold" as="h1" className="mb-2">
-          Vault 폴더 선택
+          Vault 연결
         </Text>
         <Text variant="body" color="secondary" as="p" className="mb-6">
-          모든 메모/일기/할 일이 이 폴더 안의 md 파일로 저장됩니다. iCloud Drive 같은
-          동기화 폴더 안에 두면 다른 기기에서도 같은 vault를 공유할 수 있어요.
+          모든 메모/일기/할 일이 서버 vault 의 md 파일로 저장됩니다. 서버가 자동으로
+          연결하며, 아래에서 기존 vault 를 선택할 수도 있어요.
         </Text>
 
         {hasExisting && (
@@ -134,7 +114,7 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
           </section>
         )}
 
-        {initialPath && !hasExisting && (
+        {!hasExisting && (
           <Text
             variant="caption"
             color="secondary"
@@ -145,26 +125,15 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
               border: "1px solid var(--line)",
             }}
           >
-            현재: <span className="font-mono">{initialPath}</span>
+            서버에 연결하는 중입니다. 잠시만 기다려 주세요.
+            {initialPath && (
+              <>
+                {" "}
+                (마지막 vault: <span className="font-mono">{initialPath}</span>)
+              </>
+            )}
           </Text>
         )}
-
-        <Button
-          variant="danger"
-          disabled={busy}
-          onClick={pick}
-          leftIcon={<FolderPlus className="h-4 w-4" />}
-          className="w-full rounded-lg px-4 py-2.5 transition-opacity"
-          style={{ opacity: busy ? 0.5 : 1 }}
-        >
-          {busy
-            ? "준비 중…"
-            : hasExisting
-              ? "새 vault 폴더 추가"
-              : initialPath
-                ? "다른 폴더로 변경"
-                : "폴더 선택하기"}
-        </Button>
 
         {onCancel && initialPath && (
           <Button

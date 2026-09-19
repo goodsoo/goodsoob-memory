@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Download, X } from "lucide-react";
 import {
   exportMeetingSections,
@@ -56,24 +55,14 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
     });
   }
 
-  async function handleExport() {
+  function handleExport() {
     if (submitting || !meeting) return;
     const sections = SECTION_ORDER.filter((s) => selected.has(s));
     if (sections.length === 0) return;
     setSubmitting(true);
     try {
-      const dir = await openDialog({
-        directory: true,
-        multiple: false,
-        title: "내보낼 폴더 선택",
-      });
-      if (typeof dir !== "string") {
-        // 사용자 취소
-        setSubmitting(false);
-        return;
-      }
-      const written = await exportMeetingSections(dir, meeting, sections);
-      toast.show(`${written.length}개 파일을 내보냈습니다.`, { kind: "info" });
+      const written = exportMeetingSections(meeting, sections);
+      toast.show(`${written.length}개 파일을 다운로드합니다.`, { kind: "info" });
       onClose();
     } catch (e) {
       toast.show(formatError(e));
@@ -183,7 +172,7 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
         <Button
           variant="primary"
           size="sm"
-          onClick={() => void handleExport()}
+          onClick={handleExport}
           disabled={submitting || selected.size === 0}
           leftIcon={<Download className="h-3.5 w-3.5" />}
           className="disabled:opacity-50"

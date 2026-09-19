@@ -1,24 +1,15 @@
-// V0.7 step 9 — 스크린샷 저장 (binary write, Tauri only).
+// V0.7 step 9 — 스크린샷 저장 (binary write via VaultAdapter).
 //
 // vault root 기준 `portfolio/_attachments/{slug}/{label}-{n}.jpg`.
-// design v2.3: PNG → 1600px JPEG (canvas 다운스케일) + binary fs write.
+// design v2.3: PNG → 1600px JPEG (canvas 다운스케일) + adapter.writeBinary
+// (Tauri fs 직접 write → 서버 위임으로 전환, atomic tmp→rename + per-path lock 공유).
 
-import {
-  writeFile,
-  mkdir as tauriMkdir,
-  exists as tauriExists,
-  readDir,
-} from "@tauri-apps/plugin-fs";
 import { attachmentsDirFor, type ScreenshotLabel } from "../../api/portfolio";
+import type { VaultAdapter } from "../vault/adapter";
 import { downscaleToJpeg } from "./image";
 
-function joinAbs(root: string, rel: string): string {
-  const r = root.endsWith("/") ? root.slice(0, -1) : root;
-  return `${r}/${rel}`;
-}
-
 export interface SaveScreenshotInput {
-  vaultRoot: string;
+  adapter: VaultAdapter;
   prSlug: string;
   file: File | Blob;
   label: ScreenshotLabel;
@@ -33,15 +24,14 @@ export interface SaveScreenshotResult {
 
 // 다음 사용 가능한 파일명 찾기. {label}-1.jpg, {label}-2.jpg, ...
 async function nextAvailableName(
-  absDir: string,
+  adapter: VaultAdapter,
+  relDir: string,
   prefix: string,
 ): Promise<string> {
   let n = 1;
   try {
-    const entries = await readDir(absDir);
-    const used = new Set(
-      entries.filter((e) => e.isFile && e.name).map((e) => e.name as string),
-    );
+    const paths = await adapter.list(relDir);
+    const used = new Set(paths.map((p) => p.split("/").pop() ?? ""));
     while (used.has(`${prefix}-${n}.jpg`)) n++;
   } catch {
     // dir 없으면 1 부터.
@@ -53,22 +43,19 @@ export async function saveScreenshot(
   input: SaveScreenshotInput,
 ): Promise<SaveScreenshotResult> {
   const relDir = attachmentsDirFor(input.prSlug);
-  const absDir = joinAbs(input.vaultRoot, relDir);
 
-  // 디렉토리 생성 (recursive)
-  if (!(await tauriExists(absDir))) {
-    await tauriMkdir(absDir, { recursive: true });
-  }
+  // 디렉토리 보장 (adapter 가 vault root 기준 recursive mkdir).
+  await input.adapter.mkdir(relDir);
 
   const { bytes, width, height } = await downscaleToJpeg(input.file);
 
   const prefix = input.label ?? "screenshot";
-  const filename = await nextAvailableName(absDir, prefix);
-  const absPath = joinAbs(absDir, filename);
-  await writeFile(absPath, bytes);
+  const filename = await nextAvailableName(input.adapter, relDir, prefix);
+  const relPath = `${relDir}/${filename}`;
+  await input.adapter.writeBinary(relPath, bytes);
 
   return {
-    path: `${relDir}/${filename}`,
+    path: relPath,
     width,
     height,
     bytes: bytes.length,

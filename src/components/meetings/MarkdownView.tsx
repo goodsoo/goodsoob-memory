@@ -10,8 +10,8 @@ import { vaultAssetSrc } from "../../lib/portfolio/assetUrl";
 import { VaultContext } from "../../lib/vault/VaultProvider";
 
 // vault 안 이미지 경로 해석. http(s)/data/asset/blob 은 그대로, "/" 절대 경로는
-// convertFileSrc, 그 외 상대 경로는 vaultRoot 기준. vaultRoot null 이면 src 그대로
-// (테스트 환경 / provider 밖 호출 fallback).
+// 그대로, 그 외 상대 경로는 서버 attachment 엔드포인트(vaultAssetSrc). vaultRoot
+// null 이면 src 그대로 (테스트 환경 / provider 밖 호출 fallback).
 function resolveImageSrc(
   src: string | undefined,
   vaultRoot: string | null,

@@ -28,6 +28,7 @@ import type { TaskInsert } from "./api/tasks";
 import { TodosTrashModal } from "./components/tasks/TodosTrashModal";
 import { Text } from "./components/common/Text";
 import { EmptyState } from "./components/common/EmptyState";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { PageHeaderBar } from "./components/common/PageHeaderBar";
 import { TodayPage } from "./pages/TodayPage";
 import { TodayAgendaPanel } from "./components/today/TodayAgendaPanel";
@@ -55,11 +56,8 @@ import { useTasks } from "./hooks/useTasks";
 import { useVault } from "./lib/vault/useVault";
 import { maybeAutoBackup } from "./lib/backup";
 import { DrawerProvider, useDrawer } from "./hooks/useDrawer";
-import { GcalSyncProvider } from "./hooks/useGcalSync";
 import { useSidebarCollapsed } from "./hooks/useSidebarCollapsed";
-import { zoomIn, zoomOut, resetZoom } from "./hooks/useZoom";
 import { todayIso } from "./lib/dates";
-import { isTauri } from "./lib/isTauri";
 
 function readTabFromHash(): Tab {
   const h = window.location.hash;
@@ -109,18 +107,18 @@ export default function App() {
   if (hash === "#styleguide") return <StyleguidePage />;
 
   return (
-    <VaultGate>
-      <VaultImageIndexProvider>
-        <GlobalTooltip />
-        <ToastProvider>
-          <GcalSyncProvider>
+    <ErrorBoundary>
+      <VaultGate>
+        <VaultImageIndexProvider>
+          <GlobalTooltip />
+          <ToastProvider>
             <DrawerProvider>
               <AppContent />
             </DrawerProvider>
-          </GcalSyncProvider>
-        </ToastProvider>
-      </VaultImageIndexProvider>
-    </VaultGate>
+          </ToastProvider>
+        </VaultImageIndexProvider>
+      </VaultGate>
+    </ErrorBoundary>
   );
 }
 
@@ -248,7 +246,7 @@ function AppContent() {
   // 본인 매일 앱 켜면 silent fetch — 의식 0 으로 카드 누적. Tauri 만 (gh 호출 필요).
   // useGhSync 의 callId 가드 + cancel 강제 리셋 덕분에 stuck 회복 가능 (V0.7.x).
   useEffect(() => {
-    if (!isTauri || !isReady || autoSyncDone.current) return;
+    if (!isReady || autoSyncDone.current) return;
     autoSyncDone.current = true;
     const t = setTimeout(() => {
       portfolioSync.run({ incremental: true }).catch((err) => {
@@ -263,7 +261,7 @@ function AppContent() {
   // 자동 백업 — vault ready 후 10초 뒤 1회. interval/keepCount 설정에 따라 실행.
   // 1초+ 걸리면 progress toast 로 freeze 같은 체감 차단.
   useEffect(() => {
-    if (!isTauri || !isReady || autoBackupDone.current) return;
+    if (!isReady || autoBackupDone.current) return;
     autoBackupDone.current = true;
     const t = setTimeout(async () => {
       let progressId: number | null = null;
@@ -357,10 +355,11 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // Desktop (Tauri) 전용 단축키: Cmd+1/2/3/4 (TABS index 기반), Cmd+\ (사이드바 토글).
-  // 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
+  // 페이지 단축키 (Tauri·web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
+  // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
+  // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
+  //    standalone PWA·Tauri 에선 앱이 받는다.
   useEffect(() => {
-    if (!isTauri) return;
     function onKeyDown(e: KeyboardEvent) {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
       // Cmd+\ — 사이드바 collapse 토글 (input/textarea 안에서도 동작)
@@ -389,34 +388,12 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMeetingId, sidebar.toggle]);
 
-  // 화면 배율 (Tauri only): Cmd+= / Cmd++ 확대, Cmd+- / Cmd+_ 축소, Cmd+0 100% 복귀.
-  // input/textarea 안에서도 동작 (브라우저 줌과 동일 UX). Cmd++·Cmd+_ 는 shift 동반이라
-  // 위 nav 핸들러(shift 시 bail)와 별도 등록. nav 핸들러가 쓰는 키(\,p,1~4)와 안 겹침.
-  useEffect(() => {
-    if (!isTauri) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
-      if (e.key === "=" || e.key === "+") {
-        e.preventDefault();
-        zoomIn();
-      } else if (e.key === "-" || e.key === "_") {
-        e.preventDefault();
-        zoomOut();
-      } else if (e.key === "0") {
-        e.preventDefault();
-        resetZoom();
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
 
-  // 메모장 단축키 (Tauri only):
+  // 메모장 단축키 (Tauri·web·PWA 공통):
   // - Cmd+N: 새 메모 생성 + 자동 선택 (textarea 안에서도 동작)
   // - Cmd+Backspace/Delete: 현재 메모 삭제 (input/textarea 밖에서만)
   // - Cmd+↑/↓: 이전/다음 메모 (input/textarea 밖에서만)
   useEffect(() => {
-    if (!isTauri) return;
     if (tab !== "meetings") return;
 
     function isInTextInput(t: EventTarget | null): boolean {

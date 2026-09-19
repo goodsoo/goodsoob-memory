@@ -30,7 +30,6 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SaveIndicator } from "../common/SaveIndicator";
 import { PageHeaderBar } from "../common/PageHeaderBar";
-import { Kbd } from "../common/Kbd";
 import { EmptyState } from "../common/EmptyState";
 import { SummaryModal } from "./SummaryModal";
 import { MeetingActionMenu } from "./MeetingActionMenu";
@@ -50,9 +49,9 @@ import { MeetingExportModal } from "./MeetingExportModal";
 import type { TaskInsert, TaskPriority } from "../../api/tasks";
 import { extractTasks } from "../../lib/vault/tasks";
 import { useViewMode } from "../../hooks/useViewMode";
-import { isTauri } from "../../lib/isTauri";
 import { formatError } from "../../lib/errors";
 import { TitleConflictError } from "../../lib/vault/scan";
+import { OfflineCacheMissError } from "../../lib/vault/readCache";
 import { formatDisplayDate } from "../../lib/dates";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
@@ -774,22 +773,29 @@ export function MeetingForm({
   }
 
   if (error) {
+    const isOfflineMiss = error instanceof OfflineCacheMissError;
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-16">
         <EmptyState
           icon={
             <AlertCircle
               className="h-12 w-12"
-              style={{ color: "var(--down)" }}
+              style={{ color: isOfflineMiss ? "var(--text-muted)" : "var(--down)" }}
               strokeWidth={1.25}
             />
           }
-          title="메모를 불러오지 못했습니다"
-          description="잠시 후 다시 시도하세요."
+          title={isOfflineMiss ? "오프라인 상태입니다" : "메모를 불러오지 못했습니다"}
+          description={
+            isOfflineMiss
+              ? "이 노트는 온라인에서 불러올 수 있습니다."
+              : "잠시 후 다시 시도하세요."
+          }
           action={
-            <Button variant="primary" onClick={() => void refetch()}>
-              다시 시도
-            </Button>
+            isOfflineMiss ? undefined : (
+              <Button variant="primary" onClick={() => void refetch()}>
+                다시 시도
+              </Button>
+            )
           }
         />
       </div>
@@ -1663,20 +1669,6 @@ function EmptyBodyCTA({ onStartEdit }: { onStartEdit: () => void }) {
       <Text variant="body" as="div">
         편집을 시작하려면 클릭하세요
       </Text>
-      {isTauri ? (
-        <Text variant="caption" as="div" className="flex items-center gap-1.5">
-          <span>또는</span>
-          <Kbd
-            style={{
-              borderColor: "var(--line-2)",
-              color: "var(--faint)",
-              backgroundColor: "var(--surface)",
-            }}
-          >
-            ⌘⇧E
-          </Kbd>
-        </Text>
-      ) : null}
     </Button>
   );
 }

@@ -1,18 +1,17 @@
 import { useState } from "react";
-import { X, Keyboard, FolderOpen, Archive, HelpCircle, Image as ImageIcon, CalendarDays, Monitor } from "lucide-react";
+import { X, Keyboard, FolderOpen, Archive, HelpCircle, Image as ImageIcon, Monitor } from "lucide-react";
 import { ShortcutsSection } from "./ShortcutsSection";
 import { HelpSection } from "./HelpSection";
 import { VaultSection } from "./VaultSection";
 import { BackupSection } from "./BackupSection";
 import { AttachmentsSection } from "./AttachmentsSection";
-import { GcalSection } from "./GcalSection";
 import { DisplaySection } from "./DisplaySection";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { NavItem } from "../../ds/NavItem";
 import { Text } from "../common/Text";
 
-export type SettingsSection = "vault" | "backup" | "attachments" | "gcal" | "display" | "shortcuts" | "help";
+export type SettingsSection = "vault" | "backup" | "attachments" | "display" | "shortcuts" | "help";
 
 type Props = {
   open: boolean;
@@ -24,7 +23,6 @@ const SECTIONS: Array<{ id: SettingsSection; label: string; icon: typeof Keyboar
   { id: "vault", label: "Vault 폴더", icon: FolderOpen },
   { id: "backup", label: "백업", icon: Archive },
   { id: "attachments", label: "첨부 정리", icon: ImageIcon },
-  { id: "gcal", label: "Google 캘린더", icon: CalendarDays },
   { id: "display", label: "화면", icon: Monitor },
   { id: "shortcuts", label: "단축키", icon: Keyboard },
   { id: "help", label: "도움말", icon: HelpCircle },
@@ -99,8 +97,6 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
               <BackupSection />
             ) : section === "attachments" ? (
               <AttachmentsSection />
-            ) : section === "gcal" ? (
-              <GcalSection />
             ) : section === "display" ? (
               <DisplaySection />
             ) : section === "shortcuts" ? (

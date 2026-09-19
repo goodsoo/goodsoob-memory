@@ -24,6 +24,15 @@ export interface DropdownProps {
   children?: ReactNode;
   /** Additional class names for the panel. */
   className?: string;
+  /**
+   * Controlled open state. Omit for uncontrolled (internal state — default).
+   * Follows the Modal `open`/`onClose` convention. When set, the parent owns
+   * open — required for rich `children` menus whose items conditionally close
+   * (item action → keep open; select → parent calls onOpenChange(false)).
+   */
+  open?: boolean;
+  /** Fired whenever open should change (both controlled and uncontrolled). */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -34,9 +43,18 @@ export interface DropdownProps {
  *
  * Spec: docs/components.md §9-2.
  */
-export function Dropdown({ trigger, items, children, className }: DropdownProps) {
-  const [open, setOpen] = useState(false);
+export function Dropdown({ trigger, items, children, className, open: openProp, onOpenChange }: DropdownProps) {
+  const [openState, setOpenState] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Controlled when `open` is passed; otherwise internal state. setOpen unifies
+  // both and always fires onOpenChange so parents can observe either way.
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openState;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) setOpenState(next);
+    onOpenChange?.(next);
+  };
 
   // Close on outside click
   useEffect(() => {
@@ -48,13 +66,14 @@ export function Dropdown({ trigger, items, children, className }: DropdownProps)
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const panelClasses = ['ds-dropdown', className ?? ''].filter(Boolean).join(' ');
 
   return (
     <div className="ds-dropdown__wrapper" ref={wrapperRef}>
-      <div onClick={() => setOpen((v) => !v)}>{trigger}</div>
+      <div onClick={() => setOpen(!open)}>{trigger}</div>
       {open && (
         <div className={panelClasses} role="menu">
           {items

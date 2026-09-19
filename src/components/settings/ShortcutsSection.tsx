@@ -1,4 +1,3 @@
-import { isTauri } from "../../lib/isTauri";
 import { Text } from "../common/Text";
 import { Kbd } from "../common/Kbd";
 
@@ -17,10 +16,11 @@ const GROUPS: Group[] = [
   {
     title: "페이지 이동",
     items: [
-      { keys: ["⌘", "1"], label: "메모장" },
-      { keys: ["⌘", "2"], label: "캘린더" },
+      { keys: ["⌘", "1"], label: "오늘" },
+      { keys: ["⌘", "2"], label: "메모장" },
       { keys: ["⌘", "3"], label: "할 일" },
-      { keys: ["⌘", "4"], label: "포트폴리오" },
+      { keys: ["⌘", "4"], label: "루틴" },
+      { keys: ["⌘", "5"], label: "포트폴리오" },
     ],
   },
   {
@@ -30,14 +30,6 @@ const GROUPS: Group[] = [
       { keys: ["⌘", "⌫"], label: "휴지통으로", note: "입력 밖에서만" },
       { keys: ["⌘", "↑"], label: "이전 메모", note: "입력 밖에서만" },
       { keys: ["⌘", "↓"], label: "다음 메모", note: "입력 밖에서만" },
-    ],
-  },
-  {
-    title: "화면",
-    items: [
-      { keys: ["⌘", "+"], label: "확대", note: "입력 중에도 동작" },
-      { keys: ["⌘", "−"], label: "축소" },
-      { keys: ["⌘", "0"], label: "100% 로 복귀" },
     ],
   },
   {
@@ -85,20 +77,6 @@ const GROUPS: Group[] = [
 export function ShortcutsSection() {
   return (
     <div className="space-y-5">
-      {!isTauri && (
-        <Text
-          variant="caption"
-          color="secondary"
-          as="p"
-          className="rounded px-3 py-2"
-          style={{
-            background: "var(--bg)",
-            border: "1px solid var(--line-2)",
-          }}
-        >
-          단축키는 데스크탑 앱 (Tauri) 전용. 브라우저에선 시스템 단축키와 충돌해 동작하지 않아요.
-        </Text>
-      )}
       {GROUPS.map((group) => (
         <section key={group.title}>
           <Text

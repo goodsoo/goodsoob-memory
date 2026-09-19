@@ -1,5 +1,4 @@
 import { Minus, Plus, RotateCcw } from "lucide-react";
-import { isTauri } from "../../lib/isTauri";
 import { useZoom } from "../../hooks/useZoom";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -103,20 +102,6 @@ export function DisplaySection() {
         </ul>
       </section>
 
-      {!isTauri && (
-        <Text
-          variant="caption"
-          color="secondary"
-          as="p"
-          className="rounded px-3 py-2"
-          style={{
-            background: "var(--bg)",
-            border: "1px solid var(--line-2)",
-          }}
-        >
-          단축키는 데스크탑 앱 (Tauri) 전용입니다. 브라우저에선 시스템 단축키와 충돌해 동작하지 않습니다.
-        </Text>
-      )}
     </div>
   );
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.goodsoob.memory</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/bun</string>
+    <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/projects/goodsoob-memory/server/index.ts</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/projects/goodsoob-memory</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>PORT</key>
+    <string>7080</string>
+    <!-- VAULT_DIR: 정본 brain md 경로. T0(.git iCloud 밖 분리 + gc + gbrain 데몬 writer 정리) 완료 전엔
+         절대 실제 brain 을 가리키지 말 것. 아래 placeholder 는 존재하지 않는 경로라 서버가 fast-fail 한다. -->
+    <key>VAULT_DIR</key>
+    <string>/Users/angel/Library/Mobile Documents/com~apple~CloudDocs/brain</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/goodsoob-memory.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/goodsoob-memory.err</string>
+</dict>
+</plist>

@@ -514,18 +514,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   onChange={(next) => setCategoryDraft(next)}
                 />
               ) : (
-                <Text
-                  variant="body"
-                  as="div"
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1"
-                  style={{ backgroundColor: "var(--surface-2)" }}
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: categoryColor }}
-                  />
-                  {categoryLabel}
-                </Text>
+                <Chip dot={categoryColor}>{categoryLabel}</Chip>
               )}
             </Field>
 

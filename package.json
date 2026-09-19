@@ -12,17 +12,10 @@
     "test:run": "vitest run",
     "icons": "bun run scripts/gen-icons.ts",
     "typecheck": "tsc -b --noEmit",
-    "lint:px": "node scripts/px-guard.mjs --check --baseline src/ds/ds-components.css src/ds/styles/alert.css src/ds/styles/avatar.css src/ds/styles/card.css src/ds/styles/checkbox.css src/ds/styles/chip.css src/ds/styles/commandblock.css src/ds/styles/dropdown.css src/ds/styles/empty-state.css src/ds/styles/filteritem.css src/ds/styles/header.css src/ds/styles/icon.css src/ds/styles/input.css src/ds/styles/modal.css src/ds/styles/nav-item.css src/ds/styles/popover.css src/ds/styles/radio.css src/ds/styles/search-field.css src/ds/styles/segment.css src/ds/styles/select.css src/ds/styles/spinnerkbd.css src/ds/styles/stat-card.css src/ds/styles/tabs.css src/ds/styles/toast.css src/ds/styles/toggle.css src/ds/styles/tooltip.css",
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "lint:px": "node scripts/px-guard.mjs --check --baseline src/ds/ds-components.css src/ds/styles/alert.css src/ds/styles/avatar.css src/ds/styles/card.css src/ds/styles/checkbox.css src/ds/styles/chip.css src/ds/styles/commandblock.css src/ds/styles/dropdown.css src/ds/styles/empty-state.css src/ds/styles/filteritem.css src/ds/styles/header.css src/ds/styles/icon.css src/ds/styles/input.css src/ds/styles/modal.css src/ds/styles/nav-item.css src/ds/styles/popover.css src/ds/styles/radio.css src/ds/styles/search-field.css src/ds/styles/segment.css src/ds/styles/select.css src/ds/styles/spinnerkbd.css src/ds/styles/stat-card.css src/ds/styles/tabs.css src/ds/styles/toast.css src/ds/styles/toggle.css src/ds/styles/tooltip.css"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.9",
-    "@tauri-apps/api": "^2.11.0",
-    "@tauri-apps/plugin-dialog": "^2.7.1",
-    "@tauri-apps/plugin-fs": "^2.5.1",
-    "@tauri-apps/plugin-shell": "^2.3.5",
     "date-fns": "^4.1.0",
     "js-yaml": "^4.1.1",
     "lucide-react": "^1.14.0",
@@ -35,7 +28,6 @@
     "@babel/core": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.2.4",
-    "@tauri-apps/cli": "^2.11.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/babel__core": "^7.20.5",

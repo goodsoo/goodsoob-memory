@@ -16,7 +16,6 @@ import {
 } from "../api/tasks";
 import { compareTaskDate } from "../lib/taskSort";
 import { TaskRow } from "../components/tasks/TaskRow";
-import { SyncStatusChip } from "../components/tasks/SyncStatusChip";
 import { PageHeaderBar } from "../components/common/PageHeaderBar";
 import { Button } from "../components/common/Button";
 import { Text } from "../components/common/Text";
@@ -192,7 +191,6 @@ export function TasksPage({
             할 일
           </Text>
         }
-        right={<SyncStatusChip />}
       />
       {onSortKeyChange ? (
         <TasksToolbar sortKey={sortKey} onSortKeyChange={onSortKeyChange} />

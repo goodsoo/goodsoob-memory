@@ -36,7 +36,7 @@ export function ScreenshotDropzone({ prSlug, existing, label }: Props) {
       const next: PortfolioScreenshot[] = [...existing];
       for (const file of arr) {
         const saved = await saveScreenshot({
-          vaultRoot: root,
+          adapter,
           prSlug,
           file,
           label,

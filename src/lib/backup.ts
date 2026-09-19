@@ -1,4 +1,4 @@
-import { Command } from "@tauri-apps/plugin-shell";
+import { runShellCommand } from "./runtime";
 import type { VaultAdapter } from "./vault/adapter";
 
 export const BACKUP_DIR = ".backups";
@@ -76,7 +76,7 @@ export async function runBackup(adapter: VaultAdapter): Promise<BackupEntry> {
     `zip -rq ${shellQuote(absTmp)} . -x ${shellQuote(`${BACKUP_DIR}/*`)} -x ${shellQuote(BACKUP_DIR)} -x '.DS_Store' -x '**/.DS_Store'`,
   ].join(" && ");
 
-  const result = await Command.create("sh", ["-lc", cmd]).execute();
+  const result = await runShellCommand("sh", ["-lc", cmd]);
   if (result.code !== 0) {
     try {
       await adapter.delete(relTmp);
@@ -158,7 +158,7 @@ export async function maybeAutoBackup(
   return { kind: "created", entry };
 }
 
-// macOS Finder 로 path 열기. portfolio capability 의 `sh -lc` 권한 재사용.
+// macOS Finder 로 path 열기 — 서버가 `open` 실행.
 export async function openInFinder(absPath: string): Promise<void> {
-  await Command.create("sh", ["-lc", `open ${shellQuote(absPath)}`]).execute();
+  await runShellCommand("sh", ["-lc", `open ${shellQuote(absPath)}`]);
 }

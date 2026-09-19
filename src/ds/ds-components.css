@@ -86,6 +86,15 @@
 .ds-btn--sm.ds-btn--icon-left  { padding-left:  var(--space-6); }
 .ds-btn--sm.ds-btn--icon-right { padding-right: var(--space-6); }
 
+/* ── Icon sizing (§4 contract) ───────────────────────────────────────
+ * Icons are passed as direct children (leftIcon/rightIcon/iconOnly), so
+ * the DS normalizes the icon size here rather than trusting the caller's
+ * intrinsic SVG dimensions. Label-accompanying icons → --icon-14;
+ * icon-only buttons → --icon-16. flex:none keeps the icon from shrinking
+ * in the inline-flex row. */
+.ds-btn > svg        { width: var(--icon-14); height: var(--icon-14); flex: none; }
+.ds-btn--icon > svg  { width: var(--icon-16); height: var(--icon-16); }
+
 /* ── Variants ────────────────────────────────────────────────────────── */
 .ds-btn--primary {
   background: var(--btn-primary);

@@ -20,6 +20,9 @@
 
 /* ── Icon sizing ───────────────────────────────────────────────────────── */
 .ds-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: var(--icon-12);
   height: var(--icon-12);
   flex-shrink: 0;

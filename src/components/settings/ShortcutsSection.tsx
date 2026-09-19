@@ -16,10 +16,11 @@ const GROUPS: Group[] = [
   {
     title: "페이지 이동",
     items: [
-      { keys: ["⌘", "1"], label: "메모장" },
-      { keys: ["⌘", "2"], label: "캘린더" },
+      { keys: ["⌘", "1"], label: "오늘" },
+      { keys: ["⌘", "2"], label: "메모장" },
       { keys: ["⌘", "3"], label: "할 일" },
-      { keys: ["⌘", "4"], label: "포트폴리오" },
+      { keys: ["⌘", "4"], label: "루틴" },
+      { keys: ["⌘", "5"], label: "포트폴리오" },
     ],
   },
   {
@@ -29,14 +30,6 @@ const GROUPS: Group[] = [
       { keys: ["⌘", "⌫"], label: "휴지통으로", note: "입력 밖에서만" },
       { keys: ["⌘", "↑"], label: "이전 메모", note: "입력 밖에서만" },
       { keys: ["⌘", "↓"], label: "다음 메모", note: "입력 밖에서만" },
-    ],
-  },
-  {
-    title: "화면",
-    items: [
-      { keys: ["⌘", "+"], label: "확대", note: "입력 중에도 동작" },
-      { keys: ["⌘", "−"], label: "축소" },
-      { keys: ["⌘", "0"], label: "100% 로 복귀" },
     ],
   },
   {

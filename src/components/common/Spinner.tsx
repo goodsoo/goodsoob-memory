@@ -2,7 +2,7 @@
 // Memory's SVGElement ...rest attrs are dropped (DS wraps in <span>).
 // size mapping is identical: xs/sm/md.
 import type { HTMLAttributes } from "react";
-import { Spinner as DsSpinner, type SpinnerSize } from "../../ds/Spinner";
+import { Spinner as DsSpinner, type SpinnerSize } from "@goodsoob/ds";
 
 type Size = "xs" | "sm" | "md";
 

@@ -5,7 +5,7 @@
 // All other variants ("primary", "secondary", "danger", "ghost") pass through unchanged.
 // ref forwarding: DS ButtonProps extends ButtonHTMLAttributes, ref works natively.
 import type { ComponentPropsWithRef, ReactNode } from "react";
-import { Button as DsButton, type ButtonVariant } from "../../ds/Button";
+import { Button as DsButton, type ButtonVariant } from "@goodsoob/ds";
 
 type MemoryVariant = "primary" | "secondary" | "danger" | "info" | "ghost" | "icon";
 type Size = "sm" | "md";

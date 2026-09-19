@@ -8,7 +8,7 @@ import { AttachmentsSection } from "./AttachmentsSection";
 import { DisplaySection } from "./DisplaySection";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 export type SettingsSection = "vault" | "backup" | "attachments" | "display" | "shortcuts" | "help";

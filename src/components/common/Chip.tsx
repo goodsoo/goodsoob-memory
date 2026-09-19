@@ -6,7 +6,7 @@
 //   dot: string hex/var → rendered as a 6px colored dot node, passed as icon
 //   leading: ReactNode → icon (DS icon slot)
 import type { HTMLAttributes, ReactNode } from "react";
-import { Chip as DsChip, type ChipVariant } from "../../ds/Chip";
+import { Chip as DsChip, type ChipVariant } from "@goodsoob/ds";
 
 type Variant = "default" | "outline" | "accent";
 type Size = "sm" | "md";

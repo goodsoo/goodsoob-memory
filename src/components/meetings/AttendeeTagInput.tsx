@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { formatAttendees, parseAttendees } from "../../lib/attendees";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 import { RemovableChip } from "../common/RemovableChip";
 
 type Props = {

@@ -4,7 +4,7 @@
 //   className: memory had a long default class string — DS handles layout via .ds-empty
 //              caller-provided className still forwarded
 import type { ReactNode } from "react";
-import { EmptyState as DsEmptyState } from "../../ds/EmptyState";
+import { EmptyState as DsEmptyState } from "@goodsoob/ds";
 
 type Props = {
   icon?: ReactNode;

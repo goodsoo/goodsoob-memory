@@ -4,7 +4,7 @@
 //   leading: dropped (DS has no leading icon slot)
 //   onClick: required in memory → optional in DS, safe to pass through
 import type { ReactNode } from "react";
-import { FilterItem as DsFilterItem } from "../../ds/FilterItem";
+import { FilterItem as DsFilterItem } from "@goodsoob/ds";
 
 type Props = {
   label: ReactNode;

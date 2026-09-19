@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
-import "./ds/ds-components.css";
+import "@goodsoob/ds/styles.css";
 import App from "./App";
 import { queryClient } from "./lib/queryClient";
 import { VaultProvider } from "./lib/vault/VaultProvider";

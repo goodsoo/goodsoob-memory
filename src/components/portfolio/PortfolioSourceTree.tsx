@@ -25,7 +25,7 @@ import {
 } from "../../hooks/usePortfolio";
 import { FilterItem } from "../common/FilterItem";
 import { Text } from "../common/Text";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 
 // portfolio 사이드바 두 그룹 필터.
 // - github(repo): nameWithOwner. 카드 frontmatter.github_owner/github_repo 로 derive.

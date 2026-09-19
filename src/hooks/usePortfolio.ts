@@ -166,7 +166,7 @@ export function useDeletePortfolioWork() {
           );
         }
       } catch {
-        // 디렉토리 rename 실패 — Tauri/OS 의존, 매일 사용에서 발견하면 fix
+        // 디렉토리 rename 실패 — 로컬 서버/OS 의존, 매일 사용에서 발견하면 fix
       }
       return slug;
     },
@@ -349,9 +349,9 @@ export interface GhSyncProgress {
   lastResult: SyncPortfolioResult | null;
 }
 
-// readSyncState 가 hang 되면 5초 후 full sync 로 fallback. Tauri 의
-// "Couldn't find callback id" 후 invoke 응답이 영영 안 오는 경우 (dev 중 vite
-// full-reload 와 동시 sync) 의 stuck 방어. since 만 손해.
+// readSyncState 가 hang 되면 5초 후 full sync 로 fallback. 로컬 서버 요청 응답이
+// 영영 안 오는 경우 (dev 중 vite full-reload·서버 재시작 과 동시 sync) 의
+// stuck 방어. since 만 손해.
 const READ_SYNC_STATE_TIMEOUT_MS = 5000;
 
 async function readSyncStateWithTimeout(
@@ -391,7 +391,7 @@ export function useGhSync() {
       opts: Pick<SyncPortfolioOpts, "since"> & { incremental?: boolean } = {},
     ) => {
       // race 차단 — 이미 sync 진행 중이면 새 호출 무시. background auto-sync + 사용자 클릭
-      // 동시 발생 시 Tauri callback id 충돌 (callback 손실) 회피.
+      // 동시 발생 시 in-flight 요청 충돌 (응답 뒤섞임) 회피.
       if (runningRef.current) return null;
       runningRef.current = true;
       const myCallId = ++callIdRef.current;
@@ -456,7 +456,7 @@ export function useGhSync() {
     [adapter, qc],
   );
 
-  // 사용자 manual 취소 또는 stuck 회복. abort 가 hung Tauri invoke 를 못 풀어도
+  // 사용자 manual 취소 또는 stuck 회복. abort 가 hung 서버 요청을 못 풀어도
   // callId 를 advance + runningRef 리셋해 다음 click 받음. 뒤늦게 resolve 되는
   // stale promise 의 setState 는 callId 가드로 무시.
   const cancel = useCallback(() => {

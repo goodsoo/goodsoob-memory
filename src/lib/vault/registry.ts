@@ -44,7 +44,7 @@ function writeVaults(list: VaultEntry[]): void {
 }
 
 function newId(): string {
-  // Tauri webview + 모던 브라우저 모두 지원. test 환경 (jsdom) 도 OK.
+  // 모던 브라우저 모두 지원. test 환경 (jsdom) 도 OK.
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }

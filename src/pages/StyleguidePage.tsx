@@ -186,8 +186,6 @@ const Z_LAYERS = [
 const LAYOUT_TOKENS = [
   { name: "--app-header-h", value: "3.5rem / 0", usage: "모바일 상단 헤더 (desktop 0)" },
   { name: "--page-header-h", value: "3.25rem", usage: "사이드바 + 본문 헤더 공통 row" },
-  { name: "--titlebar-inset", value: "0 / 36px", usage: "macOS Tauri 헤더 보정" },
-  { name: "--titlebar-traffic-inset", value: "0 / 80px", usage: "macOS traffic light 회피" },
   { name: "--safe-top/bottom/left/right", value: "env(safe-area-inset-*)", usage: "iOS notch / 홈 인디케이터" },
 ];
 
@@ -321,7 +319,7 @@ function TocSidebar() {
     <aside
       className="sticky hidden shrink-0 self-start lg:block"
       style={{
-        top: "calc(var(--titlebar-inset) + 2.5rem)",
+        top: "2.5rem",
         width: "11rem",
       }}
     >
@@ -428,18 +426,9 @@ export function StyleguidePage() {
         color: "var(--ink)",
         height: "100vh",
         overflowY: "auto",
-        scrollPaddingTop: "calc(var(--titlebar-inset) + 1.5rem)",
+        scrollPaddingTop: "1.5rem",
       }}
     >
-      {/* macOS Tauri 윈도우 드래그 영역. non-mac / 브라우저에선 height 0 이라 무해. */}
-      <div
-        data-tauri-drag-region
-        className="sticky top-0 z-20"
-        style={{
-          height: "var(--titlebar-inset)",
-          background: "var(--bg)",
-        }}
-      />
       <div className="mx-auto flex max-w-6xl gap-8 px-6 py-10">
         <TocSidebar />
         <main className="min-w-0 flex-1">

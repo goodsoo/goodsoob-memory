@@ -1,5 +1,5 @@
-// V0.7.x — PR body 이미지 다운로드. Tauri webview fetch 는 CORS 막혀서 user-attachments
-// URL 같은 외부 이미지 직접 fetch 못 함. curl 위임으로 우회 (이미 sh shell 권한 있음).
+// V0.7.x — PR body 이미지 다운로드. 브라우저 fetch 는 CORS 막혀서 user-attachments
+// URL 같은 외부 이미지 직접 fetch 못 함. 로컬 서버 curl 위임으로 우회.
 //
 // curl 은 macOS 기본 + linux/win 표준 — 추가 dep 0. fail fast: --max-time 30,
 // --fail (HTTP 4xx/5xx exit nonzero). 실패해도 sync 전체는 안 죽음 (best effort).

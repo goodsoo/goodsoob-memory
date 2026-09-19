@@ -1,13 +1,13 @@
 // V0.7 — gh CLI 위임 (bash -lc 래핑).
 //
-// design v2.3, TODO-1 + release PATH fix: Tauri macOS PATH 문제.
-// Finder 로 실행한 release .app 은 launchd 최소 PATH(/usr/bin:/bin:/usr/sbin:/sbin)
+// design v2.3, TODO-1 + launchd PATH fix: macOS 최소 PATH 문제.
+// launchd 로 상주하는 로컬 서버(com.goodsoob.memory)는 최소 PATH(/usr/bin:/bin:/usr/sbin:/sbin)
 // 로 시작 → gh(~/.local/bin), claude(nvm), brew(/opt/homebrew·/usr/local) 가
 // PATH 에 없음. `bash -lc` 가 login 셸로 ~/.bash_profile(+nvm, .local/bin) 을 로딩 →
 // 사용자 터미널과 동일 PATH 확보.
 //   - 옛 `sh -lc` 는 /etc/profile + ~/.profile 만 읽어 .local/bin·nvm 누락.
-//   - dev 가 됐던 건 -l 이 아니라 부모 터미널 PATH 상속 덕분이었고, release 는
-//     상속이 없어 gh: command not found / code 127 로 깨졌다.
+//   - 터미널서 띄운 dev 서버가 됐던 건 -l 이 아니라 부모 PATH 상속 덕분이었고,
+//     launchd 상주 서버는 상속이 없어 gh: command not found / code 127 로 깨졌다.
 
 import { runShellCommand } from "../runtime";
 

@@ -16,7 +16,7 @@
  *    (뒤 op 를 건너뛰지 않음 = 순서·부분실패 안전).
  *  - durability: navigator.storage.persist() 요청(guarded)으로 iOS eviction 저항.
  *
- * 브라우저/http 경로 전용. Tauri 는 이 어댑터를 안 탄다(selectAdapter 가 분기).
+ * 브라우저/http 경로 전용. 테스트(memory adapter)는 이 래퍼를 안 탄다(selectAdapter 가 분기).
  */
 
 import type { VaultAdapter, VaultWatchEvent, FileMeta } from "./adapter";

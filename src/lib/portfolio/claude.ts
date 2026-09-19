@@ -12,8 +12,8 @@ import {
 
 // Claude Code CLI (`claude -p <prompt>`) 호출. 구독 로그인 (~/.claude OAuth) 자격으로 동작 — API key 불필요.
 // portfolio sync 가 gh 부르는 패턴과 동일. bash login 셸 안에서 single-quoted arg
-// (claude 는 nvm 경로 → release Finder 실행에선 login 셸 PATH 가 필수, gh.ts 헤더 참조).
-// Tauri: Command. 브라우저: 서버가 대신 실행 (runtime.ts) — 둘 다 loginShellArgs 그대로.
+// (claude 는 nvm 경로 → launchd 상주 서버에선 login 셸 PATH 가 필수, gh.ts 헤더 참조).
+// 서버가 대신 실행 (runtime.ts) — loginShellArgs 그대로.
 
 export async function runClaude(prompt: string): Promise<ShCommandResult> {
   // claude -p '<prompt>' — prompt 는 인자로 전달, ' 는 '\'' 으로 escape.
@@ -29,7 +29,7 @@ export async function runClaude(prompt: string): Promise<ShCommandResult> {
 // 스트리밍 호출 — 자동 요약 모달이 진행 상황(경과시간·도착 글자·토큰)을 보여주려고 쓴다.
 // --output-format stream-json --verbose --include-partial-messages 로 NDJSON 라인이
 // 토큰 단위로 흘러나옴: content_block_delta(텍스트) / message_delta·result(usage).
-// Tauri shell 의 stdout 'data' 는 라인 단위(개행 strip)라 chunk 마다 "\n" 재부착 후 split.
+// 서버 stream 의 stdout 'data' 는 라인 단위(개행 strip)일 수 있어 chunk 마다 "\n" 재부착 후 split.
 
 export type ClaudeStreamProgress = {
   chars: number;
@@ -121,7 +121,7 @@ export function runClaudeStream(
     }
   };
 
-  // Tauri: Command spawn 스트림. 브라우저: 서버 SSE (runtime.ts). stdout 은 NDJSON,
+  // 서버 SSE 스트림 (runtime.ts). stdout 은 NDJSON,
   // stderr 는 progress 파서와 무관하게 누적 (runtime 이 controller.stderr 에 모음).
   // stdout 'data' 는 라인 단위(개행 strip)일 수 있어 chunk 마다 "\n" 재부착 후 split.
   const ctrl: ShellStreamController = runShellStream(

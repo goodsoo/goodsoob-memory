@@ -120,12 +120,12 @@ export function MeetingsSidePanel({
   const [editingFolder, setEditingFolder] = useState<
     { folder: string; value: string } | null
   >(null);
-  // 폴더 삭제 confirm 모달 target. null = 닫힘. window.confirm 은 Tauri WebView 에서
+  // 폴더 삭제 confirm 모달 target. null = 닫힘. window.confirm 은 브라우저/WebView 에서
   // noop 통과되어 안전하지 않아 ConfirmDialog 모달로 대체.
   const [deleteFolderTarget, setDeleteFolderTarget] = useState<
     { folder: string; total: number; pinned: number } | null
   >(null);
-  // 메모 삭제 confirm target. window.confirm 은 Tauri WebView 에서 신뢰 못해
+  // 메모 삭제 confirm target. window.confirm 은 브라우저/WebView 에서 신뢰 못해
   // ConfirmDialog 모달 경유 (폴더 삭제와 동일 패턴).
   const [deleteMeetingTarget, setDeleteMeetingTarget] = useState<
     { uid: string; title: string } | null

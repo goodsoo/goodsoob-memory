@@ -9,8 +9,8 @@ import {
   zoomOut,
 } from "./useZoom";
 
-// 테스트 환경은 isTauri=false → apply() 가 document.documentElement.style.zoom 으로
-// fallback. Tauri webview mock 없이 store 로직 (clamp/step/persist) 만 검증.
+// apply() 는 document.documentElement.style.zoom (CSS zoom) 으로 적용 — jsdom 에서
+// DOM 부수효과는 무해하므로 store 로직 (clamp/step/persist) 만 검증.
 
 const STORAGE_KEY = "goodsoob:zoom";
 

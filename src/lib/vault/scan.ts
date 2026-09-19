@@ -376,7 +376,7 @@ export async function moveMeetingToFolder(
 ): Promise<void> {
   if (oldPath === newPath) return;
   // newPath 의 부모 폴더 (`notes/{folder}` 또는 `notes`) mkdir 보장.
-  // Tauri rename 은 부모가 없으면 실패.
+  // fs rename 은 부모가 없으면 실패.
   const parentSlash = newPath.lastIndexOf("/");
   if (parentSlash > 0) {
     const parent = newPath.slice(0, parentSlash);
@@ -452,7 +452,7 @@ export async function moveFolder(
   if (await adapter.exists(newFull)) {
     throw new TitleConflictError(name, newFull);
   }
-  // 대상 부모 폴더 보장 (Tauri rename 은 부모가 없으면 실패).
+  // 대상 부모 폴더 보장 (fs rename 은 부모가 없으면 실패).
   await adapter.mkdir(dest === "" ? "notes" : `notes/${dest}`);
   await adapter.rename(oldFull, newFull);
   return newFull;

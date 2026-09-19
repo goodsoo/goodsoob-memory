@@ -46,7 +46,7 @@ export interface VaultAdapter {
   readMeta(relPath: string): Promise<FileMeta>;
   // batch scan — dir 아래 모든 파일의 content + meta 를 한 번에 반환.
   // HTTP adapter 에서는 서버 batch 엔드포인트 1회 호출로 처리.
-  // Tauri/memory adapter 에서는 로컬 병렬 read+readMeta.
+  // memory adapter(테스트)에서는 로컬 병렬 read+readMeta.
   scanAll(dir: string): Promise<ScanEntry[]>;
   // expectedMtime: 마지막으로 읽었을 때의 mtime. 디스크가 더 새 거면 ConflictError throw.
   write(

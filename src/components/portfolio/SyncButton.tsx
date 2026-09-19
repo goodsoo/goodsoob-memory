@@ -10,7 +10,7 @@ type Props = {
 };
 
 // design v2.3: 사이드바 헤더의 동기화 트리거. 진행 중이면 같은 자리에 progress + 취소.
-// 취소는 Tauri invoke 가 hang 된 경우 (dev full-reload 후) stuck 회복용.
+// 취소는 서버 gh 호출이 hang 된 경우 (dev full-reload 후) stuck 회복용.
 export function SyncButton({ state, onRun, onCancel }: Props) {
   if (state.running) {
     const pct =

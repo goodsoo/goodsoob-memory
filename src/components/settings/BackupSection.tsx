@@ -361,7 +361,7 @@ function formatBackupDate(mtime: number): string {
 
 // 사용자 home 으로 시작하는 path 면 `~` 로 축약. 더 길어도 표시 가능.
 function formatHomeRelative(absPath: string): string {
-  // Tauri 환경에서 vault root 가 절대경로. home prefix 추출은 OS dependent 라
+  // 서버가 주는 vault root 가 절대경로. home prefix 추출은 OS dependent 라
   // 가장 흔한 `/Users/<name>/` 만 처리. 그 외는 그대로 노출.
   const m = absPath.match(/^(\/Users\/[^/]+)\//);
   if (m) return "~" + absPath.slice(m[1].length);

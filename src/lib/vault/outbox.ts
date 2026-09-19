@@ -11,7 +11,7 @@
  *
  * 의존성 0 — raw IndexedDB (growth 오프라인 스택과 동일 패턴). Workbox/idb lib 안 씀.
  *
- * 이 파일은 브라우저/http 경로 전용. Tauri 경로는 outbox 를 안 탄다(T8 까지 Tauri 어댑터 유지).
+ * 이 파일은 브라우저/http 경로 전용 (오프라인 쓰기 큐). 테스트(memory adapter)는 안 탄다.
  */
 
 const DB_NAME = "goodsoob-vault";

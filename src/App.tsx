@@ -90,7 +90,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
 
-  // Tauri webview default drop = 떨어진 이미지 파일을 새 page 로 열어버림 — 뒤로가기도
+  // 브라우저 default drop = 떨어진 이미지 파일을 새 page 로 열어버림 — 뒤로가기도
   // 못 함 (history 0). textarea 밖에 잘못 drop 한 사용자가 앱을 닫을 수밖에 없는 함정.
   // window 레벨에서 dragover/drop default 항상 차단 — textarea 의 onDrop 은 핸들러
   // 단계에서 e.preventDefault 한 뒤 stopPropagation 없이 그대로 bubble (이중 차단).
@@ -243,7 +243,7 @@ function AppContent() {
   const autoSelectedRef = useRef(didAutoSelectThisSession);
 
   // V0.7 design step 3 (1B): vault ready 후 5초 background sync 1회 (since=last_sync).
-  // 본인 매일 앱 켜면 silent fetch — 의식 0 으로 카드 누적. Tauri 만 (gh 호출 필요).
+  // 본인 매일 앱 켜면 silent fetch — 의식 0 으로 카드 누적. 서버의 gh 위임으로 호출.
   // useGhSync 의 callId 가드 + cancel 강제 리셋 덕분에 stuck 회복 가능 (V0.7.x).
   useEffect(() => {
     if (!isReady || autoSyncDone.current) return;
@@ -355,10 +355,10 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // 페이지 단축키 (Tauri·web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
+  // 페이지 단축키 (web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
   // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
   // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
-  //    standalone PWA·Tauri 에선 앱이 받는다.
+  //    standalone PWA(홈 화면 설치)에선 앱이 받는다.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
@@ -369,7 +369,7 @@ function AppContent() {
         return;
       }
       // Cmd+P — quick switcher 모달 토글 (input/textarea 안에서도 동작).
-      // 브라우저 인쇄 단축키는 Tauri 환경에서 별 의미 X (window.print 미지원).
+      // Cmd+P 를 퀵스위처로 override — standalone PWA 에선 인쇄보다 이게 유용.
       if (e.key === "p" || e.key === "P") {
         e.preventDefault();
         setQuickSwitcherOpen((v) => !v);
@@ -389,7 +389,7 @@ function AppContent() {
   }, [selectedMeetingId, sidebar.toggle]);
 
 
-  // 메모장 단축키 (Tauri·web·PWA 공통):
+  // 메모장 단축키 (web·PWA 공통):
   // - Cmd+N: 새 메모 생성 + 자동 선택 (textarea 안에서도 동작)
   // - Cmd+Backspace/Delete: 현재 메모 삭제 (input/textarea 밖에서만)
   // - Cmd+↑/↓: 이전/다음 메모 (input/textarea 밖에서만)

@@ -2,7 +2,7 @@
 //
 // vault root 기준 `portfolio/_attachments/{slug}/{label}-{n}.jpg`.
 // design v2.3: PNG → 1600px JPEG (canvas 다운스케일) + adapter.writeBinary
-// (Tauri fs 직접 write → 서버 위임으로 전환, atomic tmp→rename + per-path lock 공유).
+// (서버 위임 writeBinary — atomic tmp→rename + per-path lock 공유).
 
 import { attachmentsDirFor, type ScreenshotLabel } from "../../api/portfolio";
 import type { VaultAdapter } from "../vault/adapter";

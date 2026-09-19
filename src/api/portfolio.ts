@@ -356,7 +356,7 @@ export function isGithubCard(fm: PortfolioWorkFrontmatter): boolean {
 export async function scanPortfolio(
   adapter: VaultAdapter,
 ): Promise<PortfolioWorkMeta[]> {
-  // scanAll = 서버 batch 1회(HTTP) 또는 로컬 병렬(Tauri/memory).
+  // scanAll = 서버 batch 1회(HTTP) 또는 로컬 병렬(memory adapter, 테스트).
   // before: listRecursive(1) + read(N) + readMeta(N) = 1 + 2N 왕복.
   // after:  scanAll(1) = 1 왕복.
   const allEntries = await adapter.scanAll(PORTFOLIO_DIR);
@@ -659,7 +659,7 @@ export async function purgePortfolioWork(
       try {
         await adapter.delete(trashAttach);
       } catch {
-        // 빈 디렉 삭제 실패 — Tauri/OS 의존, 다음 휴지통 비우기 때 재시도
+        // 빈 디렉 삭제 실패 — 서버/OS 의존, 다음 휴지통 비우기 때 재시도
       }
     } catch {
       // list 실패 skip
@@ -955,7 +955,7 @@ async function renamePortfolioCard(
       await adapter.rename(oldAttach, newAttach);
     }
   } catch {
-    // 디렉토리 rename 실패 — Tauri/OS 의존, best effort
+    // 디렉토리 rename 실패 — 서버/OS 의존, best effort
   }
 }
 
@@ -974,7 +974,7 @@ export interface SyncPortfolioOpts {
   // 테스트 / mock 용 injection. default 인자로 hide → call site 변경 0 (v2.2 3A test #8).
   searchFn?: typeof ghSearchMyPRs;
   enrichFn?: typeof ghEnrichPR;
-  // PR body 이미지 다운로드 (Tauri shell+curl 위임). 테스트 / mock 용 injection.
+  // PR body 이미지 다운로드 (서버 shell+curl 위임). 테스트 / mock 용 injection.
   downloadFn?: (relPath: string, url: string) => Promise<void>;
   // 진행률 콜백 (modal). current = 0-indexed, total = 전체 PR 수.
   onProgress?: (current: number, total: number) => void;

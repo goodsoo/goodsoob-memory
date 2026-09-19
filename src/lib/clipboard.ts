@@ -1,5 +1,5 @@
 // 클립보드 복사 — navigator.clipboard 우선, 실패 시 execCommand fallback.
-// Tauri WebView / 권한 제약 환경 대비 2단 경로.
+// 브라우저/WebView 권한 제약 환경 대비 2단 경로.
 export async function copyText(text: string): Promise<boolean> {
   if (navigator.clipboard?.writeText) {
     try {

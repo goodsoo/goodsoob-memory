@@ -183,10 +183,10 @@ export function MeetingsTreeView({
   }
 
   // dragOver 단계에서 preventDefault 를 무조건 호출해야 drop 이 fire 됨.
-  // dataTransfer.types 검사로 분기하면 Tauri WebView 등에서 dragover 단계에 types
-  // 가 비어있어 preventDefault 가 skip → drop 자체가 안 발사되는 버그. drop 단계에서
-  // 실제 payload 로 분기. drop 가능 여부는 React state(dragItem) 로 판정 — Tauri
-  // 에서도 신뢰 가능 (dataTransfer.types 와 달리 항상 채워져 있음).
+  // dataTransfer.types 검사로 분기하면 일부 브라우저/WebView 에서 dragover 단계에
+  // types 가 비어있어 preventDefault 가 skip → drop 자체가 안 발사되는 버그. drop
+  // 단계에서 실제 payload 로 분기. drop 가능 여부는 React state(dragItem) 로 판정 —
+  // dataTransfer.types 와 달리 항상 채워져 있어 신뢰 가능.
   function handleDragOverFolder(e: React.DragEvent, folder: string) {
     e.preventDefault();
     const allowed =

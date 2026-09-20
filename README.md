@@ -1,111 +1,70 @@
-# goodsoob-work
+# goodsoob-memory
 
-본인 전용 시간축 통합 업무관리 PWA. 회의록 + Todo + 일정 + 일기를 한 화면에 시간축으로 layered.
+본인 전용 시간축 통합 업무관리 PWA. 회의록 + Todo + 일정 + 일기 + 포트폴리오를 한 화면에 시간축으로 layered. (구 `goodsoob-work`.)
 
-- **Stack**: React 19 + TypeScript + Vite + Tailwind v4 + Supabase + TanStack Query + vite-plugin-pwa
-- **Auth**: Supabase Auth (Google OAuth)
-- **AI**: Anthropic Claude (Supabase Edge Function 경유, V0.1+)
-- **Backend**: Supabase 무료 티어
+- **Stack**: React 19 + TypeScript + Vite + Tailwind v4 + TanStack Query + vite-plugin-pwa
+- **Design System**: `@goodsoob/ds` (canonical DS, `file:../goodsoob-design-system`) — 로컬 컴포넌트 복사본 없음, 토큰은 봉인검사(`scripts/ds-guard.mjs`)로 대조
+- **Storage**: 로컬 vault (파일시스템 git repo). 클라우드 백엔드 없음
+- **Runtime**: mac 로컬 서버(`server/index.ts`, Bun)가 정본 vault 를 소유하는 단일 writer + 브라우저/PWA 대신 CLI(gh/claude/curl/zip) 위임 실행(`src/lib/runtime.ts`). launchd 상주, `127.0.0.1` loopback only
+- **Auth**: GitHub CLI (`gh auth login`) — 포트폴리오 PR 수집용 (`src/lib/portfolio/gh.ts`)
+- **AI**: Anthropic Claude — mac 서버 경유 `claude` CLI (`src/lib/portfolio/claude.ts`)
 
-플랜 상세: `goodsoob-work-plan.md`. Design doc / eng review / design review는 `~/.gstack/projects/goodsoob-work/`.
+플랜/설계 상세: `goodsoob-work-plan.md`, `docs/designs/`.
 
-## 로드맵
-
-- **V0.0** (현재) — Vite + Supabase Auth + Hello world. PWA 셋업.
-- **V0.1** (1주) — 회의록 CRUD + AI 요약 + 마크다운 복사.
-- **V0.2** (1주) — 일기 + 주간 캘린더.
-- **V0.3** (1-2주) — Todo + 일정 + 통합 타임라인.
-- **V0.4+** — 액션아이템 → Todo 1-click 이동.
-
-## 로컬 개발 시작 (V0.0)
+## 로컬 개발
 
 ```bash
 bun install
-cp .env.example .env.local
-# .env.local 채우기 (Supabase Setup 섹션 참조)
-bun run dev
+bun run dev                                        # Vite dev server → http://localhost:5173
+VAULT_DIR=/path/to/vault bun run server/index.ts   # 로컬 서버 (vault + CLI seam)
 ```
 
-`http://localhost:5173` 열면 Google 로그인 화면. 로그인 후 hello world.
-
-## Supabase Setup (V0.0 — 1회)
-
-1. https://supabase.com/dashboard 에서 새 프로젝트 생성. Project name: `goodsoob-work`. 비밀번호 안전한 곳에 저장.
-2. **Project Settings → API** 에서:
-   - `Project URL` → `.env.local`의 `VITE_SUPABASE_URL`
-   - `anon public` key → `.env.local`의 `VITE_SUPABASE_ANON_KEY`
-3. **Authentication → Providers → Google** 활성화:
-   - Google Cloud Console (https://console.cloud.google.com/) → 새 프로젝트 → APIs & Services → Credentials → Create OAuth Client ID (Web application)
-   - Authorized redirect URIs: `https://<your-supabase-project-id>.supabase.co/auth/v1/callback` 추가
-   - Client ID + Client Secret을 Supabase 대시보드 Google provider에 입력
-4. **Authentication → URL Configuration** 에서:
-   - Site URL: 로컬 `http://localhost:5173`, 배포 후엔 배포 도메인 추가
-   - Redirect URLs: `http://localhost:5173/`, `https://<your-deploy-domain>/`
-5. `bun run dev` → Google 로그인 시도 → 콜백까지 정상 도착 확인.
+- 폰·air·Pro 모두 브라우저로 로컬 서버에 접속한다 (tower·growth 와 동일 골격).
+- 서버가 안 떠 있으면 CLI 위임 기능(PR 수집·AI 요약·백업)은 degraded 표시 — silent fail 없음.
 
 ## 폴더 구조
 
 ```
 src/
-  api/                         # Supabase CRUD wrappers (V0.1+)
-  components/
-    auth/
-      AuthGate.tsx              # 로그인 안 되어 있으면 SignInScreen
-      SignInScreen.tsx          # Google 버튼 + 에러 처리
-    meetings/                  # V0.1 회의록 컴포넌트
+  api/            # vault 어댑터 위 CRUD (journals/meetings/tasks/routines/schedule/portfolio…)
+  components/     # calendar meetings tasks routines today portfolio settings nav vault common
   hooks/
-    useAuth.ts                  # Supabase auth 상태 + signIn / signOut
   lib/
-    supabase.ts                 # Supabase 클라이언트 (env-based)
-    queryClient.ts              # TanStack Query config
-    database.types.ts           # Supabase 자동 생성 (추후)
+    vault/        # VaultAdapter — 로컬 파일시스템 백엔드
+    portfolio/    # gh/claude/screenshot 등 CLI seam 래퍼
+    markdown/     # 마크다운 파싱·타이핑
   pages/
-    HomePage.tsx                # V0.0 placeholder, V0.3에선 통합 타임라인
+  pwa/
   test/
-    setup.ts                    # Vitest + jest-dom
-  App.tsx                       # AuthGate + HomePage
-  main.tsx                      # QueryClient + StrictMode root
-  index.css                     # Tailwind v4 + theme 토큰
+  App.tsx
+  main.tsx        # QueryClient + StrictMode root
+  index.css       # Tailwind v4 (+ @goodsoob/ds 토큰)
 
-public/
-  favicon.svg
-  icon-{192,512,512-maskable}.png  # PWA icons (scripts/gen-icons.ts로 생성)
-  apple-touch-icon.png
+server/
+  index.ts        # 로컬 서버 (Bun): dist 정적 서빙 + /api/vault/* + SSE watch + git 안전망
+  vaultCore.ts
+  shell.ts
 
 scripts/
-  gen-icons.ts                   # SVG → PNG 변환 (sharp)
+  gen-icons.ts    # SVG → PNG PWA 아이콘 (sharp)
+  ds-guard.mjs    # DS 토큰 봉인검사
+  ds-sentinel.mjs
+  ...
 
-supabase/                        # V0.1+ Edge Functions
-  functions/
-    summarize/                   # Anthropic 호출
-
-~/.gstack/projects/goodsoob-work/  # 외부: design doc, plan reviews, test plan
+docs/designs/     # office-hours design docs
 ```
 
-## Design 토큰
+## Design
 
-- **Type**: Pretendard Variable (CDN)
-- **Color (Light)**: bg-white, text-zinc-900, border-zinc-200, accent **red-600**
-- **Color (Dark)**: bg-zinc-950, text-zinc-100, border-zinc-800, accent **red-500**
-- **Spacing**: Tailwind p-4/6/8/12 (generous)
-- **Radius**: rounded-lg (8px)
-- **Rule**: UI 자체는 monotone. RED은 의미 있는 1군데에만 (오늘 marker, primary CTA, 활성 탭).
+UI 는 canonical DS(`@goodsoob/ds`)를 따른다 — 토큰·컴포넌트는 DS repo(`goodsoob-design-system`)가 정본. 로컬 override 금지, 토큰 봉인검사(`scripts/ds-guard.mjs`)로 대조.
 
 ## Scripts
 
 - `bun run dev` — Vite dev server (`http://localhost:5173`)
-- `bun run build` — Production build to `dist/`
-- `bun run preview` — Serve `dist/` locally
+- `bun run build` — `tsc -b` + Vite production build → `dist/`
+- `bun run preview` — `dist/` 로컬 서빙
 - `bun run typecheck` — `tsc -b --noEmit`
-- `bun run test` — Vitest (watch mode)
-- `bun run test:run` — Vitest (one-off)
+- `bun run test` — Vitest (watch)
+- `bun run test:run` — Vitest (1회)
 - `bun run lint` — ESLint
-- `bun run icons` — Regenerate PWA icons from `public/favicon.svg`
-
-## Followups (V0.0 이후 즉시)
-
-- [ ] Supabase 프로젝트 생성 + Google OAuth 설정 (위 Setup)
-- [ ] `.env.local` 채우기
-- [ ] 배포 + 도메인 받기
-- [ ] iPhone PWA 설치 + 로그인 흐름 직접 테스트
-- [ ] (선택) `public/favicon.svg` 본인 브랜드로 교체 후 `bun run icons` 재실행
+- `bun run icons` — PWA 아이콘 재생성 (`public/favicon.svg` 기준)

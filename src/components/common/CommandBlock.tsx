@@ -2,7 +2,7 @@
 // Props mapping:
 //   caption → label (DS uses "label" for the caption above the block)
 //   size    → className (ds-commandblock--sm modifier if needed; DS has no size prop)
-import { CommandBlock as DsCommandBlock } from "../../ds/CommandBlock";
+import { CommandBlock as DsCommandBlock } from "@goodsoob/ds";
 
 type Props = {
   command: string;

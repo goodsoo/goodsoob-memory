@@ -55,7 +55,7 @@ import { OfflineCacheMissError } from "../../lib/vault/readCache";
 import { formatDisplayDate } from "../../lib/dates";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
-import { Tabs } from "../../ds/Tabs";
+import { Tabs } from "@goodsoob/ds";
 
 // 파일시스템 + 옵시디안 link syntax 금지 문자. title input commit 시 검사.
 const TITLE_UNSAFE_RE = /[/\\:*?"<>|#^[\]]/;

@@ -3,7 +3,7 @@ import { FileText, Search } from "lucide-react";
 import { useMeetings } from "../../hooks/useMeetings";
 import { formatDateShortWithDay } from "../../lib/dates";
 import { Button } from "./Button";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 import { Text } from "./Text";
 import { Popover } from "./Popover";
 

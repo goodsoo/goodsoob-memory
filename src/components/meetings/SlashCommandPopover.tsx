@@ -13,7 +13,7 @@ import {
   Table,
 } from "lucide-react";
 import type { SlashTargetKind } from "../../lib/markdownTyping";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 export type SlashOption = {

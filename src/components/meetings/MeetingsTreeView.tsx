@@ -9,7 +9,7 @@ import {
 } from "../../lib/meetingsTree";
 import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { formatDisplayDate } from "../../lib/dates";
-import { NavItem } from "../../ds/NavItem";
+import { NavItem } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpand";

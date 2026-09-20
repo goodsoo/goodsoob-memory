@@ -4,7 +4,7 @@
 //   DS:      onChange: ChangeEventHandler   — event-based callback
 // → wrap: convert memory's boolean callback to ChangeEvent handler.
 // ariaLabel → aria-label, title is dropped (DS has no title prop).
-import { Toggle as DsToggle, type ToggleSize } from "../../ds/Toggle";
+import { Toggle as DsToggle, type ToggleSize } from "@goodsoob/ds";
 
 type Size = "sm" | "md";
 

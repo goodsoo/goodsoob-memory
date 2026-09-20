@@ -5,7 +5,7 @@
 - **Stack**: React 19 + TypeScript + Vite + Tailwind v4 + Supabase + TanStack Query + vite-plugin-pwa
 - **Auth**: Supabase Auth (Google OAuth)
 - **AI**: Anthropic Claude (Supabase Edge Function 경유, V0.1+)
-- **Hosting**: Vercel + Supabase 무료 티어
+- **Backend**: Supabase 무료 티어
 
 플랜 상세: `goodsoob-work-plan.md`. Design doc / eng review / design review는 `~/.gstack/projects/goodsoob-work/`.
 
@@ -39,19 +39,9 @@ bun run dev
    - Authorized redirect URIs: `https://<your-supabase-project-id>.supabase.co/auth/v1/callback` 추가
    - Client ID + Client Secret을 Supabase 대시보드 Google provider에 입력
 4. **Authentication → URL Configuration** 에서:
-   - Site URL: 로컬 `http://localhost:5173`, 배포 후엔 Vercel 도메인 추가
-   - Redirect URLs: `http://localhost:5173/`, `https://<your-vercel-domain>/`
+   - Site URL: 로컬 `http://localhost:5173`, 배포 후엔 배포 도메인 추가
+   - Redirect URLs: `http://localhost:5173/`, `https://<your-deploy-domain>/`
 5. `bun run dev` → Google 로그인 시도 → 콜백까지 정상 도착 확인.
-
-## Vercel 배포 (V0.0)
-
-1. https://vercel.com/new 에서 GitHub repo (`goodsoo/work`) 임포트.
-2. **Framework**: Vite 자동 인식. **Build Command**: `bun run build`. **Output**: `dist`.
-3. **Environment Variables** 에 추가 (Production / Preview / Development 모두):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. Deploy → 도메인 받고 Supabase Auth URL Configuration에 추가.
-5. iPhone Safari로 도메인 열기 → 공유 → "홈 화면에 추가" → 아이콘 확인.
 
 ## 폴더 구조
 
@@ -116,6 +106,6 @@ supabase/                        # V0.1+ Edge Functions
 
 - [ ] Supabase 프로젝트 생성 + Google OAuth 설정 (위 Setup)
 - [ ] `.env.local` 채우기
-- [ ] Vercel 배포 + 도메인 받기
+- [ ] 배포 + 도메인 받기
 - [ ] iPhone PWA 설치 + 로그인 흐름 직접 테스트
 - [ ] (선택) `public/favicon.svg` 본인 브랜드로 교체 후 `bun run icons` 재실행

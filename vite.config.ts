@@ -66,6 +66,10 @@ export default defineConfig({
     __DEV_BRANCH__: JSON.stringify(currentBranch()),
   },
   plugins: [jsxLocPlugin(), react(), tailwindcss()],
+  // 심링크된 @goodsoob/ds 가 자기 node_modules/react 로 해소돼 React 가 2벌 번들되면
+  // 훅 dispatcher 가 null → "Cannot read properties of null (reading 'useState')".
+  // dedupe 로 react/react-dom 을 앱 루트 1벌로 강제 (로컬 링크 DS 소비의 표준 fix).
+  resolve: { dedupe: ["react", "react-dom"] },
   test: {
     globals: true,
     environment: "jsdom",

@@ -134,22 +134,22 @@ export function TodayPage({
           ) : (
             // 다른 날 보기일 때 — 날짜 타이틀 자체가 '오늘로' 복귀 버튼. 날짜 텍스트
             // 까지 클릭존(되돌리기 아이콘 + 날짜 한 덩어리).
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={onReturnToday}
               title="오늘로"
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 transition hover:bg-[var(--surface-2)]"
-              style={{ color: "var(--ink)" }}
+              leftIcon={
+                <CornerUpLeft
+                  className="h-4 w-4 shrink-0"
+                  style={{ color: "var(--sub)" }}
+                  aria-hidden
+                />
+              }
             >
-              <CornerUpLeft
-                className="h-4 w-4 shrink-0"
-                style={{ color: "var(--sub)" }}
-                aria-hidden
-              />
               <Text variant="h4" as="span">
                 {formatDateLong(day)}
               </Text>
-            </button>
+            </Button>
           )
         }
       />

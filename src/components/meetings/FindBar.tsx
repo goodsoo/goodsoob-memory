@@ -1,4 +1,5 @@
 import { ChevronUp, ChevronDown, ChevronRight, X, CaseSensitive } from "lucide-react";
+import { Button } from "../common/Button";
 
 type Props = {
   query: string;
@@ -57,19 +58,18 @@ export function FindBar({
         border: "1px solid var(--line)",
       }}
     >
-      <button
-        type="button"
+      <Button
+        variant="icon"
         onClick={onToggleExpanded}
         title={expanded ? "바꾸기 접기" : "바꾸기 펼치기"}
         aria-expanded={expanded}
-        className="mt-0.5 shrink-0 rounded p-1"
-        style={{ color: "var(--faint)" }}
+        className="mt-0.5 shrink-0"
       >
         <ChevronRight
           className="h-4 w-4 transition-transform"
           style={{ transform: expanded ? "rotate(90deg)" : "none" }}
         />
-      </button>
+      </Button>
 
       <div className="flex flex-col gap-1">
         {/* 찾기 줄 */}
@@ -125,35 +125,29 @@ export function FindBar({
           >
             <CaseSensitive className="h-4 w-4" />
           </button>
-          <button
-            type="button"
+          <Button
+            variant="icon"
             onClick={onPrev}
             disabled={total === 0}
             title="이전 (Shift+Enter)"
-            className="rounded p-1 disabled:opacity-30"
-            style={{ color: "var(--sub)" }}
           >
             <ChevronUp className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="icon"
             onClick={onNext}
             disabled={total === 0}
             title="다음 (Enter)"
-            className="rounded p-1 disabled:opacity-30"
-            style={{ color: "var(--sub)" }}
           >
             <ChevronDown className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="icon"
             onClick={onClose}
             title="닫기 (Esc)"
-            className="rounded p-1"
-            style={{ color: "var(--sub)" }}
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         {/* 바꾸기 줄 — ▸ 펼침 시만. 보기 모드면 비활성 + 안내. */}
@@ -182,26 +176,24 @@ export function FindBar({
             />
             {canReplace ? (
               <div className="flex items-center gap-1">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onReplaceOne}
                   disabled={replaceDisabled}
                   title="현재 매치 바꾸기 (Enter)"
-                  className="rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
-                  style={{ color: "var(--sub)" }}
                 >
                   바꾸기
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onReplaceAll}
                   disabled={replaceDisabled}
                   title="전체 바꾸기 (Cmd+Enter)"
-                  className="rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
-                  style={{ color: "var(--sub)" }}
                 >
                   전체 바꾸기
-                </button>
+                </Button>
               </div>
             ) : (
               <span

@@ -526,21 +526,15 @@ function TemplateChip({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className="rounded-full px-2.5 py-1 text-xs transition disabled:cursor-not-allowed disabled:opacity-50"
-      style={{
-        backgroundColor: active ? "var(--surface-2)" : "transparent",
-        border: `1px solid ${active ? "var(--line)" : "var(--line-2)"}`,
-        color: active ? "var(--ink)" : "var(--sub)",
-        fontWeight: active ? 600 : 400,
-      }}
     >
       {label}
-    </button>
+    </Button>
   );
 }
 

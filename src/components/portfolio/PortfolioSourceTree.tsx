@@ -25,6 +25,7 @@ import {
 } from "../../hooks/usePortfolio";
 import { FilterItem } from "../common/FilterItem";
 import { Text } from "../common/Text";
+import { Button } from "../common/Button";
 import { NavItem } from "@goodsoob/ds";
 
 // portfolio 사이드바 두 그룹 필터.
@@ -415,18 +416,19 @@ function SectionLabel({
   onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onToggle}
-      className="mt-3 mb-0.5 flex w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-left transition hover:bg-[var(--surface-2)]"
-      style={{ color: "var(--faint)" }}
+      className="mt-3 mb-0.5 w-full text-left"
+      leftIcon={
+        collapsed ? (
+          <ChevronRight className="h-3 w-3 shrink-0" />
+        ) : (
+          <ChevronDown className="h-3 w-3 shrink-0" />
+        )
+      }
       aria-expanded={!collapsed}
     >
-      {collapsed ? (
-        <ChevronRight className="h-3 w-3 shrink-0" />
-      ) : (
-        <ChevronDown className="h-3 w-3 shrink-0" />
-      )}
       <Text
         variant="caption"
         color="muted"
@@ -435,7 +437,7 @@ function SectionLabel({
       >
         {label}
       </Text>
-    </button>
+    </Button>
   );
 }
 

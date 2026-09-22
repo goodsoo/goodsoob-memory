@@ -57,6 +57,7 @@ import { formatError } from "../../lib/errors";
 import { CheckboxButton } from "../tasks/CheckboxButton";
 import { MeetingsTreeView } from "../meetings/MeetingsTreeView";
 import { MoveFolderModal } from "../meetings/MoveFolderModal";
+import { NavItem } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { FilterItem } from "../common/FilterItem";
@@ -1376,13 +1377,12 @@ function ProjectItem({
       className="group flex items-center rounded-md transition hover:bg-[var(--surface-2)]"
       style={{ backgroundColor: active ? "var(--surface-3)" : undefined }}
     >
-      <button
-        type="button"
+      <NavItem
+        icon={<Folder className="h-3 w-3 opacity-70" />}
+        active={active}
         onClick={onSelect}
-        className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1 text-left text-sm"
-        style={{ color: "var(--ink)" }}
+        className="min-w-0 flex-1 text-sm"
       >
-        <Folder className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
         <span className="min-w-0 flex-1 truncate">{project.name}</span>
         {count > 0 ? (
           <span
@@ -1392,21 +1392,21 @@ function ProjectItem({
             {count}
           </span>
         ) : null}
-      </button>
+      </NavItem>
       {onDelete ? (
-        <button
-          type="button"
+        <Button
+          variant="icon"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
           title="프로젝트 삭제"
           aria-label={`${project.name} 삭제`}
-          className="shrink-0 px-1.5 opacity-0 transition group-hover:opacity-100"
+          className="shrink-0 h-6 w-6 opacity-0 transition group-hover:opacity-100"
           style={{ color: "var(--faint)" }}
         >
           <Trash2 className="h-3 w-3" />
-        </button>
+        </Button>
       ) : null}
     </div>
   );

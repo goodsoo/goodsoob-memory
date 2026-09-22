@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { useVault } from "../../lib/vault/useVault";
+import { NavItem } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 
@@ -74,17 +75,13 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
                       i === 0 ? undefined : "1px solid var(--line-2)",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => useExisting(v.id)}
-                    disabled={busy}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-[var(--surface-2)] disabled:opacity-50"
+                  <NavItem
+                    icon={<Check className="h-3.5 w-3.5" />}
+                    onClick={busy ? undefined : () => useExisting(v.id)}
+                    aria-disabled={busy}
                     title={v.path}
+                    className="w-full aria-disabled:opacity-50 aria-disabled:pointer-events-none"
                   >
-                    <Check
-                      className="h-3.5 w-3.5 shrink-0"
-                      style={{ color: "var(--sub)" }}
-                    />
                     <div className="min-w-0 flex-1">
                       <Text
                         variant="body"
@@ -107,7 +104,7 @@ export function VaultPicker({ initialPath = null, onCancel }: Props) {
                         {v.path}
                       </Text>
                     </div>
-                  </button>
+                  </NavItem>
                 </li>
               ))}
             </ul>

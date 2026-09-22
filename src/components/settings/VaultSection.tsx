@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pencil, Trash2, Unlink } from "lucide-react";
 import { useVault } from "../../lib/vault/useVault";
+import { Radio } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Modal } from "../common/Modal";
@@ -107,37 +108,13 @@ export function VaultSection({ onAfterSwitch }: Props) {
                     i === 0 ? undefined : "1px solid var(--line-2)",
                 }}
               >
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={isActive}
-                  onClick={() => handleSwitch(v.id)}
-                  disabled={busy || isActive}
-                  title={isActive ? "활성 vault" : "이 vault 로 전환"}
-                  aria-label={isActive ? "활성 vault" : `${v.name} 으로 전환`}
-                  className="group/radio flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border transition disabled:cursor-default"
-                  style={{
-                    minHeight: 18,
-                    minWidth: 18,
-                    borderColor: isActive
-                      ? "var(--btn-primary)"
-                      : "var(--line)",
-                    borderWidth: isActive ? 1.5 : 1,
-                    backgroundColor: isActive
-                      ? "color-mix(in srgb, var(--btn-primary) 6%, transparent)"
-                      : "transparent",
-                  }}
-                >
-                  <span
-                    aria-hidden
-                    className={`h-2 w-2 rounded-full transition-opacity ${
-                      isActive
-                        ? "opacity-100"
-                        : "opacity-0 group-hover/radio:opacity-40"
-                    }`}
-                    style={{ backgroundColor: "var(--btn-primary)" }}
-                  />
-                </button>
+                <Radio
+                  name="vault-selection"
+                  value={v.id}
+                  checked={isActive}
+                  onChange={() => handleSwitch(v.id)}
+                  disabled={busy}
+                />
                 <div className="min-w-0 flex-1">
                   {isRenaming ? (
                     <input

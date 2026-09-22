@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Plus } from "lucide-react";
 import { usePortfolioCategories } from "../../hooks/usePortfolio";
+import { Button } from "../common/Button";
 
 type Props = {
   value: string;
@@ -190,18 +191,17 @@ export function CategoryCombobox({
           className="flex-1 rounded-md bg-transparent px-2 py-1.5 text-sm outline-none"
           style={{ color: "var(--ink)" }}
         />
-        <button
-          type="button"
+        <Button
+          variant="icon"
           onClick={() => {
             setOpen((o) => !o);
             inputRef.current?.focus();
           }}
           aria-label="후보 펼치기"
           className="px-1.5"
-          style={{ color: "var(--faint)" }}
         >
           <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        </Button>
       </div>
 
       {open && totalRows > 0 && popRect

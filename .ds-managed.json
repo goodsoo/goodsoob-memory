@@ -18,8 +18,9 @@
       "blocks": {
         "color": "f2d52acc9e357192b90539657c800015538d754ac7b1f0992a7c8716b56e00e4",
         "tokens-theme": "9d775497bdf437570b872eb6af4c3e4196bab007cf79ee8b9fe173ab6e150852",
-        "tokens": "1b36d6362c18baad85f3eabd62e05c040a8e71c7194f28eedc6909162fc32d4a",
-        "tokens-scale": "579ef0666f6678abefb7db0494c5445d3782307b5e2fbc7a85be1d1e10c335e9"
+        "tokens": "f13fa93d54f5fb6b7bfac81d83a796bb53bcd316c156d7c052d574c4516739ec",
+        "tokens-scale": "579ef0666f6678abefb7db0494c5445d3782307b5e2fbc7a85be1d1e10c335e9",
+        "layout": "4bce76fd3d7ef68daa10651ddba997fcc720eedfb240727604ad580ec2a66af2"
       }
     }
   }

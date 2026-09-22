@@ -176,17 +176,16 @@
        필요해지면 여기 다시 선언. */
     --focus-ring: #0071e3;
 
-    /* Layout */
+    /* Layout — --safe-bottom·--bottom-nav-h 는 공유 layout 블록(layout.css)으로
+       분리됨(2026-09-22, app consumer 가 sync 로 수신). 나머지 safe-* / titlebar /
+       page-header 는 work 고유라 여기 유지. */
     --safe-top: env(safe-area-inset-top);
-    --safe-bottom: env(safe-area-inset-bottom);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
     --titlebar-inset: 0px;
     --titlebar-traffic-inset: 0px;
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
-    /* 모바일 하단 탭바 콘텐츠 높이 (56px) — safe-area 는 컴포넌트가 별도 가산. */
-    --bottom-nav-h: 3.5rem;
 
     /* ── 시맨틱 토큰 (raw 자리 var() 참조용) ──
        @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
@@ -200,9 +199,9 @@
     --opacity-active: 0.8;
     --opacity-overlay: 0.5;
 
-    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast */
+    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
+       --z-sticky 는 공유 layout 블록(layout.css)으로 분리됨(2026-09-22). */
     --z-dropdown: 10;
-    --z-sticky: 20;
     --z-overlay: 30;
     --z-modal: 50;
     --z-popover: 55;
@@ -341,6 +340,23 @@
     }
   }
 /* DESIGN-SYSTEM:tokens-scale END */
+
+/* DESIGN-SYSTEM:layout START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* Layout — BottomNav 등 하단 내비/스티키 레이어가 쓰는 공유 레이아웃 토큰.
+       app consumer(memory·growth)가 sync 로 받는다(중복 0 근본해결). tokens.css
+       에서 분리(2026-09-22) — tokens.css 는 work 고유(exclude 되는 앱 있음)라
+       공유 레이아웃 토큰을 여기 별도 layout 블록으로 뽑아 필요한 consumer 만 수신. */
+
+    /* 모바일 하단 탭바 콘텐츠 높이 (56px) — safe-area 는 컴포넌트가 별도 가산. */
+    --bottom-nav-h: 3.5rem;
+    /* 하단 safe-area 인셋 (노치/홈바). BottomNav 가 콘텐츠 높이에 가산. */
+    --safe-bottom: env(safe-area-inset-bottom);
+    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
+       sticky = 하단 탭바 등 스티키 레이어. (전체 스케일은 tokens.css 참조.) */
+    --z-sticky: 20;
+  }
+/* DESIGN-SYSTEM:layout END */
 
   /* ── Base styles ── */
 

@@ -79,6 +79,11 @@
     --down: #d33a2f;
     --down-soft: #fbe9e7;
     --down-line: #f3c7c1;
+    /* Button primary(중립 강조) — 공유 파운데이션. 모든 consumer(accent-theme
+       포함)가 받아 DS Button primary 변형이 어디서나 렌더된다. work 는 필요 시
+       tokens.css 에서 override. (2026-09-22 tokens.css work-only 에서 이관.) */
+    --btn-primary: #1d1d1f;
+    --btn-primary-text: #ffffff;
   }
 
   :root[data-theme="dark"] {
@@ -107,6 +112,8 @@
     --down: #ff5a4d;
     --down-soft: #331810;
     --down-line: #5a2a22;
+    --btn-primary: #e4e4e7;
+    --btn-primary-text: #18181b;
   }
 /* DESIGN-SYSTEM:color END */
 
@@ -164,8 +171,9 @@
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
 
     /* Interactive */
-    --btn-primary: #1d1d1f;
-    --btn-primary-text: #ffffff;
+    /* --btn-primary / --btn-primary-text 는 공유 color 파운데이션(color.css)으로
+       이관됨(2026-09-22) — accent-theme consumer 도 받도록. work 고유 override 가
+       필요해지면 여기 다시 선언. */
     --focus-ring: #0071e3;
 
     /* Layout */
@@ -173,11 +181,12 @@
     --safe-bottom: env(safe-area-inset-bottom);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
-    --app-header-h: 3.5rem;
     --titlebar-inset: 0px;
     --titlebar-traffic-inset: 0px;
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
+    /* 모바일 하단 탭바 콘텐츠 높이 (56px) — safe-area 는 컴포넌트가 별도 가산. */
+    --bottom-nav-h: 3.5rem;
 
     /* ── 시맨틱 토큰 (raw 자리 var() 참조용) ──
        @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
@@ -259,15 +268,8 @@
     --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
 
     /* Interactive */
-    --btn-primary: #e4e4e7;
-    --btn-primary-text: #18181b;
+    /* --btn-primary / --btn-primary-text (dark) → color.css 로 이관(2026-09-22). */
     --focus-ring: #60a5fa;
-  }
-
-  @media (min-width: 640px) {
-    :root {
-      --app-header-h: 0px;
-    }
   }
 /* DESIGN-SYSTEM:tokens END */
 

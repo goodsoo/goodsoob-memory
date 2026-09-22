@@ -152,7 +152,7 @@ export function TasksPage({
   }
 
   return (
-    <div className="flex h-[calc(100svh-var(--app-header-h)-72px)] flex-col lg:h-full lg:min-h-0">
+    <div className="flex h-[calc(100svh-var(--page-header-h))] flex-col lg:h-full lg:min-h-0">
       <div className="shrink-0">
       <PageHeaderBar
         sticky={false}

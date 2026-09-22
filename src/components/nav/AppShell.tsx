@@ -22,7 +22,7 @@ import { SettingsModal } from "../settings/SettingsModal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Popover } from "../common/Popover";
-import { BottomTabs, TABS, type Tab } from "./BottomTabs";
+import { TABS, type Tab } from "./tabs";
 import { SyncIndicator } from "./SyncIndicator";
 
 const MOBILE_DRAWER_WIDTH = 288;
@@ -67,7 +67,7 @@ export function AppShell({
 
   const mainPaddingLeft = desktopSidePanelVisible ? `${width}px` : "0px";
 
-  // BottomTab 변경 시 drawer 자동 닫기
+  // 탭 변경 시 열린 모바일 drawer 자동 닫기. 데스크탑은 drawer 가 닫혀있어 no-op.
   function handleTabChange(next: Tab) {
     drawer.close();
     onTabChange(next);
@@ -123,7 +123,10 @@ export function AppShell({
           top: "var(--safe-top)",
           left: 0,
           right: 0,
-          height: "var(--app-header-h)",
+          // 상시 앱 헤더 높이 — DS components.md §6 Header 규격 (--page-header-h, 52px).
+          // canonical --app-header-h 는 @media(min-width:640px)에서 0 이 되는 "모바일
+          // 전용 top-bar" 토큰이라 상시 헤더에 쓰면 데스크탑에서 찌부러진다 (4abf900 회귀).
+          height: "var(--page-header-h)",
           backgroundColor: "var(--line)",
           borderBottom: "1px solid var(--line)",
           zIndex: 50,
@@ -155,7 +158,7 @@ export function AppShell({
           </div>
         ) : null}
         <div className="flex h-full items-stretch">
-          <HeaderTabs activeTab={activeTab} onTabChange={onTabChange} />
+          <HeaderTabs activeTab={activeTab} onTabChange={handleTabChange} />
         </div>
         {/* 가운데 flex-1 스페이서 — live 시계(날짜·시간)는 좁은 창에선 숨김. */}
         <div className="hidden flex-1 items-center justify-center lg:flex">
@@ -210,7 +213,7 @@ export function AppShell({
           >
             <div
               className="flex h-full flex-col"
-              style={{ paddingTop: "var(--app-header-h)" }}
+              style={{ paddingTop: "var(--page-header-h)" }}
             >
               <div className="relative min-h-0 flex-1">{sidePanel}</div>
               {sidePanelFooter ? (
@@ -250,7 +253,7 @@ export function AppShell({
               backgroundColor: "var(--surface)",
               borderRight: "1px solid var(--line)",
               // 항상 떠있는 헤더바 아래로 드로어 내용이 시작하게 inset 확보.
-              paddingTop: "calc(var(--safe-top) + var(--app-header-h))",
+              paddingTop: "calc(var(--safe-top) + var(--page-header-h))",
             }}
             aria-hidden={!drawer.isOpen}
           >
@@ -265,10 +268,10 @@ export function AppShell({
         key={activeTab}
         style={
           {
-            // 하단 탭을 숨겨 더는 72px 여백이 필요 없음 — safe-area 만.
+            // 내비게이션은 헤더 탭 단일 — 하단 탭이 없어 bottom 여백은 safe-area 만.
             paddingBottom: "var(--safe-bottom)",
             ["--gs-main-pl" as string]: mainPaddingLeft,
-            ["--gs-main-pt" as string]: "var(--app-header-h)",
+            ["--gs-main-pt" as string]: "var(--page-header-h)",
           } as React.CSSProperties
         }
         className="[padding-top:var(--gs-main-pt)] lg:!pb-0 lg:h-screen lg:overflow-y-auto lg:overscroll-none lg:[padding-left:var(--gs-main-pl)]"
@@ -283,11 +286,6 @@ export function AppShell({
           {children}
         </SidebarToggleProvider>
       </main>
-
-      {/* 하단 탭 — 좁은 창에서도 타이틀바 탭이 그대로 보이므로 중복 제거(숨김). */}
-      <div className="hidden">
-        <BottomTabs activeTab={activeTab} onTabChange={handleTabChange} />
-      </div>
 
       <SettingsModal
         open={settingsOpen}

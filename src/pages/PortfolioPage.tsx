@@ -177,7 +177,7 @@ export function PortfolioPage({
   const allWorks = worksQuery.data ?? [];
 
   return (
-    <div className="flex h-[calc(100svh-var(--app-header-h)-72px)] flex-col lg:h-full lg:min-h-0">
+    <div className="flex h-[calc(100svh-var(--page-header-h))] flex-col lg:h-full lg:min-h-0">
       <div className="shrink-0">
         <PortfolioHeader />
         {allWorks.length > 0 ? (

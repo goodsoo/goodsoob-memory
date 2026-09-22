@@ -184,8 +184,7 @@ const Z_LAYERS = [
 ];
 
 const LAYOUT_TOKENS = [
-  { name: "--app-header-h", value: "3.5rem / 0", usage: "모바일 상단 헤더 (desktop 0)" },
-  { name: "--page-header-h", value: "3.25rem", usage: "사이드바 + 본문 헤더 공통 row" },
+  { name: "--page-header-h", value: "3.25rem", usage: "페이지·앱 헤더 공통 높이 (DS §6, 상시)" },
   { name: "--safe-top/bottom/left/right", value: "env(safe-area-inset-*)", usage: "iOS notch / 홈 인디케이터" },
 ];
 

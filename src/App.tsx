@@ -4,7 +4,7 @@ import { VaultImageIndexProvider } from "./lib/markdown/VaultImageIndexProvider"
 import { AppShell } from "./components/nav/AppShell";
 import { GlobalTooltip } from "./components/Tooltip";
 import { ToastProvider, useToast } from "./components/Toast";
-import { TABS, type Tab } from "./components/nav/BottomTabs";
+import { TABS, type Tab } from "./components/nav/tabs";
 import { MeetingForm } from "./components/meetings/MeetingForm";
 import { QuickSwitcher } from "./components/meetings/QuickSwitcher";
 import { TaskAddModal } from "./components/tasks/TaskAddModal";

@@ -16,9 +16,9 @@
   --breakpoint-lg: 640px;
 
   /* ── Tailwind 폰트 스케일 브리지 (Phase 5) ──
-     Tailwind text-* 유틸을 canonical --fs-* 로 정렬해, work 의 text-sm/base 등이
+     Tailwind text-* 유틸을 canonical --fs-* 로 정렬해, memory 의 text-sm/base 등이
      기본 Tailwind 크기(14/16) 대신 DS dense 스케일(13/14)을 가리키게 한다 —
-     tower·growth 와 타이포 통일. work 은 유일한 @theme(Tailwind) consumer 라
+     tower·growth 와 타이포 통일. memory 는 유일한 @theme(Tailwind) consumer 라
      tower/growth(비-Tailwind)엔 영향 없음. line-height 는 Tailwind 기본 페어링 유지.
      (값은 --fs-* 라 --fscale 배율도 자동 상속.) */
   --text-3xs: var(--fs-3xs);    /* 10 — 초소형(D-day칩·하단탭 라벨 등). text-3xs 유틸 생성용 */
@@ -80,10 +80,15 @@
     --down-soft: #fbe9e7;
     --down-line: #f3c7c1;
     /* Button primary(중립 강조) — 공유 파운데이션. 모든 consumer(accent-theme
-       포함)가 받아 DS Button primary 변형이 어디서나 렌더된다. work 는 필요 시
-       tokens.css 에서 override. (2026-09-22 tokens.css work-only 에서 이관.) */
+       포함)가 받아 DS Button primary 변형이 어디서나 렌더된다. memory 는 필요 시
+       tokens.css 에서 override. (2026-09-22 tokens.css 앱-로컬 정의에서 이관.) */
     --btn-primary: #1d1d1f;
     --btn-primary-text: #ffffff;
+    /* 유색 solid 배경(accent 파랑·danger 빨강 등) 위 글자 — 배경이 light·dark
+       모두 진한 유색이라 글자는 항상 흰색 고정. (primary 는 배경이 명암 반전하므로
+       글자도 반전하는 --btn-primary-text 를 따로 쓴다. --text-inverse 는 반전 토큰이라
+       유색 solid 엔 부적합 — dark 에서 글자가 어두워짐.) */
+    --on-accent: #ffffff;
   }
 
   :root[data-theme="dark"] {
@@ -121,12 +126,13 @@
   :root {
     color-scheme: light;
 
-    /* work 고유·비공유 토큰만. 공유 색 파운데이션은 color.css(tokens 앞 color 블록),
-       크기 스케일은 scale.css(tokens-scale 블록)로 분리됨. 여기엔 캔버스·앱 로컬
-       파생 + work 컴포넌트 전용(speaker·cat·btn·focus·layout·z·opacity·shadow·motion). */
+    /* 캔버스·앱 로컬 파생 + 앱-로컬 컴포넌트 전용 토큰(speaker·cat·btn·layout).
+       현재 goodsoob-memory 만 수신. 공유 색 파운데이션은 color.css, 크기 스케일은
+       scale.css, 시스템 프리미티브(opacity·z·shadow·motion·focus-ring·text-inverse)는
+       system.css 로 분리됨(전 consumer 공유, 2026-09-24). */
 
-    /* --bg(앱 캔버스)는 앱별 오버라이드 대상 — work 은 카드형이 아니라 본문이
-       캔버스에 직접 얹혀서 흰색 유지 (docs/palette-unification.md). */
+    /* --bg(앱 캔버스)는 앱별 오버라이드 대상 — 이 블록 수신 앱(memory)은 카드형이 아니라
+       본문이 캔버스에 직접 얹혀서 흰색 유지 (docs/palette-unification.md). */
     --bg: #ffffff;
 
     /* App-local: 캔버스 파생 오버레이·프로스트(캔버스 색에 종속 → 앱 로컬). */
@@ -134,9 +140,8 @@
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-    --text-inverse: #ffffff;
 
-    /* App-local accent/상태 파생 잉크(work 컴포넌트 전용, 파운데이션 아님).
+    /* App-local accent/상태 파생 잉크(앱-로컬 컴포넌트 전용, 파운데이션 아님).
        tower 이름 체계에 맞춰 down(위험) 계열 잉크로 명명. */
     --down-ink: #991b1b;
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
@@ -170,15 +175,9 @@
     --speaker-8-bg: #ecfccb; --speaker-8-text: #4d7c0f; /* lime */
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
 
-    /* Interactive */
-    /* --btn-primary / --btn-primary-text 는 공유 color 파운데이션(color.css)으로
-       이관됨(2026-09-22) — accent-theme consumer 도 받도록. work 고유 override 가
-       필요해지면 여기 다시 선언. */
-    --focus-ring: #0071e3;
-
     /* Layout — --safe-bottom·--bottom-nav-h 는 공유 layout 블록(layout.css)으로
        분리됨(2026-09-22, app consumer 가 sync 로 수신). 나머지 safe-* / titlebar /
-       page-header 는 work 고유라 여기 유지. */
+       page-header 는 앱-로컬이라 여기 유지. */
     --safe-top: env(safe-area-inset-top);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
@@ -186,37 +185,6 @@
     --titlebar-traffic-inset: 0px;
     /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
     --page-header-h: 3.25rem;
-
-    /* ── 시맨틱 토큰 (raw 자리 var() 참조용) ──
-       @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
-       scale 을 교체해 raw 자리 깨짐. :root 로 옮겨 default utility 보존 + 시맨틱
-       의미는 인라인 style 로 (예: style={{ zIndex: "var(--z-modal)" }}). */
-
-    /* opacity */
-    --opacity-disabled: 0.4;
-    --opacity-secondary: 0.6;
-    --opacity-hover: 0.9;
-    --opacity-active: 0.8;
-    --opacity-overlay: 0.5;
-
-    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
-       --z-sticky 는 공유 layout 블록(layout.css)으로 분리됨(2026-09-22). */
-    --z-dropdown: 10;
-    --z-overlay: 30;
-    --z-modal: 50;
-    --z-popover: 55;
-    --z-tooltip: 60;
-    --z-toast: 70;
-
-    /* shadow */
-    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-    --shadow-modal: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-    --shadow-popover: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
-
-    /* motion */
-    --motion-fast: 120ms;
-    --motion-base: 150ms;
-    --motion-slow: 250ms;
   }
 
   :root.is-mac-tauri {
@@ -236,7 +204,6 @@
     --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
-    --text-inverse: #1d1d1f;
 
     /* App-local accent/상태 파생 잉크 (dark) */
     --down-ink: #fca5a5;
@@ -265,17 +232,13 @@
     --speaker-7-bg: rgba(232, 121, 249, 0.15); --speaker-7-text: #f0abfc; /* fuchsia */
     --speaker-8-bg: rgba(163, 230, 53, 0.15);  --speaker-8-text: #bef264; /* lime */
     --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
-
-    /* Interactive */
-    /* --btn-primary / --btn-primary-text (dark) → color.css 로 이관(2026-09-22). */
-    --focus-ring: #60a5fa;
   }
 /* DESIGN-SYSTEM:tokens END */
 
 /* DESIGN-SYSTEM:tokens-scale START — managed by goodsoob-design-system, do not edit */
   :root {
     /* ── Spacing scale ── 값기반 네이밍(이름 = px 값). 하드코딩 px 금지, 전부 이 토큰.
-       4/8/12/16/24 = tower·work·growth 만장일치 · 6 = 조밀 컨트롤(버튼·칩) · 20 = 데이터상
+       4/8/12/16/24 = tower·memory·growth 만장일치 · 6 = 조밀 컨트롤(버튼·칩) · 20 = 데이터상
        tower 27회로 24(18회)보다 빈번 · 32 = 레이아웃/모달 거터. semantic 별칭 안 만들고 직접 참조. */
     --space-4: 4px;
     --space-6: 6px;
@@ -293,7 +256,7 @@
     --radius-full: 9999px;  /* pill — 칩·태그 (growth pill 20 → full 흡수) */
 
     /* ── Icon 글리프 크기 ── */
-    --icon-12: 12px;  /* 칩·배지 내 인라인 (work h-3 최다) */
+    --icon-12: 12px;  /* 칩·배지 내 인라인 (memory h-3 최다) */
     --icon-14: 14px;  /* 컨트롤 내 아이콘 (버튼 라벨 동반) */
     --icon-16: 16px;  /* 아이콘 전용 버튼 */
     --icon-20: 20px;  /* 기본 */
@@ -345,7 +308,7 @@
   :root {
     /* Layout — BottomNav 등 하단 내비/스티키 레이어가 쓰는 공유 레이아웃 토큰.
        app consumer(memory·growth)가 sync 로 받는다(중복 0 근본해결). tokens.css
-       에서 분리(2026-09-22) — tokens.css 는 work 고유(exclude 되는 앱 있음)라
+       에서 분리(2026-09-22) — tokens.css 는 앱-로컬(exclude 되는 앱 있음)이라
        공유 레이아웃 토큰을 여기 별도 layout 블록으로 뽑아 필요한 consumer 만 수신. */
 
     /* 모바일 하단 탭바 콘텐츠 높이 (56px) — safe-area 는 컴포넌트가 별도 가산. */
@@ -357,6 +320,55 @@
     --z-sticky: 20;
   }
 /* DESIGN-SYSTEM:layout END */
+/* DESIGN-SYSTEM:system START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* 시스템 프리미티브 — 앱 종속이 없는 공유 원시값. opacity · z-index · shadow ·
+       motion + focus-ring · text-inverse. 전 app consumer(memory·growth·tower)가
+       sync 로 수신하는 공유 파운데이션(특정 앱 전용 아님). 캔버스·앱 로컬 파생은
+       tokens.css, 색 파운데이션은 color.css, 크기 스케일은 scale.css. */
+
+    --text-inverse: #ffffff;
+
+    /* Interactive */
+    --focus-ring: #0071e3;
+
+    /* ── 시맨틱 프리미티브 (raw 자리 var() 참조용) ──
+       @theme 안에 박으면 Tailwind v4 가 default `z-50` / `opacity-50` utility
+       scale 을 교체해 raw 자리 깨짐. :root 로 둬 default utility 보존 + 시맨틱
+       의미는 인라인 style 로 (예: style={{ zIndex: "var(--z-modal)" }}). */
+
+    /* opacity */
+    --opacity-disabled: 0.4;
+    --opacity-secondary: 0.6;
+    --opacity-hover: 0.9;
+    --opacity-active: 0.8;
+    --opacity-overlay: 0.5;
+
+    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
+       --z-sticky 는 공유 layout 블록(layout.css)에 있음. */
+    --z-dropdown: 10;
+    --z-overlay: 30;
+    --z-modal: 50;
+    --z-popover: 55;
+    --z-tooltip: 60;
+    --z-toast: 70;
+
+    /* shadow */
+    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    --shadow-modal: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+    --shadow-popover: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
+
+    /* motion */
+    --motion-fast: 120ms;
+    --motion-base: 150ms;
+    --motion-slow: 250ms;
+  }
+
+  :root[data-theme="dark"] {
+    --text-inverse: #1d1d1f;
+    --focus-ring: #60a5fa;
+  }
+/* DESIGN-SYSTEM:system END */
 
   /* ── Base styles ── */
 

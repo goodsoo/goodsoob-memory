@@ -79,6 +79,11 @@
     --down: #d33a2f;
     --down-soft: #fbe9e7;
     --down-line: #f3c7c1;
+    /* status tone 글자색(soft 배경 위 대비) — 앱-로컬 tokens.css 에서 공유 파운데이션으로
+       이관(2026-09-23). accent-theme consumer 도 DS Button tone 을 쓸 수 있게. */
+    --ok-ink: #166b2e;
+    --warn-ink: #9a4a07;
+    --down-ink: #991b1b;
     /* Button primary(중립 강조) — 공유 파운데이션. 모든 consumer(accent-theme
        포함)가 받아 DS Button primary 변형이 어디서나 렌더된다. memory 는 필요 시
        tokens.css 에서 override. (2026-09-22 tokens.css 앱-로컬 정의에서 이관.) */
@@ -117,6 +122,9 @@
     --down: #ff5a4d;
     --down-soft: #331810;
     --down-line: #5a2a22;
+    --ok-ink: #7fe0a0;
+    --warn-ink: #f0b565;
+    --down-ink: #fca5a5;
     --btn-primary: #e4e4e7;
     --btn-primary-text: #18181b;
   }
@@ -141,9 +149,8 @@
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
 
-    /* App-local accent/상태 파생 잉크(앱-로컬 컴포넌트 전용, 파운데이션 아님).
-       tower 이름 체계에 맞춰 down(위험) 계열 잉크로 명명. */
-    --down-ink: #991b1b;
+    /* status tone 잉크(--ok/warn/down-ink)는 공유 color.css 파운데이션으로 이관(2026-09-23)
+       — accent-theme consumer 도 DS Button tone 글자색을 받도록. */
     --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
     --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
 
@@ -205,8 +212,7 @@
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
 
-    /* App-local accent/상태 파생 잉크 (dark) */
-    --down-ink: #fca5a5;
+    /* status tone 잉크는 공유 color.css 로 이관(2026-09-23). */
     --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
     --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
 
@@ -315,9 +321,15 @@
     --bottom-nav-h: 3.5rem;
     /* 하단 safe-area 인셋 (노치/홈바). BottomNav 가 콘텐츠 높이에 가산. */
     --safe-bottom: env(safe-area-inset-bottom);
-    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
-       sticky = 하단 탭바 등 스티키 레이어. (전체 스케일은 tokens.css 참조.) */
+    /* z-index 전체 스택: dropdown < sticky < overlay < modal < popover < tooltip < toast.
+       공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신. */
+    --z-dropdown: 10;
     --z-sticky: 20;
+    --z-overlay: 30;
+    --z-modal: 50;
+    --z-popover: 55;
+    --z-tooltip: 60;
+    --z-toast: 70;
   }
 /* DESIGN-SYSTEM:layout END */
 /* DESIGN-SYSTEM:system START — managed by goodsoob-design-system, do not edit */

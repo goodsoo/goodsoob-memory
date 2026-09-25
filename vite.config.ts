@@ -59,7 +59,7 @@ function jsxLocPlugin(): import('vite').Plugin {
 
 export default defineConfig({
   server: {
-    port: Number(process.env.VITE_PORT) || 7030,
+    port: Number(process.env.VITE_PORT) || 7022,
     strictPort: true,
   },
   define: {

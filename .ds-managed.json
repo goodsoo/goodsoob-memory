@@ -13,6 +13,10 @@
       "type": "copy",
       "sha256": "41dc7a3656b628e5ec425f988f545ae17f0c58228445b3cf483f31792034ef2d"
     },
+    "scripts/gen-icons.mjs": {
+      "type": "copy",
+      "sha256": "f95ed503e1646f4681ce43894952c2ebbdd2c86aa3c661a165b959b66f9aa79a"
+    },
     "src/index.css": {
       "type": "blocks",
       "blocks": {

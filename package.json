@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "icons": "bun run scripts/gen-icons.ts",
+    "icons": "node scripts/gen-icons.mjs",
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {

@@ -42,7 +42,7 @@ declare const Bun: {
   env: Record<string, string | undefined>;
 };
 
-const PORT = 7080; // 고정 (conductor 가 launchd plist 를 이 값으로 템플릿)
+const PORT = 7020; // 고정 (conductor 가 launchd plist 를 이 값으로 템플릿)
 const HOST = "127.0.0.1"; // loopback only — 절대 0.0.0.0 아님
 
 // ── VAULT_DIR (필수, ~/brain default 없음) ───────────────────────────────────

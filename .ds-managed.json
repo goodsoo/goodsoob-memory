@@ -13,14 +13,19 @@
       "type": "copy",
       "sha256": "41dc7a3656b628e5ec425f988f545ae17f0c58228445b3cf483f31792034ef2d"
     },
+    "scripts/gen-icons.mjs": {
+      "type": "copy",
+      "sha256": "f95ed503e1646f4681ce43894952c2ebbdd2c86aa3c661a165b959b66f9aa79a"
+    },
     "src/index.css": {
       "type": "blocks",
       "blocks": {
-        "color": "f2d52acc9e357192b90539657c800015538d754ac7b1f0992a7c8716b56e00e4",
-        "tokens-theme": "9d775497bdf437570b872eb6af4c3e4196bab007cf79ee8b9fe173ab6e150852",
-        "tokens": "f13fa93d54f5fb6b7bfac81d83a796bb53bcd316c156d7c052d574c4516739ec",
-        "tokens-scale": "579ef0666f6678abefb7db0494c5445d3782307b5e2fbc7a85be1d1e10c335e9",
-        "layout": "4bce76fd3d7ef68daa10651ddba997fcc720eedfb240727604ad580ec2a66af2"
+        "color": "295e59462804c87fa8877e3f3f082bab922c15b89f6f4cd78f30c2875ddb6d1c",
+        "tokens-theme": "c6ad990784a246c51e1071301a4cb1f702d7daa41f0a78699fec4e846497d501",
+        "tokens": "98656117e21e67287cd4b3eaa76d03812c7a37bad7666e4cc14d4bf1929c770f",
+        "system": "4b3b3d3a7e000e3127f54f746372bad6aa3decb68ffa8a2884d90523dc9929ca",
+        "tokens-scale": "61c8caa52008494fca2cb7be1c18571142524ac614e4a83b579ba080f071cfb2",
+        "layout": "641575b3a2ed169ae72cdeae3a7c93c2d7a9ce89e3aa236919db605e70b46432"
       }
     }
   }

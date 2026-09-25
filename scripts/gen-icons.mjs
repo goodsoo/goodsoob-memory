@@ -38,14 +38,6 @@ const srcPath = join(root, rel);
 const outDir = dirname(srcPath);
 const svg = readFileSync(srcPath);
 
-// Render once large (density lifts small viewBoxes to crisp raster), trim the
-// transparent margin → reused at a consistent size across every icon.
-const tight = await sharp(svg, { density: 384 })
-  .resize(1024, 1024, { fit: "contain", background: "#00000000" })
-  .png()
-  .trim()
-  .toBuffer({ resolveWithObject: true });
-
 function roundedBg(size, radius) {
   return Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">` +
@@ -53,29 +45,28 @@ function roundedBg(size, radius) {
   );
 }
 
-// white (rounded) bg + centered dark logo. fill = logo's share of the longer edge.
-async function makeIcon(size, radiusPct, fill) {
+// white (rounded) bg + logo rendered AT ITS SVG viewBox scale — no trim, no
+// re-normalization. 브랜드 SVG 작성자가 viewBox 안에 설계한 크기·여백을 그대로 존중해,
+// 4앱 로고가 서로 비율이 맞게 나온다. (구 trim+긴변정규화는 종횡비 다른 로고를 불균등하게 만듦.)
+async function makeIcon(size, radiusPct) {
   const bg = await sharp(roundedBg(size, Math.round(size * radiusPct))).png().toBuffer();
-  const target = Math.round(size * fill);
-  const logo = await sharp(tight.data)
-    .resize(target, target, { fit: "inside", background: "#00000000" })
+  const logo = await sharp(svg, { density: 512 })
+    .resize(size, size, { fit: "contain", background: "#00000000" })
     .png()
-    .toBuffer({ resolveWithObject: true });
-  const left = Math.round((size - logo.info.width) / 2);
-  const top = Math.round((size - logo.info.height) / 2);
-  return sharp(bg).composite([{ input: logo.data, top, left }]).png().toBuffer();
+    .toBuffer();
+  return sharp(bg).composite([{ input: logo, top: 0, left: 0 }]).png().toBuffer();
 }
 
 const targets = [
-  { size: 192, file: "icon-192.png", radiusPct: 0.22, fill: 0.62 },
-  { size: 512, file: "icon-512.png", radiusPct: 0.22, fill: 0.62 },
-  // maskable: the platform masks it, so full-bleed white square + logo in the safe zone.
-  { size: 512, file: "icon-512-maskable.png", radiusPct: 0, fill: 0.5 },
-  { size: 180, file: "apple-touch-icon.png", radiusPct: 0.22, fill: 0.62 },
+  { size: 192, file: "icon-192.png", radiusPct: 0.22 },
+  { size: 512, file: "icon-512.png", radiusPct: 0.22 },
+  // maskable: full-bleed white square (플랫폼이 마스킹). viewBox 여백이 safe zone 역할.
+  { size: 512, file: "icon-512-maskable.png", radiusPct: 0 },
+  { size: 180, file: "apple-touch-icon.png", radiusPct: 0.22 },
 ];
 
 for (const t of targets) {
-  const out = await makeIcon(t.size, t.radiusPct, t.fill);
+  const out = await makeIcon(t.size, t.radiusPct);
   writeFileSync(join(outDir, t.file), out);
   console.log(`gen-icons: wrote ${join(dirname(rel), t.file).replace(/\\/g, "/")}`);
 }

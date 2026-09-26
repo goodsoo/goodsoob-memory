@@ -252,6 +252,8 @@
     /* ── Control height (responsive) ── var(--ctl-h) 쓰는 버튼·아이콘버튼은
        데스크탑 28 / 터치 44 로 자동 적응. 하단 @media (pointer: coarse) 참조. */
     --ctl-h: 28px;
+    /* 입력 전용 높이 — Input·Select·Textarea·SearchField. 버튼(--ctl-h 28)보다 크게(터치 여유·growth 9개월 실사용). 2026-09-26 신설(제보 input-field-height-token). */
+    --field-h: 38px;
 
     /* ── Type scale ── tower 기준(dense 대시보드). 폰트 배율(--fscale)만 곱해
        '글자 크기만' 바뀌게(레이아웃/간격 고정, zoom 아님). 값·이름 = tower tokens.css. */
@@ -287,6 +289,7 @@
   @media (pointer: coarse) {
     :root {
       --ctl-h: 44px;
+      --field-h: 44px;
     }
   }
 /* DESIGN-SYSTEM:tokens-scale END */

@@ -8,7 +8,7 @@ import {
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Spinner } from "../common/Spinner";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 
 interface OrphanRow {
   path: string;
@@ -67,6 +67,7 @@ export function AttachmentsSection() {
       if (result.errors.length > 0) {
         toast.show(
           `정리 일부 실패. ${result.deleted.length}개 삭제, ${result.errors.length}개 실패.`,
+          { variant: "down" },
         );
       }
       await refresh();
@@ -75,6 +76,7 @@ export function AttachmentsSection() {
         err instanceof Error
           ? `정리에 실패했습니다. ${err.message}`
           : "정리에 실패했습니다.",
+        { variant: "down" },
       );
     } finally {
       setDeleting(false);

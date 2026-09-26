@@ -63,7 +63,7 @@ import { Text } from "../common/Text";
 import { FilterItem } from "../common/FilterItem";
 import { Popover } from "../common/Popover";
 import { ConfirmDialog } from "../ConfirmDialog";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 
 /* ── Meetings Side Panel ── */
 
@@ -186,7 +186,7 @@ export function MeetingsSidePanel({
       onRevealFolder(folder); // 그 폴더가 접혀 있었으면 펼쳐서 새 메모 노출
       onSelect(created.uid);
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -223,7 +223,7 @@ export function MeetingsSidePanel({
       // value 는 마지막 segment 만 (편집할 이름), folder 는 full rel path.
       setEditingFolder({ folder: createdRel, value: createdName });
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -276,7 +276,7 @@ export function MeetingsSidePanel({
       // 실패 시 input 닫고 원래 이름 복원 — server data 가 list 새로고침 시 그대로.
       // 에러는 우측하단 toast 로.
       setEditingFolder(null);
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -295,7 +295,7 @@ export function MeetingsSidePanel({
     try {
       await deleteFolderMutation.mutateAsync(target.folder);
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -304,7 +304,7 @@ export function MeetingsSidePanel({
     try {
       await moveMutation.mutateAsync({ uid, folder });
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -314,7 +314,7 @@ export function MeetingsSidePanel({
     try {
       await moveFolderMutation.mutateAsync({ folder: srcFolder, destParent });
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -323,7 +323,7 @@ export function MeetingsSidePanel({
     try {
       await togglePinMutation.mutateAsync({ uid, pinned: nextPinned });
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -336,10 +336,11 @@ export function MeetingsSidePanel({
       if (!ok) {
         toast.show(
           "복사에 실패했습니다. 권한 또는 환경을 확인하고 다시 시도하세요.",
+          { variant: "down" },
         );
       }
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -349,7 +350,7 @@ export function MeetingsSidePanel({
       const full = await getFullMeeting(uid);
       setExportTarget(meetingToMarkdownInput(full));
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 
@@ -362,7 +363,7 @@ export function MeetingsSidePanel({
       // 삭제한 게 현재 선택 메모면 선택 해제 (App 의 hash 정리 effect 가 이어받음).
       if (selectedId === uid) onDeselect?.();
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
     }
   }
 

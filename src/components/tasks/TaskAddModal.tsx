@@ -10,7 +10,7 @@ import { LooseTimeInput } from "../common/LooseTimeInput";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 import { formatError } from "../../lib/errors";
 
 type AddType = "task" | "routine";
@@ -290,7 +290,7 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
       },
       {
         onSuccess: () => onDone(),
-        onError: (err) => toast.show(formatError(err)),
+        onError: (err) => toast.show(formatError(err), { variant: "down" }),
       },
     );
   }

@@ -34,7 +34,7 @@ import { EmptyState } from "../common/EmptyState";
 import { SummaryModal } from "./SummaryModal";
 import { MeetingActionMenu } from "./MeetingActionMenu";
 import { ModeChip } from "../common/ModeChip";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 import { AttendeeTagInput } from "./AttendeeTagInput";
 import { SourceBodyEditor } from "./SourceBodyEditor";
 import { FindBar } from "./FindBar";
@@ -852,7 +852,7 @@ export function MeetingForm({
   function handleSummaryClick() {
     if (summaryDisabled) {
       toast.show("메모나 음성 기록을 먼저 작성하면 요약할 수 있습니다.", {
-        kind: "info",
+        variant: "info",
       });
       return;
     }

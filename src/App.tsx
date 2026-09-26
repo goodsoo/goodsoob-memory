@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VaultGate } from "./components/vault/VaultGate";
 import { VaultImageIndexProvider } from "./lib/markdown/VaultImageIndexProvider";
 import { AppShell } from "./components/nav/AppShell";
-import { GlobalTooltip } from "./components/Tooltip";
-import { ToastProvider, useToast } from "./components/Toast";
+import { ToastProvider, useToast, TooltipProvider } from "@goodsoob/ds";
 import { TABS, type Tab } from "./components/nav/tabs";
 import { MeetingForm } from "./components/meetings/MeetingForm";
 import { QuickSwitcher } from "./components/meetings/QuickSwitcher";
@@ -110,7 +109,7 @@ export default function App() {
     <ErrorBoundary>
       <VaultGate>
         <VaultImageIndexProvider>
-          <GlobalTooltip />
+          <TooltipProvider />
           <ToastProvider>
             <DrawerProvider>
               <AppContent />
@@ -193,7 +192,7 @@ function AppContent() {
       setAuthGuideOpen(true);
       return;
     }
-    toast.show("동기화에 실패했습니다. 네트워크 연결을 확인하세요.");
+    toast.show("동기화에 실패했습니다. 네트워크 연결을 확인하세요.", { variant: "down" });
   };
 
   // last_sync - 1일 buffer 의 YYYY-MM-DD. 첫 sync (last_sync 없음) 면 undefined → 전체.
@@ -267,7 +266,7 @@ function AppContent() {
       let progressId: number | null = null;
       const progressTimer = setTimeout(() => {
         progressId = toast.show("vault 자동 백업 중… (크기에 따라 1-10초)", {
-          kind: "progress",
+          variant: "progress",
         });
       }, 1000);
       try {
@@ -550,7 +549,7 @@ function AppContent() {
       requestMeetingReveal("");
       openMeeting(created.uid);
     } catch {
-      toast.show("노트 생성에 실패했습니다. 잠시 후 다시 시도하세요.");
+      toast.show("노트 생성에 실패했습니다. 잠시 후 다시 시도하세요.", { variant: "down" });
     }
   }
 

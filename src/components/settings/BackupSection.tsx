@@ -5,7 +5,7 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Modal } from "../common/Modal";
 import { Spinner } from "../common/Spinner";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 import {
   runBackup,
   listBackups,
@@ -75,7 +75,7 @@ export function BackupSection() {
     }
     const timer = setTimeout(() => {
       progressIdRef.current = toast.show("vault 백업 중… (크기에 따라 1-10초)", {
-        kind: "progress",
+        variant: "progress",
       });
     }, 1000);
     return () => {

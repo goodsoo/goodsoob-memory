@@ -14,7 +14,7 @@ import { formatError } from "../../lib/errors";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 
 const SECTION_ORDER: MeetingMarkdownSection[] = ["body", "transcript", "summary"];
 
@@ -62,10 +62,10 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
     setSubmitting(true);
     try {
       const written = exportMeetingSections(meeting, sections);
-      toast.show(`${written.length}개 파일을 다운로드합니다.`, { kind: "info" });
+      toast.show(`${written.length}개 파일을 다운로드합니다.`, { variant: "info" });
       onClose();
     } catch (e) {
-      toast.show(formatError(e));
+      toast.show(formatError(e), { variant: "down" });
       setSubmitting(false);
     }
   }

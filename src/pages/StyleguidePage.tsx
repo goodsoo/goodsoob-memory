@@ -179,7 +179,7 @@ const Z_LAYERS = [
   { name: "--z-overlay", value: 30, usage: "popover / MarkdownHelpPanel" },
   { name: "--z-modal", value: 50, usage: "모든 <Modal>" },
   { name: "--z-popover", value: 55, usage: "모달 안 popover" },
-  { name: "--z-tooltip", value: 60, usage: "<GlobalTooltip />" },
+  { name: "--z-tooltip", value: 60, usage: "<TooltipProvider />" },
   { name: "--z-toast", value: 70, usage: "<ToastProvider>" },
 ];
 

@@ -12,7 +12,7 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
-import { useToast } from "../Toast";
+import { useToast } from "@goodsoob/ds";
 import { formatError } from "../../lib/errors";
 import {
   formatDateShort,
@@ -144,17 +144,17 @@ export function RoutineDetail({ name, onClose }: Props) {
     const trimmedName = d.name.trim();
     // validation — 실패 시 toast + close + revert (editing 유지 X, 사용자가 다시 클릭).
     if (!trimmedName) {
-      toast.show("이름은 비울 수 없습니다. 이전 값으로 되돌립니다.");
+      toast.show("이름은 비울 수 없습니다. 이전 값으로 되돌립니다.", { variant: "down" });
       setEditing(false);
       return;
     }
     if (!d.started) {
-      toast.show("시작일은 비울 수 없습니다. 이전 값으로 되돌립니다.");
+      toast.show("시작일은 비울 수 없습니다. 이전 값으로 되돌립니다.", { variant: "down" });
       setEditing(false);
       return;
     }
     if (d.ends && d.ends < d.started) {
-      toast.show("종료일은 시작일과 같거나 이후여야 합니다. 이전 값으로 되돌립니다.");
+      toast.show("종료일은 시작일과 같거나 이후여야 합니다. 이전 값으로 되돌립니다.", { variant: "down" });
       setEditing(false);
       return;
     }
@@ -173,7 +173,7 @@ export function RoutineDetail({ name, onClose }: Props) {
     try {
       await updateMutation.mutateAsync({ name: routine.name, patch });
     } catch (err) {
-      toast.show(formatError(err));
+      toast.show(formatError(err), { variant: "down" });
     } finally {
       setEditing(false);
     }
@@ -195,7 +195,7 @@ export function RoutineDetail({ name, onClose }: Props) {
       await deleteMutation.mutateAsync(routine.name);
       onClose();
     } catch (err) {
-      toast.show(formatError(err));
+      toast.show(formatError(err), { variant: "down" });
     }
   }
 

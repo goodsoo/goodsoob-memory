@@ -132,7 +132,7 @@ export function MeetingExportModal({ meeting, onClose }: Props) {
                       <svg
                         viewBox="0 0 12 12"
                         className="h-3 w-3"
-                        style={{ color: "var(--btn-primary-text)" }}
+                        style={{ color: "var(--text-inverse)" }}
                         aria-hidden
                       >
                         <path

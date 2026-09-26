@@ -52,8 +52,10 @@
 /* DESIGN-SYSTEM:color START — managed by goodsoob-design-system, do not edit */
   :root {
     /* 공유 색 파운데이션 — tower 이름·값 기준(진실원본). 중립 surface/ink/sub/faint/line
-       · accent 5변형 · ok/warn/down + soft/line. 이름·값 = goodsoob-tower/src/styles/tokens.css.
-       색과 무관한 크기 스케일은 scale.css, 캔버스(--bg)·앱 로컬 파생은 각 consumer 로컬. */
+       · accent 5변형 · ok/warn/down · 도메인 status(except/freeze) · 캔버스 · 도메인 색 전부.
+       이름·값 = goodsoob-tower/src/styles/tokens.css. 색과 무관한 크기 스케일은 scale.css,
+       시스템 프리미티브(opacity·z·shadow·motion·focus-ring·text-inverse)는 system.css.
+       (2026-09-25 캔버스·도메인 색을 memory 전용 tokens.css 에서 이관 — 앱-로컬 격리 폐지, 전 consumer 공유.) */
     --surface: #ffffff;
     --surface-2: #f7f9fc;
     --surface-3: #eef1f6;
@@ -64,8 +66,7 @@
     --sub: #5c5f68;
     --faint: #868a94;
     --dim: #a7aeb8;
-    --dot: #c4ccd5;
-    --tie: #9bb6d6;
+    --ghost: #c4ccd5;
     --accent: #0071e3;
     --accent-2: #005bbf;
     --accent-soft: #e8f1fd;
@@ -79,6 +80,10 @@
     --down: #d33a2f;
     --down-soft: #fbe9e7;
     --down-line: #f3c7c1;
+    /* 도메인 status 색 — growth 셀 상태(예외 청록·얼리기 하늘)에서 승격(2026-09-25).
+       consumer 가 Button lg 등에서 아이콘/외곽선/텍스트 색으로 사용. 라이트/다크 동일(색 유지). */
+    --except: #2f7d6e;
+    --freeze: #2b9fc9;
     /* status tone 글자색(soft 배경 위 대비) — 앱-로컬 tokens.css 에서 공유 파운데이션으로
        이관(2026-09-23). accent-theme consumer 도 DS Button tone 을 쓸 수 있게. */
     --ok-ink: #166b2e;
@@ -88,12 +93,43 @@
        포함)가 받아 DS Button primary 변형이 어디서나 렌더된다. memory 는 필요 시
        tokens.css 에서 override. (2026-09-22 tokens.css 앱-로컬 정의에서 이관.) */
     --btn-primary: #1d1d1f;
-    --btn-primary-text: #ffffff;
     /* 유색 solid 배경(accent 파랑·danger 빨강 등) 위 글자 — 배경이 light·dark
        모두 진한 유색이라 글자는 항상 흰색 고정. (primary 는 배경이 명암 반전하므로
-       글자도 반전하는 --btn-primary-text 를 따로 쓴다. --text-inverse 는 반전 토큰이라
-       유색 solid 엔 부적합 — dark 에서 글자가 어두워짐.) */
+       글자도 반전하는 --text-inverse 를 쓴다 — dark 에서 글자가 어두워지는 게 맞다.
+       하지만 유색 solid 는 배경이 반전 안 하므로 --text-inverse 부적합, 흰색 고정.) */
     --on-accent: #ffffff;
+
+    /* ── 캔버스(앱 배경) — 전 consumer 공유. --bg 통일 #f3f6fc (쿨 오프화이트,
+       tower/growth 기준). 앱별 로컬 오버라이드 폐지(2026-09-25). overlay/frost 는
+       캔버스 종속 파생. ── */
+    --bg: #f3f6fc;
+    --bg-overlay: rgba(255, 255, 255, 0.92);
+    --surface-frost: rgba(255, 255, 255, 0.78);
+    --surface-frost-border: rgba(0, 0, 0, 0.08);
+    --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+
+    /* ── 도메인 색 — 기능별 팔레트. 전 consumer 공유(memory 전용 격리 폐지). ── */
+    --accent-yellow: #eab308; /* 즐겨찾기/별 */
+    --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 */
+    /* Portfolio/Task category dots */
+    --cat-uiux: #2563eb;
+    --cat-backend: #16a34a;
+    --cat-infra: #d97706;
+    --cat-fix: #dc2626;
+    --cat-other: #7c3aed;
+    --cat-work: #ea580c;
+    --cat-schedule: #0d9488;
+    /* Speaker chips — 회의 참석자 하이라이트(positional i%10, d3/Tableau10 순서). */
+    --speaker-0-bg: #e0f2fe; --speaker-0-text: #0369a1; /* sky */
+    --speaker-1-bg: #ffedd5; --speaker-1-text: #c2410c; /* orange */
+    --speaker-2-bg: #d1fae5; --speaker-2-text: #047857; /* emerald */
+    --speaker-3-bg: #ffe4e6; --speaker-3-text: #be123c; /* rose */
+    --speaker-4-bg: #ede9fe; --speaker-4-text: #6d28d9; /* violet */
+    --speaker-5-bg: #fef3c7; --speaker-5-text: #b45309; /* amber */
+    --speaker-6-bg: #ccfbf1; --speaker-6-text: #0f766e; /* teal */
+    --speaker-7-bg: #fae8ff; --speaker-7-text: #a21caf; /* fuchsia */
+    --speaker-8-bg: #ecfccb; --speaker-8-text: #4d7c0f; /* lime */
+    --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
   }
 
   :root[data-theme="dark"] {
@@ -107,8 +143,7 @@
     --sub: #b0b8c4;
     --faint: #7c8592;
     --dim: #5c6572;
-    --dot: #39424f;
-    --tie: #4a6a8f;
+    --ghost: #39424f;
     --accent: #2f8fff;
     --accent-2: #1f6fd6;
     --accent-soft: #15263b;
@@ -122,11 +157,40 @@
     --down: #ff5a4d;
     --down-soft: #331810;
     --down-line: #5a2a22;
+    --except: #2f7d6e;
+    --freeze: #2b9fc9;
     --ok-ink: #7fe0a0;
     --warn-ink: #f0b565;
     --down-ink: #fca5a5;
     --btn-primary: #e4e4e7;
-    --btn-primary-text: #18181b;
+
+    /* 캔버스(dark) — tower 앵커 딥네이비, 전 앱 공유. */
+    --bg: #0c0f16;
+    --bg-overlay: rgba(12, 15, 22, 0.92);
+    --surface-frost: rgba(22, 27, 36, 0.65);
+    --surface-frost-border: rgba(255, 255, 255, 0.08);
+    --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
+
+    /* 도메인 색(dark) */
+    --accent-yellow: #fbbf24;
+    --find-highlight: rgba(250, 204, 21, 0.38);
+    --cat-uiux: #60a5fa;
+    --cat-backend: #4ade80;
+    --cat-infra: #fbbf24;
+    --cat-fix: #f87171;
+    --cat-other: #a78bfa;
+    --cat-work: #fb923c;
+    --cat-schedule: #2dd4bf;
+    --speaker-0-bg: rgba(56, 189, 248, 0.15);  --speaker-0-text: #7dd3fc; /* sky */
+    --speaker-1-bg: rgba(251, 146, 60, 0.15);  --speaker-1-text: #fdba74; /* orange */
+    --speaker-2-bg: rgba(52, 211, 153, 0.15);  --speaker-2-text: #6ee7b7; /* emerald */
+    --speaker-3-bg: rgba(251, 113, 133, 0.15); --speaker-3-text: #fda4af; /* rose */
+    --speaker-4-bg: rgba(167, 139, 250, 0.15); --speaker-4-text: #c4b5fd; /* violet */
+    --speaker-5-bg: rgba(251, 191, 36, 0.15);  --speaker-5-text: #fcd34d; /* amber */
+    --speaker-6-bg: rgba(45, 212, 191, 0.15);  --speaker-6-text: #5eead4; /* teal */
+    --speaker-7-bg: rgba(232, 121, 249, 0.15); --speaker-7-text: #f0abfc; /* fuchsia */
+    --speaker-8-bg: rgba(163, 230, 53, 0.15);  --speaker-8-text: #bef264; /* lime */
+    --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
   }
 /* DESIGN-SYSTEM:color END */
 
@@ -134,57 +198,10 @@
   :root {
     color-scheme: light;
 
-    /* 캔버스·앱 로컬 파생 + 앱-로컬 컴포넌트 전용 토큰(speaker·cat·btn·layout).
-       현재 goodsoob-memory 만 수신. 공유 색 파운데이션은 color.css, 크기 스케일은
-       scale.css, 시스템 프리미티브(opacity·z·shadow·motion·focus-ring·text-inverse)는
-       system.css 로 분리됨(전 consumer 공유, 2026-09-24). */
+    /* 앱-로컬 비색 토큰 — safe-area / titlebar / page-header. 색(캔버스·도메인)은
+       전부 color.css 로 이관됨(2026-09-25, memory 전용 격리 폐지 → 전 consumer 공유).
+       크기 스케일은 scale.css, 공유 layout(--safe-bottom·--bottom-nav-h)은 layout.css. */
 
-    /* --bg(앱 캔버스)는 앱별 오버라이드 대상 — 이 블록 수신 앱(memory)은 카드형이 아니라
-       본문이 캔버스에 직접 얹혀서 흰색 유지 (docs/palette-unification.md). */
-    --bg: #ffffff;
-
-    /* App-local: 캔버스 파생 오버레이·프로스트(캔버스 색에 종속 → 앱 로컬). */
-    --bg-overlay: rgba(255, 255, 255, 0.92);
-    --surface-frost: rgba(255, 255, 255, 0.78);
-    --surface-frost-border: rgba(0, 0, 0, 0.08);
-    --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
-
-    /* status tone 잉크(--ok/warn/down-ink)는 공유 color.css 파운데이션으로 이관(2026-09-23)
-       — accent-theme consumer 도 DS Button tone 글자색을 받도록. */
-    --accent-yellow: #eab308; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 */
-    --find-highlight: rgba(250, 204, 21, 0.45); /* 탭 내 찾기 현재 매치 오버레이 */
-
-    /* Portfolio category dots */
-    --cat-uiux: #2563eb;
-    --cat-backend: #16a34a;
-    --cat-infra: #d97706;
-    --cat-fix: #dc2626;
-    --cat-other: #7c3aed;
-
-    /* Task category dots — work/schedule 신규, other 는 portfolio 와 공유.
-       work 는 보라 계열인 --cat-other 와 명확히 구분되도록 주황. */
-    --cat-work: #ea580c;
-    --cat-schedule: #0d9488;
-
-    /* Speaker chips — 음성 기록 보기의 참석자 하이라이트. 카테고리형(positional)
-       팔레트: 적힌 순서대로 i%10 배정 → 한 회의 안 10명까지 색 안 겹침. accent 레시피
-       동일 (라이트=연한 tint bg + 진한 글자). 순서는 hue 휠 순이 아니라 연속 색이
-       최대한 멀어지게 점프 (대부분 2-4명 → 앞 색이 제일 많이 쓰임. 앞 4개=파랑·주황·
-       초록·분홍 보색 쌍, d3/Tableau10 방식). 색 자체 바꾸면 [data-theme=dark] 블록도 같이 수정. */
-    --speaker-0-bg: #e0f2fe; --speaker-0-text: #0369a1; /* sky */
-    --speaker-1-bg: #ffedd5; --speaker-1-text: #c2410c; /* orange */
-    --speaker-2-bg: #d1fae5; --speaker-2-text: #047857; /* emerald */
-    --speaker-3-bg: #ffe4e6; --speaker-3-text: #be123c; /* rose */
-    --speaker-4-bg: #ede9fe; --speaker-4-text: #6d28d9; /* violet */
-    --speaker-5-bg: #fef3c7; --speaker-5-text: #b45309; /* amber */
-    --speaker-6-bg: #ccfbf1; --speaker-6-text: #0f766e; /* teal */
-    --speaker-7-bg: #fae8ff; --speaker-7-text: #a21caf; /* fuchsia */
-    --speaker-8-bg: #ecfccb; --speaker-8-text: #4d7c0f; /* lime */
-    --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
-
-    /* Layout — --safe-bottom·--bottom-nav-h 는 공유 layout 블록(layout.css)으로
-       분리됨(2026-09-22, app consumer 가 sync 로 수신). 나머지 safe-* / titlebar /
-       page-header 는 앱-로컬이라 여기 유지. */
     --safe-top: env(safe-area-inset-top);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
@@ -202,42 +219,6 @@
 
   :root[data-theme="dark"] {
     color-scheme: dark;
-
-    /* --bg(앱 캔버스) 다크 — 앱별 오버라이드. tower 앵커 딥네이비. */
-    --bg: #0c0f16;
-
-    /* App-local: 캔버스 파생 오버레이·프로스트 (dark) */
-    --bg-overlay: rgba(12, 15, 22, 0.92);
-    --surface-frost: rgba(22, 27, 36, 0.65);
-    --surface-frost-border: rgba(255, 255, 255, 0.08);
-    --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);
-
-    /* status tone 잉크는 공유 color.css 로 이관(2026-09-23). */
-    --accent-yellow: #fbbf24; /* 즐겨찾기/별 — 사이드바 pinned 메모 아이콘 (dark) */
-    --find-highlight: rgba(250, 204, 21, 0.38); /* 탭 내 찾기 현재 매치 오버레이 (dark) */
-
-    /* Portfolio category dots */
-    --cat-uiux: #60a5fa;
-    --cat-backend: #4ade80;
-    --cat-infra: #fbbf24;
-    --cat-fix: #f87171;
-    --cat-other: #a78bfa;
-
-    /* Task category dots */
-    --cat-work: #fb923c;
-    --cat-schedule: #2dd4bf;
-
-    /* Speaker chips (dark) — 저알파 tint bg + 밝은 글자. 순서는 라이트와 동일. */
-    --speaker-0-bg: rgba(56, 189, 248, 0.15);  --speaker-0-text: #7dd3fc; /* sky */
-    --speaker-1-bg: rgba(251, 146, 60, 0.15);  --speaker-1-text: #fdba74; /* orange */
-    --speaker-2-bg: rgba(52, 211, 153, 0.15);  --speaker-2-text: #6ee7b7; /* emerald */
-    --speaker-3-bg: rgba(251, 113, 133, 0.15); --speaker-3-text: #fda4af; /* rose */
-    --speaker-4-bg: rgba(167, 139, 250, 0.15); --speaker-4-text: #c4b5fd; /* violet */
-    --speaker-5-bg: rgba(251, 191, 36, 0.15);  --speaker-5-text: #fcd34d; /* amber */
-    --speaker-6-bg: rgba(45, 212, 191, 0.15);  --speaker-6-text: #5eead4; /* teal */
-    --speaker-7-bg: rgba(232, 121, 249, 0.15); --speaker-7-text: #f0abfc; /* fuchsia */
-    --speaker-8-bg: rgba(163, 230, 53, 0.15);  --speaker-8-text: #bef264; /* lime */
-    --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
   }
 /* DESIGN-SYSTEM:tokens END */
 

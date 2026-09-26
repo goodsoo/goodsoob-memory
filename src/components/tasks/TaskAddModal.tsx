@@ -468,7 +468,7 @@ function CategoryChip({
       className="rounded-full px-3 py-1"
       style={{
         backgroundColor: active ? "var(--btn-primary)" : "var(--surface)",
-        color: active ? "var(--btn-primary-text)" : "var(--sub)",
+        color: active ? "var(--text-inverse)" : "var(--sub)",
         border: `1px solid ${active ? "var(--btn-primary)" : "var(--line)"}`,
       }}
     >

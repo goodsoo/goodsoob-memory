@@ -540,24 +540,6 @@
   }
   .task-card-flash { animation: taskCardFlash 600ms ease; }
 
-  /* 메모 meta 영역 input — 옵시디안 properties 스타일 plain text.
-     WebKit type=date/time 의 강제 native UI 박스 회피 위해 type=text 사용. */
-  .meta-input {
-    appearance: none;
-    -webkit-appearance: none;
-    border: 0;
-    background-color: transparent;
-    outline: none;
-    padding: 0;
-    margin: 0;
-    font-size: var(--fs-base);
-    line-height: 1.625rem;
-    color: var(--ink);
-    font-family: inherit;
-    min-width: 0;
-  }
-  .meta-input::placeholder { color: var(--faint); }
-
   /* meta row focus-within 강조 — 옵시디안 properties 의 row hover 패턴 */
   .meta-row {
     border-radius: var(--radius-6);

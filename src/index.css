@@ -104,6 +104,9 @@
        캔버스 종속 파생. ── */
     --bg: #f3f6fc;
     --bg-overlay: rgba(255, 255, 255, 0.92);
+    /* sync-pending: mirrors canonical color.css (ds-sync will formally propagate).
+       Consumed by @goodsoob/ds Modal backdrop="scrim". */
+    --bg-scrim: rgba(0, 0, 0, 0.4);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
@@ -167,6 +170,9 @@
     /* 캔버스(dark) — tower 앵커 딥네이비, 전 앱 공유. */
     --bg: #0c0f16;
     --bg-overlay: rgba(12, 15, 22, 0.92);
+    /* sync-pending: mirrors canonical color.css (ds-sync will formally propagate).
+       Consumed by @goodsoob/ds Modal backdrop="scrim". */
+    --bg-scrim: rgba(0, 0, 0, 0.4);
     --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
     --surface-frost-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 8px 16px -4px rgba(0, 0, 0, 0.35);

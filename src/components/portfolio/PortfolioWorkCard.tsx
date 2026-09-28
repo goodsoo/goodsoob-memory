@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Briefcase, Eye, Trash2 } from "lucide-react";
+import { Card } from "@goodsoob/ds";
 import { GithubMark } from "./GithubMark";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -76,15 +77,14 @@ export function PortfolioWorkCard({ work }: Props) {
   };
 
   // 미사용 카드 (included: false) — 클릭으로 모달 진입 X, footer 에 inline 복원/삭제만.
+  // 카드 chrome(surface·1px line·radius-8·space-12)은 DS Card(compact). opacity 0.7 은
+  // "미사용" dim 상태(app-glue), flex row 레이아웃은 카드 내부 배치(app-glue).
   if (excluded) {
     return (
-      <div
-        className="relative flex w-full items-stretch gap-3 rounded-lg p-3"
-        style={{
-          backgroundColor: "var(--surface)",
-          border: "1px solid var(--line)",
-          opacity: 0.7,
-        }}
+      <Card
+        variant="compact"
+        className="relative flex w-full items-stretch gap-3"
+        style={{ opacity: 0.7 }}
       >
         <div
           className="flex h-[72px] w-24 shrink-0 items-center justify-center overflow-hidden rounded-md"
@@ -179,29 +179,22 @@ export function PortfolioWorkCard({ work }: Props) {
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
     <>
-      <div
-        role="button"
-        tabIndex={0}
+      {/* 카드 chrome(surface·1px line·radius-8·space-12·clickable hover=border 강조·
+          focus ring·keyboard Enter/Space·empty=dashed)은 DS Card. 카드 본체 클릭 =
+          PortfolioDetailModal. pr-9(우상단 "..." 메뉴 clearance)·flex row 는 app-glue. */}
+      <Card
+        clickable
+        as="div"
+        variant="compact"
+        empty={isEmpty}
         onClick={() => setModalOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setModalOpen(true);
-          }
-        }}
-        className="group relative flex w-full cursor-pointer items-stretch gap-3 rounded-lg p-3 pr-9 text-left transition hover:border-[var(--faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-        style={{
-          backgroundColor: "var(--surface)",
-          border: isEmpty
-            ? "1px dashed var(--line)"
-            : "1px solid var(--line)",
-        }}
+        className="relative flex w-full items-stretch gap-3 pr-9 text-left"
       >
         <div
           className="flex h-[72px] w-24 shrink-0 items-center justify-center overflow-hidden rounded-md"
@@ -274,7 +267,7 @@ export function PortfolioWorkCard({ work }: Props) {
         >
           <PortfolioCardMenu work={work} />
         </div>
-      </div>
+      </Card>
 
       {modalOpen ? (
         <PortfolioDetailModal

@@ -1160,8 +1160,8 @@ export function MeetingForm({
           <div
             className="flex items-center justify-between backdrop-blur"
             style={{
-              borderBottom: "1px solid var(--line-2)",
-              backgroundColor: "var(--bg-overlay)",
+              borderBottom: "1px solid var(--line)",
+              backgroundColor: "var(--surface-frost)",
             }}
           >
             <Tabs

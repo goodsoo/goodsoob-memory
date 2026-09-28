@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { StickyNote } from "lucide-react";
 import { useScratch, useSaveScratch } from "../../hooks/useScratch";
 import { useDebouncedSave } from "../../hooks/useDebouncedSave";
+import { Textarea } from "@goodsoob/ds";
 import { SaveIndicator } from "../common/SaveIndicator";
 import { Text } from "../common/Text";
 
@@ -146,7 +147,8 @@ export function QuickCapturePanel() {
             </span>
           ) : null}
         </div>
-        <textarea
+        <Textarea
+          resize="none"
           ref={taRef}
           value={content}
           onChange={(e) => {
@@ -155,12 +157,7 @@ export function QuickCapturePanel() {
           }}
           onBlur={() => void flush()}
           placeholder="떠오른 생각을 적어두세요"
-          className="min-h-0 w-full flex-1 resize-none rounded-md px-2 py-1.5 text-sm leading-relaxed outline-none"
-          style={{
-            backgroundColor: "var(--bg)",
-            border: "1px solid var(--line)",
-            color: "var(--ink)",
-          }}
+          className="min-h-0 w-full flex-1 text-sm leading-relaxed"
         />
       </div>
     </div>

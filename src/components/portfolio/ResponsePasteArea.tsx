@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Textarea } from "@goodsoob/ds";
 import { parsePRResponse } from "../../lib/clipboardPrompt";
 import { Text } from "../common/Text";
 
@@ -30,7 +31,7 @@ export function ResponsePasteArea({ onParsed, onError }: Props) {
 
   return (
     <div className="flex flex-col gap-1">
-      <textarea
+      <Textarea
         value={raw}
         onChange={(e) => {
           setRaw(e.target.value);
@@ -46,12 +47,8 @@ export function ResponsePasteArea({ onParsed, onError }: Props) {
         }}
         rows={2}
         placeholder="Claude 응답 붙여넣기..."
-        className="w-full resize-y rounded-md px-2 py-1.5 text-xs transition"
-        style={{
-          backgroundColor: "var(--surface)",
-          border: `1px solid ${unparsed ? "var(--down)" : "var(--line)"}`,
-          color: "var(--ink)",
-        }}
+        error={unparsed}
+        className="w-full text-xs"
       />
       {unparsed ? (
         <Text

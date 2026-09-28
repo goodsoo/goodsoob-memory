@@ -36,6 +36,7 @@ import { runClaude } from "../../lib/portfolio/claude";
 import { ManualPasteFallback } from "./ManualPasteFallback";
 import { ScreenshotDropzone } from "./ScreenshotDropzone";
 import { CategoryCombobox } from "./CategoryCombobox";
+import { Input } from "@goodsoob/ds";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -452,17 +453,12 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
             <Field label="한 줄 임팩트">
               {editing ? (
-                <input
+                <Input
                   value={impactDraft}
                   onChange={(e) => setImpactDraft(e.target.value)}
                   placeholder="60자 이내 한 문장"
                   maxLength={60}
-                  className="w-full rounded-md px-2 py-1.5 text-sm font-semibold"
-                  style={{
-                    backgroundColor: "var(--surface)",
-                    border: "1px solid var(--line)",
-                    color: "var(--ink)",
-                  }}
+                  className="font-semibold"
                 />
               ) : (
                 <Text

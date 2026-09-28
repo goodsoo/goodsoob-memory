@@ -3,7 +3,7 @@ import { FileText, Search } from "lucide-react";
 import { useMeetings } from "../../hooks/useMeetings";
 import { formatDateShortWithDay } from "../../lib/dates";
 import { Button } from "./Button";
-import { NavItem } from "@goodsoob/ds";
+import { Input, NavItem } from "@goodsoob/ds";
 import { Text } from "./Text";
 import { Popover } from "./Popover";
 
@@ -93,13 +93,14 @@ export function MeetingPicker({ value, onChange }: Props) {
               style={{ color: "var(--faint)" }}
               aria-hidden
             />
-            <input
+            <Input
+              variant="borderless"
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="메모 검색"
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+              className="min-w-0 flex-1 text-xs"
               style={{ color: "var(--ink)" }}
             />
             {value ? (

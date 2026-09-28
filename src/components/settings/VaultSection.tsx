@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pencil, Trash2, Unlink } from "lucide-react";
 import { useVault } from "../../lib/vault/useVault";
-import { Radio } from "@goodsoob/ds";
+import { Radio, Input } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Modal } from "../common/Modal";
@@ -117,7 +117,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                 />
                 <div className="min-w-0 flex-1">
                   {isRenaming ? (
-                    <input
+                    <Input
                       type="text"
                       value={renameDraft}
                       autoFocus
@@ -127,12 +127,7 @@ export function VaultSection({ onAfterSwitch }: Props) {
                         if (e.key === "Enter") commitRename();
                         else if (e.key === "Escape") cancelRename();
                       }}
-                      className="w-full rounded px-1.5 py-0.5 text-sm"
-                      style={{
-                        background: "var(--surface)",
-                        color: "var(--ink)",
-                        border: "1px solid var(--line)",
-                      }}
+                      className="w-full"
                     />
                   ) : (
                     <div className="flex items-baseline gap-1.5 overflow-hidden">

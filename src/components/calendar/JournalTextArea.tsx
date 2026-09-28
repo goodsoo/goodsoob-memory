@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from "react";
+import { Textarea } from "@goodsoob/ds";
 
 type Props = {
   content: string;
@@ -31,13 +32,15 @@ export function JournalTextArea({
   }, [content, autoGrow, textareaRef]);
 
   return (
-    <textarea
+    <Textarea
+      variant="borderless"
+      resize="none"
       ref={textareaRef}
       value={content}
       onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur}
       placeholder={placeholder}
-      className={`w-full resize-none bg-transparent leading-relaxed outline-none ${autoGrow ? "overflow-hidden" : "h-full"}`}
+      className={`w-full leading-relaxed ${autoGrow ? "overflow-hidden" : "h-full"}`}
       style={{
         color: "var(--ink)",
         fontFamily: "inherit",

@@ -1,4 +1,5 @@
 import { ChevronUp, ChevronDown, ChevronRight, X, CaseSensitive } from "lucide-react";
+import { Input } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 
 type Props = {
@@ -74,7 +75,8 @@ export function FindBar({
       <div className="flex flex-col gap-1">
         {/* 찾기 줄 */}
         <div className="flex items-center gap-1">
-          <input
+          <Input
+            variant="borderless"
             ref={inputRef}
             type="text"
             value={query}
@@ -98,7 +100,7 @@ export function FindBar({
             placeholder="현재 탭에서 찾기"
             spellCheck={false}
             autoCorrect="off"
-            className="w-44 bg-transparent px-1.5 py-0.5 text-sm outline-none"
+            className="w-44 px-1.5 py-0.5 text-sm"
             style={{ color: "var(--ink)" }}
           />
           <span
@@ -153,7 +155,8 @@ export function FindBar({
         {/* 바꾸기 줄 — ▸ 펼침 시만. 보기 모드면 비활성 + 안내. */}
         {expanded ? (
           <div className="flex items-center gap-1">
-            <input
+            <Input
+              variant="borderless"
               type="text"
               value={replaceValue}
               onChange={(e) => onReplaceChange(e.target.value)}
@@ -171,7 +174,7 @@ export function FindBar({
               spellCheck={false}
               autoCorrect="off"
               disabled={!canReplace}
-              className="w-44 bg-transparent px-1.5 py-0.5 text-sm outline-none disabled:opacity-50"
+              className="w-44 px-1.5 py-0.5 text-sm disabled:opacity-50"
               style={{ color: "var(--ink)" }}
             />
             {canReplace ? (

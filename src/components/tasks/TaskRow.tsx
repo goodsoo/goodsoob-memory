@@ -16,6 +16,7 @@ import {
   formatDateShortWithDay,
   formatDisplayDate,
 } from "../../lib/dates";
+import { Input } from "@goodsoob/ds";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
 import { Button } from "../common/Button";
@@ -233,7 +234,8 @@ export function TaskRow({
                 }
               }}
             />
-            <input
+            <Input
+              variant="borderless"
               ref={titleRef}
               value={draft.title}
               onChange={(e) => updateDraft({ title: e.target.value })}
@@ -251,7 +253,7 @@ export function TaskRow({
               onClick={(e) => e.stopPropagation()}
               placeholder="제목"
               maxLength={200}
-              className="min-w-0 flex-1 bg-transparent text-base outline-none"
+              className="min-w-0 flex-1 text-base"
               style={{ color: "var(--ink)" }}
             />
           </div>

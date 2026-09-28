@@ -9,7 +9,7 @@ import {
 } from "../../lib/meetingsTree";
 import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { formatDisplayDate } from "../../lib/dates";
-import { NavItem } from "@goodsoob/ds";
+import { Input, NavItem } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpand";
@@ -628,7 +628,8 @@ function FolderRowEditing({
           style={{ color: "var(--sub)" }}
         />
       )}
-      <input
+      <Input
+        variant="borderless"
         ref={inputRef}
         type="text"
         value={value}
@@ -644,7 +645,7 @@ function FolderRowEditing({
         }}
         onBlur={() => onCommit?.()}
         disabled={pending}
-        className="h-5 min-w-0 flex-1 appearance-none rounded border-0 bg-transparent p-0 text-sm font-medium leading-5 outline-none"
+        className="h-5 min-w-0 flex-1 rounded text-sm font-medium leading-5"
         style={{
           color: "var(--ink)",
           boxShadow: "0 0 0 1px var(--line) inset",

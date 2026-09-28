@@ -7,6 +7,7 @@ import {
   useToggleRoutineDay,
 } from "../../hooks/useRoutines";
 import type { UpdateRoutineInput } from "../../api/routines";
+import { Input } from "@goodsoob/ds";
 import { PageHeaderBar } from "../common/PageHeaderBar";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -269,14 +270,15 @@ export function RoutineDetail({ name, onClose }: Props) {
           {editing ? (
             <div className="px-3 py-2.5">
               {/* 윗줄: 이름 input */}
-              <input
+              <Input
+                variant="borderless"
                 ref={nameInputRef}
                 value={draft.name}
                 onChange={(e) => updateDraft({ name: e.target.value })}
                 onClick={(e) => e.stopPropagation()}
                 placeholder="이름"
                 maxLength={100}
-                className="w-full min-w-0 bg-transparent text-base outline-none"
+                className="w-full min-w-0 text-base"
                 style={{ color: "var(--ink)" }}
               />
 

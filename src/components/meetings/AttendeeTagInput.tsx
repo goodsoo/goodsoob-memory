@@ -59,6 +59,7 @@ export function AttendeeTagInput({
       values={tags}
       onChange={handleChange}
       delimiters={["Enter", ","]}
+      variant="borderless"
       placeholder={placeholder ?? "이름 입력 후 Enter"}
       renderChip={(tagValue, i, remove) => (
         <RemovableChip

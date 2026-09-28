@@ -10,6 +10,7 @@ import {
   runClaudeStream,
   type ClaudeStreamController,
 } from "../../lib/portfolio/claude";
+import { Textarea } from "@goodsoob/ds";
 import { ClipPromptButton } from "../common/ClipPromptButton";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
@@ -457,19 +458,16 @@ export function SummaryModal({ open, onClose, promptInput, onApply }: Props) {
               </div>
 
               <div className="flex flex-1 flex-col gap-2">
-                <textarea
+                <Textarea
+                  resize="none"
                   value={raw}
                   onChange={(e) => {
                     setRaw(e.target.value);
                     if (pasteError) setPasteError(null);
                   }}
                   placeholder="Claude 응답을 붙여넣으세요"
-                  className="min-h-[8rem] w-full flex-1 resize-none rounded-md px-2.5 py-2 text-sm transition"
-                  style={{
-                    backgroundColor: "var(--surface)",
-                    border: `1px solid ${pasteError ? "var(--down)" : "var(--line)"}`,
-                    color: "var(--ink)",
-                  }}
+                  error={!!pasteError}
+                  className="min-h-[8rem] w-full flex-1 text-sm"
                 />
                 {pasteError ? (
                   <Text

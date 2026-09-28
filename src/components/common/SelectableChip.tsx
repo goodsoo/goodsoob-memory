@@ -36,6 +36,15 @@ export function SelectableChip({
     .filter(Boolean)
     .join(" ");
 
+  // 선택 + 카테고리색 있을 때만 tint 스타일 주입 — CSS override 없이 inline style 로 덮음
+  const selectedStyle =
+    active && color
+      ? {
+          background: `color-mix(in srgb, ${color} 14%, var(--surface))`,
+          boxShadow: `inset 0 0 0 1px ${color}`,
+        }
+      : undefined;
+
   return (
     <Chip
       variant="neutral"
@@ -45,6 +54,7 @@ export function SelectableChip({
       onClick={onToggle}
       icon={color ? chipDot(color) : undefined}
       className={classes}
+      style={selectedStyle}
     >
       {children}
     </Chip>

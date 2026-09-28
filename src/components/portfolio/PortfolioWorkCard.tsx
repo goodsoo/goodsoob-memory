@@ -4,7 +4,8 @@ import { Card } from "@goodsoob/ds";
 import { GithubMark } from "./GithubMark";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { Chip } from "../common/Chip";
+import { Chip } from "@goodsoob/ds";
+import { chipDot } from "../../lib/chipDot";
 import {
   folderPathOfCard,
   isGithubCard,
@@ -129,21 +130,10 @@ export function PortfolioWorkCard({ work }: Props) {
             {fm.github_title}
           </Text>
           <div className="mt-auto flex flex-nowrap items-center gap-x-1.5 overflow-hidden pt-1">
-            {dateLabel ? (
-              <Chip title={`병합일: ${fm.github_merged_at?.slice(0, 10) ?? ""}`}>
-                {dateLabel}
-              </Chip>
-            ) : null}
-            {sourceChip ? (
-              <Chip title={sourceChip.full}>{sourceChip.label}</Chip>
-            ) : null}
-            <Chip dot={categoryColor} title={`카테고리: ${categoryLabel}`}>
-              {categoryLabel}
-            </Chip>
-            <Chip
-              style={{ color: "var(--faint)" }}
-              title={`변경: +${fm.github_additions} −${fm.github_deletions} · ${fm.github_changed_files} files`}
-            >
+            {dateLabel ? <Chip>{dateLabel}</Chip> : null}
+            {sourceChip ? <Chip>{sourceChip.label}</Chip> : null}
+            <Chip icon={chipDot(categoryColor)}>{categoryLabel}</Chip>
+            <Chip>
               +{fm.github_additions} −{fm.github_deletions}
             </Chip>
           </div>
@@ -240,21 +230,10 @@ export function PortfolioWorkCard({ work }: Props) {
             {fm.github_title}
           </Text>
           <div className="mt-auto flex flex-nowrap items-center gap-x-1.5 overflow-hidden pt-1">
-            {dateLabel ? (
-              <Chip title={`병합일: ${fm.github_merged_at?.slice(0, 10) ?? ""}`}>
-                {dateLabel}
-              </Chip>
-            ) : null}
-            {sourceChip ? (
-              <Chip title={sourceChip.full}>{sourceChip.label}</Chip>
-            ) : null}
-            <Chip dot={categoryColor} title={`카테고리: ${categoryLabel}`}>
-              {categoryLabel}
-            </Chip>
-            <Chip
-              style={{ color: "var(--faint)" }}
-              title={`변경: +${fm.github_additions} −${fm.github_deletions} · ${fm.github_changed_files} files`}
-            >
+            {dateLabel ? <Chip>{dateLabel}</Chip> : null}
+            {sourceChip ? <Chip>{sourceChip.label}</Chip> : null}
+            <Chip icon={chipDot(categoryColor)}>{categoryLabel}</Chip>
+            <Chip>
               +{fm.github_additions} −{fm.github_deletions}
             </Chip>
           </div>

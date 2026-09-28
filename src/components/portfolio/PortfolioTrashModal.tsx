@@ -19,7 +19,8 @@ import { ConfirmDialog } from "../ConfirmDialog";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { Chip } from "../common/Chip";
+import { Chip } from "@goodsoob/ds";
+import { chipDot } from "../../lib/chipDot";
 
 // stamp → 표시용 ISO ms (TrashedPortfolioWork.deletedAt 에 이미 ms 변환되어 있음).
 
@@ -306,7 +307,7 @@ function TrashListItem({
           {title}
         </Text>
         <div className="flex items-center gap-2">
-          <Chip size="sm" dot={categoryColor}>
+          <Chip size="sm" icon={chipDot(categoryColor)}>
             {categoryLabel}
           </Chip>
           <Text

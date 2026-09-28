@@ -6,6 +6,7 @@ import {
   Undo2,
   Redo2,
   Pencil,
+  Eye,
   X,
   Calendar as CalendarIcon,
   Clock,
@@ -33,7 +34,6 @@ import { PageHeaderBar } from "../common/PageHeaderBar";
 import { EmptyState } from "../common/EmptyState";
 import { SummaryModal } from "./SummaryModal";
 import { MeetingActionMenu } from "./MeetingActionMenu";
-import { ModeChip } from "../common/ModeChip";
 import { useToast } from "@goodsoob/ds";
 import { AttendeeTagInput } from "./AttendeeTagInput";
 import { SourceBodyEditor } from "./SourceBodyEditor";
@@ -55,7 +55,7 @@ import { OfflineCacheMissError } from "../../lib/vault/readCache";
 import { formatDisplayDate } from "../../lib/dates";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
-import { Tabs, Input, Textarea } from "@goodsoob/ds";
+import { Tabs, Input, Textarea, Segment } from "@goodsoob/ds";
 
 // 파일시스템 + 옵시디안 link syntax 금지 문자. title input commit 시 검사.
 const TITLE_UNSAFE_RE = /[/\\:*?"<>|#^[\]]/;
@@ -720,7 +720,7 @@ export function MeetingForm({
         setActiveTab(order[(idx + dir + order.length) % order.length]);
         return;
       }
-      // Cmd+Shift+E — 모든 탭에서 편집/보기 토글 (ModeChip 과 동일, viewMode 공유).
+      // Cmd+Shift+E — 모든 탭에서 편집/보기 토글 (Segment 과 동일, viewMode 공유).
       // SourceBodyEditor 의 Cmd+E (inline-code wrap) 충돌 회피로 Shift 동반.
       // 음성 기록 보기 모드 = 읽기 전용 + 참석자 하이라이트 (마크다운 렌더 X).
       if (cmd && e.shiftKey && !e.altKey && e.code === "KeyE") {
@@ -874,7 +874,7 @@ export function MeetingForm({
   const showSummaryActions = activeTab === "summary";
   const hasTabActions = showUploadAction || showSummaryActions;
 
-  // 활성 탭 밑줄 색 — 편집 모드면 파랑(ModeChip 과 통일), 보기 모드면 모노톤.
+  // 활성 탭 밑줄 색 — 편집 모드면 파랑(Segment 과 통일), 보기 모드면 모노톤.
   const tabAccentColor =
     viewMode === "edit" ? "var(--accent-ink)" : "var(--ink)";
 
@@ -1207,12 +1207,36 @@ export function MeetingForm({
                   style={{ backgroundColor: "var(--line)" }}
                 />
               ) : null}
-              {/* 세 탭 모두 편집/보기 토글 (음성 기록 보기 = 읽기 전용 + 참석자 하이라이트). */}
-              <ModeChip
-                viewMode={viewMode}
-                onToggle={() =>
-                  setViewMode(viewMode === "edit" ? "view" : "edit")
-                }
+              {/* 세 탭 모두 편집/보기 토글 (음성 기록 보기 = 읽기 전용 + 참석자 하이라이트).
+                  DS Segment 채택 — 편집/보기 2칸 세그먼트. active=accent(편집 기준 블루,
+                  ⌘⇧E 로도 전환, viewMode 공유). 라벨은 아이콘+텍스트. */}
+              <Segment
+                groupLabel="편집·보기 전환"
+                activeStyle="accent"
+                value={viewMode}
+                onChange={(v) => setViewMode(v as "edit" | "view")}
+                options={[
+                  {
+                    value: "edit",
+                    ariaLabel: "편집 모드",
+                    label: (
+                      <span className="inline-flex items-center gap-1">
+                        <Pencil className="h-3 w-3" />
+                        편집
+                      </span>
+                    ),
+                  },
+                  {
+                    value: "view",
+                    ariaLabel: "보기 모드",
+                    label: (
+                      <span className="inline-flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        보기
+                      </span>
+                    ),
+                  },
+                ]}
               />
             </div>
           </div>

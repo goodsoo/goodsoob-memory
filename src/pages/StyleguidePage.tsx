@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { Button } from "../components/common/Button";
 import { Text } from "../components/common/Text";
-import { Chip } from "../components/common/Chip";
+import { Chip } from "@goodsoob/ds";
+import { chipDot } from "../lib/chipDot";
 import { Kbd } from "../components/common/Kbd";
 import { Spinner } from "../components/common/Spinner";
 import { Toggle } from "../components/common/Toggle";
@@ -841,27 +842,19 @@ export function StyleguidePage() {
           <SubTitle>10.3 Chip</SubTitle>
           <Card>
             <div className="flex flex-wrap items-center gap-2">
-              <Chip variant="default">default</Chip>
+              <Chip variant="neutral">neutral</Chip>
               <Chip variant="outline">outline</Chip>
               <Chip variant="accent">accent</Chip>
-              <Chip variant="default" size="sm">
+              <Chip variant="neutral" size="sm">
                 sm
               </Chip>
               <Chip variant="outline" size="sm">
                 sm outline
               </Chip>
-              <Chip variant="default">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: "var(--cat-uiux)" }}
-                />
+              <Chip variant="neutral" icon={chipDot("var(--cat-uiux)")}>
                 ui_ux
               </Chip>
-              <Chip variant="default">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: "var(--cat-work)" }}
-                />
+              <Chip variant="neutral" icon={chipDot("var(--cat-work)")}>
                 업무
               </Chip>
             </div>

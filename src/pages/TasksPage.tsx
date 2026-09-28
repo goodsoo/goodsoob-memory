@@ -265,8 +265,8 @@ function TasksToolbar({
     <div
       className="shrink-0 px-6 py-2 backdrop-blur"
       style={{
-        borderBottom: "1px solid var(--line-2)",
-        backgroundColor: "var(--bg-overlay)",
+        borderBottom: "1px solid var(--line)",
+        backgroundColor: "var(--surface-frost)",
       }}
     >
       <div className="flex flex-wrap items-center gap-1">

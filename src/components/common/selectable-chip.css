@@ -1,0 +1,36 @@
+/* SelectableChip 도메인 시각 — DS Chip `selectable` 위에 얹는 메모리 override.
+ * DS 기본 selected 는 accent(블루)라 카테고리 중립 톤과 달라 여기서 덮는다.
+ * 색은 카테고리 accent 토큰(var(--faint)) 고정, 색 없는 "전체" 는 var(--sub) fallback.
+ * 원본(구 SelectableChip inline style) 그대로 이식 — 시각 무변경. */
+
+.mem-selectable-chip {
+  --mem-chip-accent: var(--faint);
+}
+
+/* color 없는 케이스("전체") — accent fallback 은 var(--sub). */
+.mem-selectable-chip.no-color {
+  --mem-chip-accent: var(--sub);
+}
+
+/* inactive: surface-2 + secondary 텍스트 (DS neutral 기본과 동일 톤). */
+.mem-selectable-chip {
+  background: var(--surface-2);
+  color: var(--sub);
+}
+
+/* active(selected): accent 14% tint + inset ring + primary 텍스트.
+ * DS 의 .ds-chip--selected(accent) 를 덮어야 하므로 두 클래스 결합으로 override. */
+.mem-selectable-chip.ds-chip--selected {
+  background: color-mix(in srgb, var(--mem-chip-accent) 14%, var(--surface));
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--mem-chip-accent);
+}
+
+.mem-selectable-chip.ds-chip--selected:hover {
+  background: color-mix(in srgb, var(--mem-chip-accent) 14%, var(--surface));
+}
+
+/* count=0 + inactive → dim. */
+.mem-selectable-chip.is-dim {
+  opacity: 0.45;
+}

@@ -20,6 +20,7 @@ import { formatClockNow } from "../../lib/dates";
 import { useVault } from "../../lib/vault/useVault";
 import { SettingsModal } from "../settings/SettingsModal";
 import { Button } from "../common/Button";
+import { Button as DSButton } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 import { Popover } from "../common/Popover";
 import { TABS, type Tab } from "./tabs";
@@ -499,28 +500,28 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
         style={{ background: "var(--line-2)" }}
         aria-hidden
       />
-      <button
-        type="button"
-        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-        style={{ color: "var(--ink)" }}
+      <DSButton
+        variant="ghost"
+        size="sm"
+        className="w-full !justify-start"
         onClick={() => {
           setOpen(false);
           onOpenSettings();
         }}
       >
         Vault 설정
-      </button>
-      <button
-        type="button"
-        className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-        style={{ color: "var(--ink)" }}
+      </DSButton>
+      <DSButton
+        variant="ghost"
+        size="sm"
+        className="w-full !justify-start"
         onClick={() => {
           setOpen(false);
           window.location.hash = "#styleguide";
         }}
       >
         스타일가이드
-      </button>
+      </DSButton>
     </Popover>
   );
 }

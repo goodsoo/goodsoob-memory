@@ -40,7 +40,8 @@ import { Input } from "@goodsoob/ds";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { Chip } from "../common/Chip";
+import { Chip } from "@goodsoob/ds";
+import { chipDot } from "../../lib/chipDot";
 import { Spinner } from "../common/Spinner";
 
 type Props = {
@@ -510,7 +511,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                   onChange={(next) => setCategoryDraft(next)}
                 />
               ) : (
-                <Chip dot={categoryColor}>{categoryLabel}</Chip>
+                <Chip icon={chipDot(categoryColor)}>{categoryLabel}</Chip>
               )}
             </Field>
 
@@ -593,10 +594,7 @@ export function PortfolioDetailModal({ work, onClose }: Props) {
                       {suggestion.impact}
                     </Text>
                     <div className="flex items-center gap-2">
-                      <Chip
-                        dot={lookupCategoryColor(suggestion.category)}
-                        style={{ backgroundColor: "var(--surface)" }}
-                      >
+                      <Chip icon={chipDot(lookupCategoryColor(suggestion.category))}>
                         {lookupCategoryLabel(suggestion.category)}
                       </Chip>
                     </div>

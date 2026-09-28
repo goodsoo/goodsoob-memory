@@ -19,7 +19,7 @@ import { ConfirmDialog } from "../ConfirmDialog";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { Chip } from "../common/Chip";
+import { Chip } from "@goodsoob/ds";
 
 type Props = {
   open: boolean;

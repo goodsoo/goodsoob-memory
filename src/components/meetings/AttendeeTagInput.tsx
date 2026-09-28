@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { formatAttendees, parseAttendees } from "../../lib/attendees";
-import { NavItem, TagInput } from "@goodsoob/ds";
-import { RemovableChip } from "../common/RemovableChip";
+import { Chip, NavItem, TagInput } from "@goodsoob/ds";
 
 type Props = {
   value: string;
@@ -62,13 +61,14 @@ export function AttendeeTagInput({
       variant="borderless"
       placeholder={placeholder ?? "이름 입력 후 Enter"}
       renderChip={(tagValue, i, remove) => (
-        <RemovableChip
+        <Chip
           key={`${tagValue}-${i}`}
+          size="sm"
           onRemove={remove}
-          ariaLabel={`${tagValue} 제거`}
+          removeLabel={`${tagValue} 제거`}
         >
           {tagValue}
-        </RemovableChip>
+        </Chip>
       )}
       suggestions={({ query, commit, close }) => {
         const filtered = rankSuggestions(query);

@@ -19,8 +19,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Button } from "../components/common/Button";
+import { Button as DSButton } from "@goodsoob/ds";
 import { Text } from "../components/common/Text";
-import { Chip } from "../components/common/Chip";
+import { Chip } from "@goodsoob/ds";
+import { chipDot } from "../lib/chipDot";
 import { Kbd } from "../components/common/Kbd";
 import { Spinner } from "../components/common/Spinner";
 import { Toggle } from "../components/common/Toggle";
@@ -841,27 +843,19 @@ export function StyleguidePage() {
           <SubTitle>10.3 Chip</SubTitle>
           <Card>
             <div className="flex flex-wrap items-center gap-2">
-              <Chip variant="default">default</Chip>
+              <Chip variant="neutral">neutral</Chip>
               <Chip variant="outline">outline</Chip>
               <Chip variant="accent">accent</Chip>
-              <Chip variant="default" size="sm">
+              <Chip variant="neutral" size="sm">
                 sm
               </Chip>
               <Chip variant="outline" size="sm">
                 sm outline
               </Chip>
-              <Chip variant="default">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: "var(--cat-uiux)" }}
-                />
+              <Chip variant="neutral" icon={chipDot("var(--cat-uiux)")}>
                 ui_ux
               </Chip>
-              <Chip variant="default">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: "var(--cat-work)" }}
-                />
+              <Chip variant="neutral" icon={chipDot("var(--cat-work)")}>
                 업무
               </Chip>
             </div>
@@ -975,22 +969,22 @@ export function StyleguidePage() {
                   zIndex: "var(--z-popover)" as unknown as number,
                 }}
               >
-                <button
-                  type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                  style={{ color: "var(--ink)" }}
+                <DSButton
+                  variant="ghost"
+                  size="sm"
+                  className="w-full !justify-start"
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 1
-                </button>
-                <button
-                  type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                  style={{ color: "var(--ink)" }}
+                </DSButton>
+                <DSButton
+                  variant="ghost"
+                  size="sm"
+                  className="w-full !justify-start"
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 2
-                </button>
+                </DSButton>
               </Popover>
               <Text variant="caption" color="muted">
                 외부 클릭 / Esc 로 닫힘

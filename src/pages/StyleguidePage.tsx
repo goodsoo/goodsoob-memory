@@ -19,6 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Button } from "../components/common/Button";
+import { Button as DSButton } from "@goodsoob/ds";
 import { Text } from "../components/common/Text";
 import { Chip } from "@goodsoob/ds";
 import { chipDot } from "../lib/chipDot";
@@ -968,22 +969,22 @@ export function StyleguidePage() {
                   zIndex: "var(--z-popover)" as unknown as number,
                 }}
               >
-                <button
-                  type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                  style={{ color: "var(--ink)" }}
+                <DSButton
+                  variant="ghost"
+                  size="sm"
+                  className="w-full !justify-start"
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 1
-                </button>
-                <button
-                  type="button"
-                  className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                  style={{ color: "var(--ink)" }}
+                </DSButton>
+                <DSButton
+                  variant="ghost"
+                  size="sm"
+                  className="w-full !justify-start"
                   onClick={() => setPopoverOpen(false)}
                 >
                   옵션 2
-                </button>
+                </DSButton>
               </Popover>
               <Text variant="caption" color="muted">
                 외부 클릭 / Esc 로 닫힘

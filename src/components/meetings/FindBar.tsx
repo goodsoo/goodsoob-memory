@@ -1,6 +1,7 @@
 import { ChevronUp, ChevronDown, ChevronRight, X, CaseSensitive } from "lucide-react";
 import { Input } from "@goodsoob/ds";
 import { Button } from "../common/Button";
+import { Button as DSButton } from "@goodsoob/ds";
 
 type Props = {
   query: string;
@@ -115,18 +116,16 @@ export function FindBar({
                   ? `${total}개`
                   : `${active} / ${total}`}
           </span>
-          <button
-            type="button"
+          <DSButton
+            iconOnly
+            variant="ghost"
+            size="sm"
+            pressed={caseSensitive}
             onClick={onToggleCase}
             title="대소문자 구분"
-            className="rounded p-1"
-            style={{
-              color: caseSensitive ? "var(--text-inverse)" : "var(--faint)",
-              backgroundColor: caseSensitive ? "var(--accent)" : "transparent",
-            }}
-          >
-            <CaseSensitive className="h-4 w-4" />
-          </button>
+            aria-label="대소문자 구분"
+            leftIcon={<CaseSensitive className="h-4 w-4" />}
+          />
           <Button
             variant="icon"
             onClick={onPrev}

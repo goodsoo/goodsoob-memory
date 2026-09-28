@@ -26,7 +26,7 @@ import {
 import { FilterItem } from "../common/FilterItem";
 import { Text } from "../common/Text";
 import { Button } from "../common/Button";
-import { NavItem } from "@goodsoob/ds";
+import { ContextMenu } from "@goodsoob/ds";
 
 // portfolio 사이드바 두 그룹 필터.
 // - github(repo): nameWithOwner. 카드 frontmatter.github_owner/github_repo 로 derive.
@@ -94,35 +94,11 @@ export const PortfolioSourceTree = forwardRef<
   const [editing, setEditing] = useState<{ path: string; value: string } | null>(
     null,
   );
-  const [contextMenu, setContextMenu] = useState<{
-    path: string;
-    x: number;
-    y: number;
-  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const contextMenuRef = useRef<HTMLDivElement | null>(null);
 
   // 편집 진입 시 focus + select 는 input 의 autoFocus + onFocus 에 위임.
   // (옛 useEffect 패턴은 editing 객체 dep 으로 매 글자 select 되던 race 가 있어 제거.)
-
-  useEffect(() => {
-    if (!contextMenu) return;
-    // 메뉴 안 클릭은 무시 — 안 메뉴 button 의 click 이 발사되도록.
-    const onPointerDown = (e: PointerEvent) => {
-      if (contextMenuRef.current?.contains(e.target as Node)) return;
-      setContextMenu(null);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setContextMenu(null);
-    };
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [contextMenu]);
 
   // GitHub 그룹: 카드 frontmatter 의 nameWithOwner 자동 집계. PR 0 인 repo 는 숨김.
   const githubRepos = useMemo(() => {
@@ -345,12 +321,27 @@ export const PortfolioSourceTree = forwardRef<
           );
         }
         return (
-          <div
+          <ContextMenu
             key={f.path}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setContextMenu({ path: f.path, x: e.clientX, y: e.clientY });
-            }}
+            menuLabel={`${f.name} 폴더 작업`}
+            items={[
+              {
+                label: "이름 변경...",
+                icon: (
+                  <Pencil
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: "var(--faint)" }}
+                  />
+                ),
+                onSelect: () => startRename(f.path),
+              },
+              {
+                label: "폴더 삭제...",
+                icon: <Trash2 className="h-3.5 w-3.5 shrink-0" />,
+                danger: true,
+                onSelect: () => void handleDelete(f.path),
+              },
+            ]}
           >
             <FilterItem
               label={f.name}
@@ -366,7 +357,7 @@ export const PortfolioSourceTree = forwardRef<
               }
               onClick={() => onFilterChange({ kind: "folder", path: f.path })}
             />
-          </div>
+          </ContextMenu>
         );
       })}
 
@@ -379,28 +370,6 @@ export const PortfolioSourceTree = forwardRef<
         >
           {error}
         </Text>
-      ) : null}
-
-      {contextMenu ? (
-        <ProjectContextMenu
-          ref={contextMenuRef}
-          x={contextMenu.x}
-          y={contextMenu.y}
-          name={
-            folders.find((f) => f.path === contextMenu.path)?.name ??
-            contextMenu.path
-          }
-          onRename={() => {
-            const p = contextMenu.path;
-            setContextMenu(null);
-            startRename(p);
-          }}
-          onDelete={() => {
-            const p = contextMenu.path;
-            setContextMenu(null);
-            void handleDelete(p);
-          }}
-        />
       ) : null}
     </nav>
   );
@@ -459,63 +428,3 @@ function renderRepo(name: string): React.ReactNode {
     </span>
   );
 }
-
-// 메모장 FolderContextMenu 패턴 통일 — 이름 변경 / 삭제.
-const ProjectContextMenu = forwardRef<
-  HTMLDivElement,
-  {
-    x: number;
-    y: number;
-    name: string;
-    onRename: () => void;
-    onDelete: () => void;
-  }
->(function ProjectContextMenu({ x, y, name, onRename, onDelete }, ref) {
-  const MENU_W = 200;
-  const MENU_H = 88;
-  const left = Math.min(x, window.innerWidth - MENU_W - 8);
-  const top = Math.min(y, window.innerHeight - MENU_H - 8);
-  return (
-    <div
-      ref={ref}
-      className="fixed z-50 overflow-hidden rounded-md shadow-lg"
-      style={{
-        left,
-        top,
-        backgroundColor: "var(--surface)",
-        border: "1px solid var(--line)",
-        minWidth: MENU_W,
-      }}
-    >
-      <Text
-        variant="caption"
-        color="muted"
-        as="div"
-        className="truncate px-3 pt-2 pb-1 text-2xs"
-      >
-        {name}
-      </Text>
-      <NavItem
-        icon={
-          <Pencil
-            className="h-3.5 w-3.5 shrink-0"
-            style={{ color: "var(--faint)" }}
-          />
-        }
-        onClick={onRename}
-        className="rounded-none px-3 py-2"
-        style={{ color: "var(--ink)" }}
-      >
-        이름 변경...
-      </NavItem>
-      <NavItem
-        icon={<Trash2 className="h-3.5 w-3.5 shrink-0" />}
-        onClick={onDelete}
-        className="rounded-none px-3 py-2"
-        style={{ color: "var(--down)" }}
-      >
-        폴더 삭제...
-      </NavItem>
-    </div>
-  );
-});

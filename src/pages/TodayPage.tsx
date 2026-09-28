@@ -8,6 +8,7 @@ import {
   BookOpen,
   CornerUpLeft,
 } from "lucide-react";
+import { Input } from "@goodsoob/ds";
 import { Button } from "../components/common/Button";
 import { Text } from "../components/common/Text";
 import { PageHeaderBar } from "../components/common/PageHeaderBar";
@@ -172,7 +173,8 @@ export function TodayPage({
                     border: "1px solid var(--line)",
                   }}
                 >
-                  <input
+                  <Input
+                    variant="borderless"
                     value={quickTask}
                     onChange={(e) => setQuickTask(e.target.value)}
                     onKeyDown={(e) => {
@@ -182,7 +184,7 @@ export function TodayPage({
                       }
                     }}
                     placeholder={isTodayView ? "오늘 할 일 추가" : "이 날 할 일 추가"}
-                    className="mb-2 w-full bg-transparent text-sm outline-none"
+                    className="mb-2 w-full text-sm"
                     style={{ color: "var(--ink)" }}
                   />
                   <div

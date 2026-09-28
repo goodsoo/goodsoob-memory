@@ -57,7 +57,7 @@ import { formatError } from "../../lib/errors";
 import { CheckboxButton } from "../tasks/CheckboxButton";
 import { MeetingsTreeView } from "../meetings/MeetingsTreeView";
 import { MoveFolderModal } from "../meetings/MoveFolderModal";
-import { NavItem } from "@goodsoob/ds";
+import { Input, NavItem } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { FilterItem } from "../common/FilterItem";
@@ -1289,7 +1289,7 @@ export function TodosSidePanel({
                 />
               ))}
               {addingProject ? (
-                <input
+                <Input
                   autoFocus
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
@@ -1304,12 +1304,7 @@ export function TodosSidePanel({
                     }
                   }}
                   placeholder="프로젝트 이름"
-                  className="mx-2 my-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-sm outline-none"
-                  style={{
-                    backgroundColor: "var(--surface)",
-                    border: "1px solid var(--line)",
-                    color: "var(--ink)",
-                  }}
+                  className="mx-2 my-1 w-[calc(100%-1rem)]"
                 />
               ) : null}
             </SectionChildren>

@@ -12,6 +12,7 @@ import {
   type SearchDomain,
   type SearchEntry,
 } from "../../hooks/useGlobalSearchIndex";
+import { Input } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 // 옵시디안 quick switcher (Cmd+P) 패턴 — vault 4 도메인 통합 검색.
@@ -116,13 +117,14 @@ export function QuickSwitcher({ open, onClose, onSelect }: Props) {
             className="h-4 w-4 shrink-0"
             style={{ color: "var(--faint)" }}
           />
-          <input
+          <Input
+            variant="borderless"
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="메모 · 할 일 · 포트폴리오 · 일기 검색..."
-            className="flex-1 bg-transparent text-sm outline-none"
+            className="flex-1 text-sm"
             style={{ color: "var(--ink)" }}
           />
           <kbd

@@ -55,7 +55,7 @@ import { OfflineCacheMissError } from "../../lib/vault/readCache";
 import { formatDisplayDate } from "../../lib/dates";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
-import { Tabs } from "@goodsoob/ds";
+import { Tabs, Input, Textarea } from "@goodsoob/ds";
 
 // 파일시스템 + 옵시디안 link syntax 금지 문자. title input commit 시 검사.
 const TITLE_UNSAFE_RE = /[/\\:*?"<>|#^[\]]/;
@@ -966,7 +966,8 @@ export function MeetingForm({
         center={
           // typing 중엔 mutation X — onBlur / Enter 만 commit (매번 rename 회피).
           // field-sizing: input width 가 자동으로 content 길이 따라감.
-          <input
+          <Input
+            variant="borderless"
             ref={titleInputRef}
             type="text"
             value={titleDraft}
@@ -986,7 +987,7 @@ export function MeetingForm({
             }}
             placeholder="untitled"
             autoFocus={!data.title}
-            className="min-w-0 bg-transparent text-center text-base font-semibold outline-none"
+            className="min-w-0 text-center text-base font-semibold"
             style={{
               color: "var(--ink)",
               fieldSizing: "content",
@@ -1769,12 +1770,14 @@ function TranscriptArea({
   return (
     <div>
       <div onMouseDown={onContainerMouseDown} style={{ minHeight: "60vh" }}>
-        <textarea
+        <Textarea
+          variant="borderless"
+          resize="none"
           ref={textareaRef}
           value={transcript}
           onChange={(e) => onChange(e.target.value)}
           placeholder="회의 또는 관련 대화 내용을 파일로 업로드하거나 직접 적어주세요..."
-          className="w-full resize-none bg-transparent text-base leading-relaxed outline-none"
+          className="w-full text-base leading-relaxed"
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}

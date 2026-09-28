@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Trash2, Plus, Check, Calendar, Clock } from "lucide-react";
+import { Input } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { LooseDateInput } from "../common/LooseDateInput";
@@ -94,11 +95,12 @@ function EventRow({ event }: { event: ScheduleEvent }) {
       className="rounded-md px-2 py-2"
       style={{ backgroundColor: "var(--surface)", border: "1px solid var(--line)" }}
     >
-      <input
+      <Input
+        variant="borderless"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="일정 내용"
-        className="mb-2 w-full bg-transparent text-sm outline-none"
+        className="mb-2 w-full text-sm"
         style={{ color: "var(--ink)" }}
       />
       <div
@@ -164,7 +166,8 @@ function AddEventForm({ date }: { date: string }) {
         border: "1px solid var(--line)",
       }}
     >
-      <input
+      <Input
+        variant="borderless"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
@@ -174,7 +177,7 @@ function AddEventForm({ date }: { date: string }) {
           }
         }}
         placeholder="일정 추가"
-        className="mb-2 w-full bg-transparent text-sm outline-none"
+        className="mb-2 w-full text-sm"
         style={{ color: "var(--ink)" }}
       />
       <div

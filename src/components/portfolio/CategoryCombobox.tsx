@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Plus } from "lucide-react";
 import { usePortfolioCategories } from "../../hooks/usePortfolio";
+import { Input } from "@goodsoob/ds";
 import { Button } from "../common/Button";
 
 type Props = {
@@ -162,7 +163,8 @@ export function CategoryCombobox({
           border: "1px solid var(--line)",
         }}
       >
-        <input
+        <Input
+          variant="borderless"
           ref={inputRef}
           type="text"
           role="combobox"
@@ -188,7 +190,7 @@ export function CategoryCombobox({
           }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
-          className="flex-1 rounded-md bg-transparent px-2 py-1.5 text-sm outline-none"
+          className="flex-1 px-2 py-1.5 text-sm"
           style={{ color: "var(--ink)" }}
         />
         <Button

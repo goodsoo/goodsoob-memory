@@ -6,6 +6,7 @@ import {
 } from "../../lib/meetingsTree";
 import { useMeetingFolders, useMeetings } from "../../hooks/useMeetings";
 import { meetingFolder } from "../../api/meetings";
+import { Input } from "@goodsoob/ds";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -159,7 +160,7 @@ export function MoveFolderModal({
               className="h-3.5 w-3.5 shrink-0"
               style={{ color: "var(--faint)" }}
             />
-            <input
+            <Input
               ref={inputRef}
               type="text"
               value={newFolderInput}
@@ -172,12 +173,7 @@ export function MoveFolderModal({
               }}
               placeholder="새 폴더 이름 (예: work 또는 work/2026)"
               disabled={submitting}
-              className="flex-1 rounded-md px-2 py-1.5 text-sm outline-none"
-              style={{
-                backgroundColor: "var(--bg)",
-                border: "1px solid var(--line)",
-                color: "var(--ink)",
-              }}
+              className="flex-1"
             />
             <Button
               variant="primary"

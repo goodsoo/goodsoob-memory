@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Input, Select, Field } from "@goodsoob/ds";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -83,11 +84,8 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
           만들고, 새 폴더는 사이드바에서 만듭니다.
         </Text>
 
-        <label className="mt-4 block">
-          <Text variant="caption" color="secondary" as="span" weight="medium">
-            제목 <span style={{ color: "var(--down)" }}>*</span>
-          </Text>
-          <input
+        <Field label="제목" required layout="vertical" className="mt-4">
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -95,33 +93,18 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
             aria-required="true"
             autoFocus
             maxLength={200}
-            className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
-            style={{
-              backgroundColor: "var(--surface)",
-              border: "1px solid var(--line)",
-              color: "var(--ink)",
-            }}
           />
-        </label>
+        </Field>
 
-        <label className="mt-3 block">
-          <Text variant="caption" color="secondary" as="span" weight="medium">
-            한 줄 임팩트
-          </Text>
-          <input
+        <Field label="한 줄 임팩트" layout="vertical" className="mt-3">
+          <Input
             type="text"
             value={impact}
             onChange={(e) => setImpact(e.target.value)}
             placeholder="한 줄 임팩트를 입력하세요"
             maxLength={120}
-            className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
-            style={{
-              backgroundColor: "var(--surface)",
-              border: "1px solid var(--line)",
-              color: "var(--ink)",
-            }}
           />
-        </label>
+        </Field>
 
         <div
           className="mt-3 grid gap-2"
@@ -151,28 +134,16 @@ export function PortfolioCreateModal({ open, onClose }: Props) {
           </div>
         </div>
 
-        <label className="mt-3 block">
-          <Text variant="caption" color="secondary" as="span" weight="medium">
-            폴더
-          </Text>
-          <select
-            value={folder}
-            onChange={(e) => setFolder(e.target.value)}
-            className="mt-1 w-full rounded-md px-2 py-1.5 text-sm"
-            style={{
-              backgroundColor: "var(--surface)",
-              border: "1px solid var(--line)",
-              color: "var(--ink)",
-            }}
-          >
+        <Field label="폴더" layout="vertical" className="mt-3">
+          <Select value={folder} onChange={(e) => setFolder(e.target.value)}>
             <option value="">(폴더 없음)</option>
             {folders.map((f) => (
               <option key={f.path} value={f.path}>
                 {f.path}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
 
         {error ? (
           <Text

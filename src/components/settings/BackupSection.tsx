@@ -5,7 +5,7 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { Modal } from "../common/Modal";
 import { Spinner } from "../common/Spinner";
-import { useToast } from "@goodsoob/ds";
+import { useToast, Select, Checkbox } from "@goodsoob/ds";
 import {
   runBackup,
   listBackups,
@@ -218,14 +218,11 @@ export function BackupSection() {
         >
           자동 백업
         </Text>
-        <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: "var(--ink)" }}>
-          <input
-            type="checkbox"
-            checked={cfg.enabled}
-            onChange={(e) => updateConfig({ enabled: e.target.checked })}
-          />
-          앱 실행 시 자동 백업
-        </label>
+        <Checkbox
+          checked={cfg.enabled}
+          onChange={(e) => updateConfig({ enabled: e.target.checked })}
+          label="앱 실행 시 자동 백업"
+        />
         {cfg.enabled && (
           <div className="flex items-end gap-4 pl-6 pt-1">
             <Text
@@ -234,21 +231,15 @@ export function BackupSection() {
               as="label"
             >
               <span className="mb-1 block">주기</span>
-              <select
+              <Select
                 value={cfg.intervalDays}
                 onChange={(e) => updateConfig({ intervalDays: Number(e.target.value) })}
-                className="cursor-pointer rounded px-2 py-1 text-sm"
-                style={{
-                  background: "var(--bg)",
-                  border: "1px solid var(--line)",
-                  color: "var(--ink)",
-                }}
               >
                 <option value={0.5}>12시간</option>
                 <option value={1}>1일</option>
                 <option value={3}>3일</option>
                 <option value={7}>7일</option>
-              </select>
+              </Select>
             </Text>
             <Text
               variant="caption"
@@ -256,22 +247,16 @@ export function BackupSection() {
               as="label"
             >
               <span className="mb-1 block">보관</span>
-              <select
+              <Select
                 value={cfg.keepCount}
                 onChange={(e) => updateConfig({ keepCount: Number(e.target.value) })}
-                className="cursor-pointer rounded px-2 py-1 text-sm"
-                style={{
-                  background: "var(--bg)",
-                  border: "1px solid var(--line)",
-                  color: "var(--ink)",
-                }}
               >
                 {KEEP_COUNT_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}개
                   </option>
                 ))}
-              </select>
+              </Select>
             </Text>
           </div>
         )}

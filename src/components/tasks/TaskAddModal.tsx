@@ -10,7 +10,7 @@ import { LooseTimeInput } from "../common/LooseTimeInput";
 import { Modal } from "../common/Modal";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { useToast } from "@goodsoob/ds";
+import { useToast, Input, Field, Checkbox } from "@goodsoob/ds";
 import { formatError } from "../../lib/errors";
 
 type AddType = "task" | "routine";
@@ -98,16 +98,8 @@ function TaskForm({
 
   return (
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
-      <label className="mt-4 block">
-        <Text
-          variant="caption"
-          color="secondary"
-          as="span"
-          weight="medium"
-        >
-          제목 <span style={{ color: "var(--down)" }}>*</span>
-        </Text>
-        <input
+      <Field label="제목" required layout="vertical" className="mt-4">
+        <Input
           ref={titleRef}
           type="text"
           value={title}
@@ -115,14 +107,8 @@ function TaskForm({
           placeholder="할 일 제목을 입력하세요"
           aria-required="true"
           maxLength={200}
-          className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--surface)",
-            border: "1px solid var(--line)",
-            color: "var(--ink)",
-          }}
         />
-      </label>
+      </Field>
 
       <div
         className="mt-3 grid gap-2"
@@ -191,16 +177,13 @@ function TaskForm({
 
       {/* w-fit: label 폭을 체크박스+텍스트 만큼으로 한정 — flex 가 full-width 가 되어
           텍스트 오른쪽 빈 공간 클릭에도 토글되던 것 방지. */}
-      <label className="mt-3 flex w-fit items-center gap-2 text-xs">
-        <input
-          type="checkbox"
+      <div className="mt-3 w-fit">
+        <Checkbox
           checked={done}
           onChange={(e) => setDone(e.target.checked)}
+          label="완료된 항목으로 추가"
         />
-        <Text variant="caption" color="secondary" as="span">
-          완료된 항목으로 추가
-        </Text>
-      </label>
+      </div>
 
       {createMutation.isError ? (
         <Text
@@ -305,16 +288,15 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
 
   return (
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
-      <label className="mt-4 block">
-        <Text
-          variant="caption"
-          color="secondary"
-          as="span"
-          weight="medium"
-        >
-          이름 <span style={{ color: "var(--down)" }}>*</span>
-        </Text>
-        <input
+      <Field
+        label="이름"
+        required
+        layout="vertical"
+        className="mt-4"
+        error={!!errors.name}
+        hint={errors.name || undefined}
+      >
+        <Input
           ref={nameRef}
           type="text"
           value={name}
@@ -324,26 +306,10 @@ function RoutineForm({ onDone }: { onDone: () => void }) {
           }}
           placeholder="루틴 이름을 입력하세요"
           aria-required="true"
-          aria-invalid={errors.name ? true : undefined}
+          error={!!errors.name}
           maxLength={100}
-          className="mt-1 w-full rounded-md px-2 py-1.5 text-sm outline-none"
-          style={{
-            backgroundColor: "var(--surface)",
-            border: `1px solid ${errors.name ? "var(--down)" : "var(--line)"}`,
-            color: "var(--ink)",
-          }}
         />
-        {errors.name ? (
-          <Text
-            variant="caption"
-            as="p"
-            className="mt-1"
-            style={{ color: "var(--down)" }}
-          >
-            {errors.name}
-          </Text>
-        ) : null}
-      </label>
+      </Field>
 
       <label className="mt-3 block">
         <Text variant="caption" color="secondary" as="span" weight="medium">

@@ -1,42 +1,49 @@
-// Adapter: wraps canonical DS Modal panel chrome via CSS tokens.
+// Thin wrapper over the canonical DS Modal (@goodsoob/ds).
 //
-// DS Modal (src/ds/Modal.tsx) provides panel chrome (.ds-modal: surface, border,
-// radius, shadow) but its backdrop is hardwired to --bg-overlay and its ESC/backdrop
-// dismiss cannot be disabled externally. We therefore:
-//   - render our own backdrop (z-[60], portal to body, scrim/overlay colour)
-//   - handle ESC via window keydown (not focus-dependent)
-//   - handle backdrop dismiss via mousedown target check
-//   - replicate .ds-modal panel tokens inline on our own panel div
+// The DS Modal now owns ALL modal chrome — portal, backdrop, ESC, body-scroll-lock,
+// size tiers (sm/md/lg/xl), and the `scrim` backdrop (via --bg-scrim). This adapter
+// no longer replicates any of that; it only maps memory's local ModalProps onto the
+// DS API so the ~18 call-sites stay unchanged.
 //
-// All 19 call-sites see the identical ModalProps API — no changes needed there.
+// Two memory-specific concerns the DS Modal doesn't cover directly:
+//
+//   1. Panel padding — memory's call-sites bring their OWN header/body divs and
+//      expect a flush, padding-free, overflow-hidden panel. DS Modal's `flush`
+//      prop provides exactly that — no app-side `!p-0` utility override (adoption
+//      원칙 1: DS 컴포넌트를 utility 로 개조하지 않는다).
+//
+//   2. `orientation` — DS Modal has no orientation. For lg/xl containers we
+//      reproduce the flex panel behavior app-side by wrapping children in a
+//      full-height flex box (row for horizontal, column for vertical). sm/md are
+//      content-driven and pass children through untouched.
 //
 // Mapping summary:
-//   size        → max-w-* class + height inline style (lg/xl)
-//   orientation → flex / flex-col class on panel (lg/xl only)
-//   backdrop    → inline backgroundColor (scrim = rgba black, overlay = --bg-overlay)
-//   dismissOnEscape    → window keydown guard
-//   dismissOnBackdrop  → mousedown e.target === e.currentTarget guard
-//   maxWidth    → overrides size's default max-w-* class (width only, height intact)
-//   ariaLabel / ariaLabelledBy → aria-label / aria-labelledby on role="dialog" div
+//   size                → DS size (same names, same values)
+//   backdrop (def scrim) → DS backdrop (memory defaults to scrim; DS defaults to overlay)
+//   dismissOnEscape      → DS dismissOnEscape (same)
+//   dismissOnBackdrop    → DS closeOnBackdrop
+//   ariaLabel/By         → DS ariaLabel / ariaLabelledBy (same)
+//   orientation          → app-side flex wrapper around children (lg/xl only)
+//   maxWidth             → extra Tailwind max-w-* class on the DS panel
 
-import { useEffect, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import type { ReactNode } from "react";
+import { Modal as DsModal } from "@goodsoob/ds";
 
 type Size = "sm" | "md" | "lg" | "xl";
 type Orientation = "vertical" | "horizontal";
 
-type ModalProps = {
+export type ModalProps = {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
   // 4-tier 크기 토큰. sm/md = content-driven height, lg/xl = fixed (viewport 캡).
   size: Size;
-  // lg/xl 에서만 효과 — wrapper 의 flex direction.
+  // lg/xl 에서만 효과 — 패널 flex direction.
   // vertical (default) = header/body/footer 스택, horizontal = aside | content 분할.
   orientation?: Orientation;
   ariaLabel?: string;
   ariaLabelledBy?: string;
-  // scrim = 어두운 backdrop (rgba(0,0,0,0.4), 기본)
+  // scrim = 어두운 backdrop (var(--bg-scrim), 기본)
   // overlay = 토큰 기반 frost (var(--bg-overlay))
   backdrop?: "scrim" | "overlay";
   // 기본 true. confirm 중첩 등 Escape 를 다른 핸들러가 먹어야 하는 케이스 false.
@@ -44,23 +51,12 @@ type ModalProps = {
   // 기본 true.
   dismissOnBackdrop?: boolean;
   // 옵션 — size 의 기본 max-width 를 override. 같은 size 토큰의 height/flex 는 유지하고
-  // 가로 폭만 좁혀야 할 때 (예: 일기 lg). Tailwind max-w-* 클래스 문자열.
+  // 가로 폭만 좁혀야 할 때 (예: 요약 lg). Tailwind max-w-* 클래스 문자열.
   maxWidth?: string;
 };
 
-// 4-tier size 토큰. width 는 max-w 로 캡, height 는 lg/xl 만 viewport-aware 고정값.
-const SIZE: Record<
-  Size,
-  { maxW: string; height?: string; isContainer: boolean }
-> = {
-  sm: { maxW: "max-w-sm", isContainer: false },
-  md: { maxW: "max-w-md", isContainer: false },
-  lg: { maxW: "max-w-3xl", height: "min(560px, 80vh)", isContainer: true },
-  xl: { maxW: "max-w-5xl", height: "min(640px, 85vh)", isContainer: true },
-};
+const isContainer = (size: Size) => size === "lg" || size === "xl";
 
-// backdrop close: mousedown 시작점이 backdrop 자체일 때만 닫음.
-// Portal 로 body 에 mount — 부모 stacking context / transform 가 fixed 좌표 깨는 케이스 회피.
 export function Modal({
   open,
   onClose,
@@ -74,59 +70,41 @@ export function Modal({
   dismissOnBackdrop = true,
   maxWidth,
 }: ModalProps) {
-  // window-level ESC — not focus-dependent, survives nested focus traps.
-  useEffect(() => {
-    if (!open || !dismissOnEscape) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, dismissOnEscape, onClose]);
+  // maxWidth (Tailwind max-w-*) narrows the panel below the size tier's default.
+  // Flush panel padding is owned by DS Modal's `flush` prop (not a utility override).
+  const panelClass = [maxWidth].filter(Boolean).join(" ");
 
-  if (!open) return null;
-
-  const cfg = SIZE[size];
-
-  const backdropColor =
-    backdrop === "overlay" ? "var(--bg-overlay)" : "rgba(0,0,0,0.4)";
-
-  // lg/xl containers get flex direction. sm/md are content-driven.
-  const flexClass = cfg.isContainer
-    ? orientation === "vertical"
-      ? "flex flex-col"
-      : "flex"
-    : "";
-
-  const effectiveMaxW = maxWidth ?? cfg.maxW;
-
-  return createPortal(
+  // lg/xl containers get the flex layout the old adapter applied on the panel; we
+  // reproduce it on a full-height wrapper since DS has no orientation and sites use
+  // their own header/body divs (not DS slots). sm/md pass through (content-driven).
+  const content = isContainer(size) ? (
     <div
-      onMouseDown={(e) => {
-        if (!dismissOnBackdrop) return;
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-6"
-      style={{ backgroundColor: backdropColor }}
+      className={
+        orientation === "horizontal"
+          ? "flex h-full min-h-0"
+          : "flex flex-col h-full min-h-0"
+      }
     >
-      {/* Panel — DS Modal chrome tokens applied inline to match .ds-modal exactly */}
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        className={`w-full overflow-hidden ${effectiveMaxW} ${flexClass}`.trim()}
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--line)",
-          borderRadius: "var(--radius-16)",
-          boxShadow: "var(--shadow-modal)",
-          ...(cfg.height ? { height: cfg.height } : {}),
-        }}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body,
+      {children}
+    </div>
+  ) : (
+    children
+  );
+
+  return (
+    <DsModal
+      open={open}
+      onClose={onClose}
+      size={size}
+      backdrop={backdrop}
+      dismissOnEscape={dismissOnEscape}
+      closeOnBackdrop={dismissOnBackdrop}
+      flush
+      ariaLabel={ariaLabel}
+      ariaLabelledBy={ariaLabelledBy}
+      className={panelClass}
+    >
+      {content}
+    </DsModal>
   );
 }

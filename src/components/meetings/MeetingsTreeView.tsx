@@ -55,9 +55,7 @@ type DragItem =
 // 행 시각 단위.
 const INDENT_UNIT = 16;
 const ROW_BASE_PAD_LEFT = 8; // ul 의 좌 패딩과 동일 — chevron 시작 위치
-// DS NavItem icon 슬롯(--icon-16=16px) + gap(--space-8=8px). 메모 행은 icon 슬롯이
-// 없어서 paddingLeft 에 더해 폴더 이름과 같은 column 으로 align (옵시디안 패턴).
-const TITLE_OFFSET = 16 + 8;
+// 메모 행은 icon 슬롯이 없으므로 NavItem reserveIcon 으로 leading 컬럼 예약.
 
 type Props = {
   meetings: Meeting[];
@@ -686,6 +684,7 @@ function MeetingRow({
       <NavItem
         draggable
         active={selected}
+        reserveIcon
         onClick={onClick}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -701,7 +700,7 @@ function MeetingRow({
         className="rounded py-1 pr-2"
         style={
           {
-            paddingLeft: `${ROW_BASE_PAD_LEFT + TITLE_OFFSET}px`,
+            paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
             color: "var(--ink)",
             opacity: isDragging ? 0.5 : 1,
             boxShadow: isContextTarget

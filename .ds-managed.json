@@ -20,12 +20,12 @@
     "src/index.css": {
       "type": "blocks",
       "blocks": {
-        "color": "95412b3af04f0a03c2a696aa7c2f406d991e7f855d46092bd3cfbf716ab43117",
+        "color": "1ddfced2446081fd97d1d788ce166711b246984464979bec8c2a3bc7a32ea84f",
         "tokens-theme": "c6ad990784a246c51e1071301a4cb1f702d7daa41f0a78699fec4e846497d501",
-        "tokens": "abcc6cceeb2ddc21ffbbd96b7584862db5133c5446b00a6b96192696bd3d5d16",
+        "tokens": "3b5cd6bf9753c345c13306beda4fe49bee14ce072e87f8ac8337f3174882f028",
         "system": "4b3b3d3a7e000e3127f54f746372bad6aa3decb68ffa8a2884d90523dc9929ca",
-        "tokens-scale": "e9075ec5ec8d013dcea61d26cc89ab8da38787a6f0b4804a0bd68249424e7dc4",
-        "layout": "641575b3a2ed169ae72cdeae3a7c93c2d7a9ce89e3aa236919db605e70b46432"
+        "tokens-scale": "c5331f57a3d9dc6d651d38422fe41e82fd8c4e5b684498d6b2a7c0b75e2da7c4",
+        "layout": "7fe7a1c1dda6567bc8766d133f32bcaa942962fdaab686854f9eb9b6b4539356"
       }
     }
   }

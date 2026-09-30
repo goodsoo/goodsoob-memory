@@ -104,8 +104,6 @@
        캔버스 종속 파생. ── */
     --bg: #f3f6fc;
     --bg-overlay: rgba(255, 255, 255, 0.92);
-    /* sync-pending: mirrors canonical color.css (ds-sync will formally propagate).
-       Consumed by @goodsoob/ds Modal backdrop="scrim". */
     --bg-scrim: rgba(0, 0, 0, 0.4);
     --surface-frost: rgba(255, 255, 255, 0.78);
     --surface-frost-border: rgba(0, 0, 0, 0.08);
@@ -170,8 +168,6 @@
     /* 캔버스(dark) — tower 앵커 딥네이비, 전 앱 공유. */
     --bg: #0c0f16;
     --bg-overlay: rgba(12, 15, 22, 0.92);
-    /* sync-pending: mirrors canonical color.css (ds-sync will formally propagate).
-       Consumed by @goodsoob/ds Modal backdrop="scrim". */
     --bg-scrim: rgba(0, 0, 0, 0.4);
     --surface-frost: rgba(22, 27, 36, 0.65);
     --surface-frost-border: rgba(255, 255, 255, 0.08);
@@ -204,17 +200,15 @@
   :root {
     color-scheme: light;
 
-    /* 앱-로컬 비색 토큰 — safe-area / titlebar / page-header. 색(캔버스·도메인)은
+    /* 앱-로컬 비색 토큰 — safe-area / titlebar. 색(캔버스·도메인)은
        전부 color.css 로 이관됨(2026-09-25, memory 전용 격리 폐지 → 전 consumer 공유).
-       크기 스케일은 scale.css, 공유 layout(--safe-bottom·--bottom-nav-h)은 layout.css. */
+       크기 스케일(--page-header-h 포함)은 scale.css, 공유 layout(--safe-bottom·--bottom-nav-h)은 layout.css. */
 
     --safe-top: env(safe-area-inset-top);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
     --titlebar-inset: 0px;
     --titlebar-traffic-inset: 0px;
-    /* 사이드바 + 본문 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. */
-    --page-header-h: 3.25rem;
   }
 
   :root.is-mac-tauri {
@@ -260,6 +254,12 @@
     --ctl-h: 28px;
     /* 입력 전용 높이 — Input·Select·Textarea·SearchField. 버튼(--ctl-h 28)보다 크게(터치 여유·growth 9개월 실사용). 2026-09-26 신설(제보 input-field-height-token). */
     --field-h: 38px;
+    /* Field horizontal 레이아웃 라벨 고정 너비 — Field.tsx horizontal 모드 참조(growth mgr-field 80px 실사용값 흡수). */
+    --field-label-w: 80px;
+    /* 페이지/사이드바 헤더 공통 높이 (52px) — 모든 row 가 같은 줄에 align. D5 단일 토큰.
+       2026-09-27 tokens.css 에서 이동: tokens.css 는 exclude 되는 앱(growth·tower)이 있어
+       그들이 canonical 값을 못 받던 stranded 상태였음 → 전 consumer 수신하는 tokens-scale 로. */
+    --page-header-h: 3.25rem;
 
     /* ── Type scale ── tower 기준(dense 대시보드). 폰트 배율(--fscale)만 곱해
        '글자 크기만' 바뀌게(레이아웃/간격 고정, zoom 아님). 값·이름 = tower tokens.css. */
@@ -311,6 +311,10 @@
     --bottom-nav-h: 3.5rem;
     /* 하단 safe-area 인셋 (노치/홈바). BottomNav 가 콘텐츠 높이에 가산. */
     --safe-bottom: env(safe-area-inset-bottom);
+    /* 상단 safe-area 인셋 (노치/상태바). Modal fullscreen 헤더가 가산. */
+    --safe-top: env(safe-area-inset-top);
+    /* 모달 시트 최대 너비 — 데스크탑 중앙 다이얼로그 폭. 모든 모달 이 한 값으로 통일. */
+    --modal-w: 640px;
     /* z-index 전체 스택: dropdown < sticky < overlay < modal < popover < tooltip < toast.
        공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신. */
     --z-dropdown: 10;

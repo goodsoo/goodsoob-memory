@@ -29,7 +29,7 @@
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>PORT</key>
-    <string>7080</string>
+    <string>7020</string>
 
     <!-- VAULT_DIR: Pro 와 동일한 brain 경로를 기입한다.
          iCloud 가 md 를 재일치시키므로 air 와 Pro 의 vault 경로가 같아야 한다.
@@ -39,10 +39,10 @@
 
     <!-- PRO_HEALTH_URL: Pro 서버 /api/health URL.
          tailscale 사용 시: https://pro-macname.tailnet.ts.net/api/health
-         LAN 직접:          http://<pro-lan-ip>:7080/api/health
+         LAN 직접:          http://<pro-lan-ip>:7020/api/health
          미설정 시 헬스체크 없이 즉시 기동(수동 fallback 모드). -->
     <key>PRO_HEALTH_URL</key>
-    <string>http://__PRO_LAN_OR_TAILSCALE_IP__:7080/api/health</string>
+    <string>http://__PRO_LAN_OR_TAILSCALE_IP__:7020/api/health</string>
   </dict>
 
   <!-- 평소 unload 상태로 둔다. Pro 다운 시에만 아래 명령으로 load:

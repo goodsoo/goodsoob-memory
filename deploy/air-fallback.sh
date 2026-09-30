@@ -6,10 +6,10 @@
 #
 # 환경변수:
 #   PRO_HEALTH_URL  — Pro 서버 health URL
-#                     예) http://<pro-tailscale-ip>:7080/api/health
+#                     예) http://<pro-tailscale-ip>:7020/api/health
 #                         https://pro-macname.tailnet.ts.net/api/health
 #   VAULT_DIR       — brain 경로 (plist 에서 주입)
-#   PORT            — 서버 포트 (기본 7080)
+#   PORT            — 서버 포트 (기본 7020)
 #
 # 호출: launchd 가 이 스크립트를 직접 실행한다 (com.goodsoob.memory.air.plist).
 

@@ -1,6 +1,6 @@
 # deploy — 로컬 서버 상주 (launchd)
 
-V0.8 PWA 전환. Pro 맥이 정본 brain 을 소유한 Bun 서버(`server/index.ts`, 포트 7080)를 launchd 로 상주시킨다. growth(7060)·tower(7071) 와 동일 패턴 (`RunAtLoad`+`KeepAlive`, 로그인 시 자동 기동, 크래시 자동 재시작).
+V0.8 PWA 전환. Pro 맥이 정본 brain 을 소유한 Bun 서버(`server/index.ts`, 포트 7020)를 launchd 로 상주시킨다. growth(7060)·tower(7071) 와 동일 패턴 (`RunAtLoad`+`KeepAlive`, 로그인 시 자동 기동, 크래시 자동 재시작).
 
 ## ⚠️ 활성화 전 선결조건 (T0)
 
@@ -34,8 +34,8 @@ air 는 평소 Pro 서버에 브라우저로 접속(자기 서버 안 띄움). *
 ```bash
 # 1. plist 내 PRO_HEALTH_URL 과 VAULT_DIR 을 실제 값으로 편집
 #    PRO_HEALTH_URL 예시:
-#      tailscale 사용: http://<pro-tailscale-ip>:7080/api/health
-#      LAN 직접:       http://<pro-lan-ip>:7080/api/health
+#      tailscale 사용: http://<pro-tailscale-ip>:7020/api/health
+#      LAN 직접:       http://<pro-lan-ip>:7020/api/health
 #    VAULT_DIR: Pro 와 동일한 brain 경로 (iCloud 공유)
 
 # 2. air LaunchAgents 에 복사 (Pro plist 는 절대 넣지 말 것 — Label 충돌)

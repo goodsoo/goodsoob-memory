@@ -10,13 +10,13 @@ import {
 import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { formatDisplayDate } from "../../lib/dates";
 import { Input, NavItem } from "@goodsoob/ds";
-import { Text } from "../common/Text";
 
-const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpand";
-// 트리 collapsed 상태를 localStorage 에 저장. "expanded" set 보다 "collapsed" set 으로
-// 보관 — 새 폴더는 default expanded (사용자가 명시적으로 collapse 한 폴더만 기억).
+const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpandedV2";
+// 트리 펼침 상태를 localStorage 에 저장. "collapsed" set 이 아니라 "expanded" set 으로
+// 보관 — 폴더는 default 접힘이고, 사용자가 명시적으로 펼친 폴더만 기억한다. (구 V1 은
+// collapsed set = default 펼침이라 의미가 정반대 → key 를 V2 로 올려 교차오독 차단.)
 // vault 별로 폴더 위계가 다르므로 useScopedKey 로 vault id namespace.
-function loadCollapsed(key: string): Set<string> {
+function loadExpanded(key: string): Set<string> {
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return new Set();
@@ -28,7 +28,7 @@ function loadCollapsed(key: string): Set<string> {
   }
 }
 
-function saveCollapsed(key: string, set: Set<string>): void {
+function saveExpanded(key: string, set: Set<string>): void {
   try {
     window.localStorage.setItem(key, JSON.stringify([...set]));
   } catch {
@@ -55,9 +55,9 @@ type DragItem =
 // 행 시각 단위.
 const INDENT_UNIT = 16;
 const ROW_BASE_PAD_LEFT = 8; // ul 의 좌 패딩과 동일 — chevron 시작 위치
-// chevron(12px) + gap(6px). 메모 행은 chevron 자리가 없어서 paddingLeft 에 더해
-// 같은 column 위치로 align (옵시디안 패턴).
-const TITLE_OFFSET = 12 + 6;
+// DS NavItem icon 슬롯(--icon-16=16px) + gap(--space-8=8px). 메모 행은 icon 슬롯이
+// 없어서 paddingLeft 에 더해 폴더 이름과 같은 column 으로 align (옵시디안 패턴).
+const TITLE_OFFSET = 16 + 8;
 
 type Props = {
   meetings: Meeting[];
@@ -86,8 +86,8 @@ type Props = {
   // DnD 폴더 이동 — 폴더를 다른 폴더(또는 root)에 drop 시 호출. destParent "" = root.
   onFolderMoveDrop: (srcFolder: string, destParent: string) => void;
   // 새 메모/폴더 생성 직후 그 폴더 자동 펼침 트리거. revealNonce 가 바뀔 때
-  // revealPath(+모든 조상)를 collapsed set 에서 제거. 생성 외 일반 선택엔 안 씀
-  // (사용자가 명시적으로 접은 폴더는 그대로 둔다 — collapse 가 안 되살아남).
+  // revealPath(+모든 조상)를 expanded set 에 추가. 생성 외 일반 선택엔 안 씀
+  // (사용자가 명시적으로 접은 폴더는 그대로 둔다 — 펼침이 안 되살아남).
   revealPath?: string;
   revealNonce?: number;
 };
@@ -113,33 +113,32 @@ export function MeetingsTreeView({
   revealNonce,
 }: Props) {
   const folderExpandKey = useScopedKey(FOLDER_EXPAND_BASE_KEY);
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => loadCollapsed(folderExpandKey));
+  const [expanded, setExpanded] = useState<Set<string>>(() => loadExpanded(folderExpandKey));
   const [dropTarget, setDropTarget] = useState<string | null>(null); // 강조 중인 폴더 path
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
 
-  // vault 전환 시 새 vault 의 collapsed set 으로 갈아끼움.
+  // vault 전환 시 새 vault 의 expanded set 으로 갈아끼움.
   useEffect(() => {
-    setCollapsed(loadCollapsed(folderExpandKey));
+    setExpanded(loadExpanded(folderExpandKey));
   }, [folderExpandKey]);
 
   useEffect(() => {
-    saveCollapsed(folderExpandKey, collapsed);
-  }, [folderExpandKey, collapsed]);
+    saveExpanded(folderExpandKey, expanded);
+  }, [folderExpandKey, expanded]);
 
-  // 새 메모/폴더 생성 시 그 폴더(+조상)를 collapsed 에서 제거 → 자동 펼침.
+  // 새 메모/폴더 생성 시 그 폴더(+조상)를 expanded 에 추가 → 자동 펼침.
   // revealNonce 변화에만 반응 (사용자가 직접 접은 폴더는 안 되살림). React 공식
   // "prop 변화 시 state 조정" 패턴 — 렌더 중 setState (effect 아님 → cascade 없음).
   const [seenRevealNonce, setSeenRevealNonce] = useState(revealNonce);
   if (revealNonce !== seenRevealNonce) {
     setSeenRevealNonce(revealNonce);
     if (revealPath) {
-      setCollapsed((prev) => {
-        if (prev.size === 0) return prev;
+      setExpanded((prev) => {
         const next = new Set(prev);
         let acc = "";
         for (const seg of revealPath.split("/")) {
           acc = acc ? `${acc}/${seg}` : seg;
-          next.delete(acc);
+          next.add(acc);
         }
         return next.size === prev.size ? prev : next;
       });
@@ -152,7 +151,7 @@ export function MeetingsTreeView({
   );
 
   function toggleFolder(path: string) {
-    setCollapsed((prev) => {
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(path)) next.delete(path);
       else next.add(path);
@@ -231,7 +230,7 @@ export function MeetingsTreeView({
           selectedUid={selectedUid}
           contextMeetingId={contextMeetingId ?? null}
           contextFolder={contextFolder ?? null}
-          collapsed={collapsed}
+          expanded={expanded}
           dropTarget={dropTarget}
           dragItem={dragItem}
           editingFolder={editingFolder ?? null}
@@ -364,7 +363,7 @@ function FolderItem({
   selectedUid,
   contextMeetingId,
   contextFolder,
-  collapsed,
+  expanded,
   dropTarget,
   dragItem,
   editingFolder,
@@ -388,7 +387,7 @@ function FolderItem({
   selectedUid: string | null;
   contextMeetingId: string | null;
   contextFolder: string | null;
-  collapsed: Set<string>;
+  expanded: Set<string>;
   dropTarget: string | null;
   dragItem: DragItem | null;
   editingFolder: EditingFolderState | null;
@@ -408,7 +407,7 @@ function FolderItem({
   onDropFolder: (e: React.DragEvent, folder: string) => void;
 }) {
   const isEditing = editingFolder?.folder === node.path;
-  const isCollapsed = collapsed.has(node.path);
+  const isCollapsed = !expanded.has(node.path);
   const isDropTarget = dropTarget === node.path;
   const isContextTarget = contextFolder === node.path;
   // 끌고 있는 게 이 폴더 자신이면 dim. drop 가능 여부 — 폴더 드래그면 cycle/no-op
@@ -448,7 +447,39 @@ function FolderItem({
           onDragOver={(e) => onDragOverFolder(e, node.path)}
           onDragLeave={() => onDragLeaveFolder(node.path)}
           onDrop={(e) => onDropFolder(e, node.path)}
-          className="group gap-1.5 rounded py-1 pr-2"
+          icon={
+            isCollapsed ? (
+              <ChevronRight className="h-3 w-3" style={{ color: "var(--sub)" }} />
+            ) : (
+              <ChevronDown className="h-3 w-3" style={{ color: "var(--sub)" }} />
+            )
+          }
+          trailing={
+            // hover (또는 컨텍스트 메뉴 열림) 시 우측 … 버튼 — 우클릭과 동일 메뉴를
+            // 버튼 아래로 연다. nested button 회피 위해 span + onMouseDown (행 toggle 과 분리).
+            <span
+              role="button"
+              aria-label="폴더 메뉴"
+              title="폴더 메뉴"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                onFolderContextMenu(node.path, r.left, r.bottom + 2);
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className={`h-4 w-4 items-center justify-center rounded group-hover:inline-flex ${
+                isContextTarget ? "inline-flex" : "hidden"
+              }`}
+              style={{ color: "var(--faint)" }}
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </span>
+          }
+          className="group rounded py-1 pr-2"
           style={
             {
               paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
@@ -473,42 +504,7 @@ function FolderItem({
             } as React.CSSProperties
           }
         >
-          {isCollapsed ? (
-            <ChevronRight
-              className="h-3 w-3 shrink-0"
-              style={{ color: "var(--sub)" }}
-            />
-          ) : (
-            <ChevronDown
-              className="h-3 w-3 shrink-0"
-              style={{ color: "var(--sub)" }}
-            />
-          )}
-          <span className="min-w-0 flex-1 truncate">{node.name}</span>
-          {/* hover (또는 컨텍스트 메뉴 열림) 시 우측 … 버튼 — 우클릭과 동일 메뉴를
-              버튼 아래로 연다. nested button 회피 위해 span + onMouseDown (행 toggle
-              과 분리). */}
-          <span
-            role="button"
-            aria-label="폴더 메뉴"
-            title="폴더 메뉴"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-              onFolderContextMenu(node.path, r.left, r.bottom + 2);
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className={`h-4 w-4 shrink-0 items-center justify-center rounded group-hover:inline-flex ${
-              isContextTarget ? "inline-flex" : "hidden"
-            }`}
-            style={{ color: "var(--faint)" }}
-          >
-            <MoreHorizontal className="h-3.5 w-3.5" />
-          </span>
+          {node.name}
         </NavItem>
       )}
       {!isCollapsed ? (
@@ -522,13 +518,13 @@ function FolderItem({
           }}
         >
           {/* vertical tree guide — 부모 폴더 행의 chevron center 위치와 정렬.
-              ROW_BASE_PAD_LEFT(8) + chevron half(6) = 14. border-default 컬러로
+              ROW_BASE_PAD_LEFT(8) + icon 슬롯 half(8) = 16. border-default 컬러로
               border-subtle 보다 진하게 — 명확히 보이도록. */}
           <div
             aria-hidden
             className="pointer-events-none absolute top-0 bottom-0 w-px"
             style={{
-              left: "14px",
+              left: "16px",
               backgroundColor: "var(--line)",
             }}
           />
@@ -543,7 +539,7 @@ function FolderItem({
                 selectedUid={selectedUid}
                 contextMeetingId={contextMeetingId}
                 contextFolder={contextFolder}
-                collapsed={collapsed}
+                expanded={expanded}
                 dropTarget={dropTarget}
                 dragItem={dragItem}
                 editingFolder={editingFolder}
@@ -697,7 +693,12 @@ function MeetingRow({
         }}
         onDragStart={(e) => onDragStart(e, meeting.uid)}
         onDragEnd={onDragEnd}
-        className="gap-1.5 rounded py-1 pr-2"
+        trailing={
+          meta ? (
+            <span className="whitespace-nowrap tabular-nums">{meta}</span>
+          ) : undefined
+        }
+        className="rounded py-1 pr-2"
         style={
           {
             paddingLeft: `${ROW_BASE_PAD_LEFT + TITLE_OFFSET}px`,
@@ -711,19 +712,7 @@ function MeetingRow({
           } as React.CSSProperties
         }
       >
-        <span className="min-w-0 flex-1 truncate">
-          {meeting.title?.trim() || "(제목 없음)"}
-        </span>
-        {meta ? (
-          <Text
-            variant="caption"
-            color="muted"
-            as="span"
-            className="shrink-0 pl-2 text-2xs tabular-nums"
-          >
-            {meta}
-          </Text>
-        ) : null}
+        {meeting.title?.trim() || "(제목 없음)"}
       </NavItem>
     </li>
   );

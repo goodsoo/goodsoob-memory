@@ -682,7 +682,10 @@ export function SourceBodyEditor({
             paddingBottom: TEXTAREA_PADDING_BOTTOM,
             overflowY: "hidden",
             overflowX: "hidden", // wrap=soft 라 가로 scroll 발생 X — 명시
-            overscrollBehavior: "none",
+            // overscrollBehavior 는 두지 않음 — textarea 는 autoresize 라 자체 scroll 이
+            // 없어 "none" 이면 휠이 여기서 소비되고 부모 (overflow-y-auto) 로 체이닝이
+            // 끊겨 마우스가 에디터 위일 때 스크롤이 안 먹음. 페이지 바운스 억제는
+            // 바깥 스크롤 컨테이너 (MeetingForm 의 lg:overscroll-none) 가 담당.
             wordBreak: "break-word", // 긴 영문 단어/URL 도 강제 wrap (CJK 는 어차피 char-단위)
             // drag 강조 — outline 은 inset 으로 textarea 박스 안쪽 (드롭 가능 영역
             // 정확 시각화). min-height 는 빈 메모 (1줄짜리) 에서 drop target 좁아 보이는

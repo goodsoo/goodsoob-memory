@@ -286,6 +286,7 @@
     --lh-loose: 1.65;
 
     /* ── Font-weight scale ── */
+    --fw-normal: 400;
     --fw-med: 500;
     --fw-semi: 600;
     --fw-bold: 700;

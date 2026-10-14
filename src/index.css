@@ -364,11 +364,13 @@
     --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
     --shadow-modal: 0 24px 48px -12px rgba(0, 0, 0, 0.22), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
     --shadow-popover: 0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.08);
+    --shadow-knob: 0 1px 2px rgba(0, 0, 0, 0.2);
 
     /* motion */
     --motion-fast: 120ms;
     --motion-base: 150ms;
     --motion-slow: 250ms;
+    --motion-spin: 900ms;   /* 스피너 회전 주기 (duration scale 과 별개 축) */
   }
 
   :root[data-theme="dark"] {

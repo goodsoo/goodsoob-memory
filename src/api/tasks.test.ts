@@ -9,7 +9,7 @@ import {
 import { extractTasks } from "../lib/vault/tasks";
 import { createMemoryAdapter } from "../lib/vault/adapter";
 
-const INBOX = "tasks/inbox.md";
+const INBOX = "_tasks/inbox.md";
 
 function makeAdapter() {
   const a = createMemoryAdapter();
@@ -66,10 +66,10 @@ describe("createTodo", () => {
     const a = makeAdapter();
     const task = await createTodo(a, {
       title: "프로젝트 할 일",
-      target_file: "tasks/프로젝트A.md",
+      target_file: "_tasks/프로젝트A.md",
     });
-    expect(task._source.file).toBe("tasks/프로젝트A.md");
-    const raw = await a.read("tasks/프로젝트A.md");
+    expect(task._source.file).toBe("_tasks/프로젝트A.md");
+    const raw = await a.read("_tasks/프로젝트A.md");
     expect(raw).toContain("프로젝트 할 일");
   });
 });
@@ -77,12 +77,12 @@ describe("createTodo", () => {
 describe("listTodos — tasks/ 폴더 전체 스캔", () => {
   it("여러 프로젝트 파일을 가로질러 수집 + source.file 이 프로젝트를 가리킴", async () => {
     const a = makeAdapter();
-    await a.write("tasks/inbox.md", "# 미분류\n- [ ] A\n");
-    await a.write("tasks/프로젝트X.md", "# 프로젝트X\n- [ ] B\n");
+    await a.write("_tasks/inbox.md", "# 미분류\n- [ ] A\n");
+    await a.write("_tasks/프로젝트X.md", "# 프로젝트X\n- [ ] B\n");
     const tasks = await listTodos(a);
     const a1 = tasks.find((t) => t.title === "A");
     const b1 = tasks.find((t) => t.title === "B");
-    expect(a1!._source.file).toBe("tasks/inbox.md");
-    expect(b1!._source.file).toBe("tasks/프로젝트X.md");
+    expect(a1!._source.file).toBe("_tasks/inbox.md");
+    expect(b1!._source.file).toBe("_tasks/프로젝트X.md");
   });
 });

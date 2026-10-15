@@ -46,7 +46,7 @@ describe("migrateRootInbox — V0.8 모델 분리 lazy migration", () => {
     await a.write("inbox.md", SAMPLE);
     await migrateRootInbox(a);
 
-    const inbox = await a.read("tasks/inbox.md");
+    const inbox = await a.read("_tasks/inbox.md");
     expect(inbox).not.toContain("#work");
     expect(inbox).not.toContain("#other");
     expect(inbox).toContain("- [ ] 보고서 작성 --- 2026-06-20");
@@ -72,9 +72,9 @@ describe("migrateRootInbox — V0.8 모델 분리 lazy migration", () => {
 
   it("idempotent — 루트 inbox.md 없으면 noop", async () => {
     const a = makeAdapter();
-    await a.write("tasks/inbox.md", "# 미분류\n- [ ] 기존 할 일\n");
+    await a.write("_tasks/inbox.md", "# 미분류\n- [ ] 기존 할 일\n");
     await migrateRootInbox(a); // 루트 inbox 없음 → early return
-    const inbox = await a.read("tasks/inbox.md");
+    const inbox = await a.read("_tasks/inbox.md");
     expect(inbox).toBe("# 미분류\n- [ ] 기존 할 일\n");
   });
 
@@ -84,7 +84,7 @@ describe("migrateRootInbox — V0.8 모델 분리 lazy migration", () => {
     await a.write("inbox.md", SAMPLE);
     await Promise.all([migrateRootInbox(a), migrateRootInbox(a)]);
 
-    const inbox = await a.read("tasks/inbox.md");
+    const inbox = await a.read("_tasks/inbox.md");
     // 할 일 라인은 정확히 1번만.
     const reportCount = inbox.split("보고서 작성").length - 1;
     expect(reportCount).toBe(1);

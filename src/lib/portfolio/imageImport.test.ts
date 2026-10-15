@@ -91,10 +91,10 @@ describe("planImagePaths", () => {
       { url: "https://a/w.png", label: null, caption: "" },
     ]);
     expect(plan.map((p) => p.relPath)).toEqual([
-      "portfolio/_attachments/owner-repo-1/before-1.png",
-      "portfolio/_attachments/owner-repo-1/before-2.png",
-      "portfolio/_attachments/owner-repo-1/after-1.png",
-      "portfolio/_attachments/owner-repo-1/img-1.png",
+      "_portfolio/_attachments/owner-repo-1/before-1.png",
+      "_portfolio/_attachments/owner-repo-1/before-2.png",
+      "_portfolio/_attachments/owner-repo-1/after-1.png",
+      "_portfolio/_attachments/owner-repo-1/img-1.png",
     ]);
   });
 });

@@ -235,10 +235,10 @@ describe("scanPortfolio (step 2)", () => {
   it("portfolio/ 만 list, projects.md / .synced.md skip, type 불일치 skip", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("portfolio/zzompang2-goodsoob-work-42.md", SAMPLE_CARD);
+    await adapter.write("_portfolio/zzompang2-goodsoob-work-42.md", SAMPLE_CARD);
     // 다른 owner-repo-number, merged_at 더 옛날 → 정렬 검증
     await adapter.write(
-      "portfolio/owner-repo-2.md",
+      "_portfolio/owner-repo-2.md",
       SAMPLE_CARD.replace(
         "github_pr_number: 42",
         "github_pr_number: 2",
@@ -251,12 +251,12 @@ describe("scanPortfolio (step 2)", () => {
     );
     // projects.md 는 type 도 다름 → 명시 skip
     await adapter.write(
-      "portfolio/projects.md",
+      "_portfolio/projects.md",
       `---\nprojects:\n  - slug: a\n    name: A\n    sort: 1\n---\n`,
     );
     // 손상 카드 (type 다름)
     await adapter.write(
-      "portfolio/random.md",
+      "_portfolio/random.md",
       `---\ntype: meeting\n---\n\nblah\n`,
     );
 
@@ -691,18 +691,18 @@ describe("syncPortfolio — 본인 수정 필드 보존 (v2.2 3A, design test #8
     await syncPortfolio(adapter, { searchFn, enrichFn, downloadFn });
 
     expect(downloaded).toEqual([
-      ["portfolio/_attachments/owner-repo-1/before-1.png", "https://example.com/before.png"],
-      ["portfolio/_attachments/owner-repo-1/after-1.jpg", "https://example.com/after.jpg"],
+      ["_portfolio/_attachments/owner-repo-1/before-1.png", "https://example.com/before.png"],
+      ["_portfolio/_attachments/owner-repo-1/after-1.jpg", "https://example.com/after.jpg"],
     ]);
     const card = await readPortfolioWork(adapter, "owner-repo-1");
     expect(card?.frontmatter.screenshots).toEqual([
       {
-        path: "portfolio/_attachments/owner-repo-1/before-1.png",
+        path: "_portfolio/_attachments/owner-repo-1/before-1.png",
         label: "before",
         caption: "",
       },
       {
-        path: "portfolio/_attachments/owner-repo-1/after-1.jpg",
+        path: "_portfolio/_attachments/owner-repo-1/after-1.jpg",
         label: "after",
         caption: "",
       },
@@ -782,7 +782,7 @@ describe("syncPortfolio — 본인 수정 필드 보존 (v2.2 3A, design test #8
     adapter.setRoot("/vault");
     // 같은 path 가 이미 vault 에 있음 (이전 sync 또는 본인이 직접 박은 binary)
     await adapter.write(
-      "portfolio/_attachments/owner-repo-1/before-1.png",
+      "_portfolio/_attachments/owner-repo-1/before-1.png",
       "stub",
     );
     const searchFn = async () => [mkSearchResult({ number: 1 })];
@@ -799,7 +799,7 @@ describe("syncPortfolio — 본인 수정 필드 보존 (v2.2 3A, design test #8
     // frontmatter 엔 path 가 박혀야 함 (이미 파일은 있으니)
     const card = await readPortfolioWork(adapter, "owner-repo-1");
     expect(card?.frontmatter.screenshots[0].path).toBe(
-      "portfolio/_attachments/owner-repo-1/before-1.png",
+      "_portfolio/_attachments/owner-repo-1/before-1.png",
     );
   });
 });

@@ -73,16 +73,16 @@ describe("sidecar path helpers", () => {
 
 describe("meetingFolder", () => {
   it("root 메모 → 빈 문자열", () => {
-    expect(meetingFolder("notes/x.md")).toBe("");
+    expect(meetingFolder("x.md")).toBe("");
   });
   it("1단 폴더", () => {
-    expect(meetingFolder("notes/work/x.md")).toBe("work");
+    expect(meetingFolder("work/x.md")).toBe("work");
   });
   it("중첩 폴더", () => {
-    expect(meetingFolder("notes/work/2026/x.md")).toBe("work/2026");
+    expect(meetingFolder("work/2026/x.md")).toBe("work/2026");
   });
   it("meetings 안 아니면 빈 문자열 (방어)", () => {
-    expect(meetingFolder("journals/2026-01-01.md")).toBe("");
+    expect(meetingFolder("2026-01-01.md")).toBe("");
   });
 });
 
@@ -107,70 +107,70 @@ describe("computeMovedMeetingPath + moveMeetingToFolder", () => {
   it("root → 폴더 이동", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("notes/note.md", "---\nid: u\n---\n\n# n\n");
+    await adapter.write("note.md", "---\nid: u\n---\n\n# n\n");
     const target = await computeMovedMeetingPath(
       adapter,
-      "notes/note.md",
+      "note.md",
       "work",
     );
-    expect(target).toBe("notes/work/note.md");
-    await moveMeetingToFolder(adapter, "notes/note.md", target);
-    expect(await adapter.exists("notes/work/note.md")).toBe(true);
-    expect(await adapter.exists("notes/note.md")).toBe(false);
+    expect(target).toBe("work/note.md");
+    await moveMeetingToFolder(adapter, "note.md", target);
+    expect(await adapter.exists("work/note.md")).toBe(true);
+    expect(await adapter.exists("note.md")).toBe(false);
   });
 
   it("폴더 → root 이동 (newFolder = '')", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("notes/work/note.md", "---\nid: u\n---\n\n# n\n");
+    await adapter.write("work/note.md", "---\nid: u\n---\n\n# n\n");
     const target = await computeMovedMeetingPath(
       adapter,
-      "notes/work/note.md",
+      "work/note.md",
       "",
     );
-    expect(target).toBe("notes/note.md");
+    expect(target).toBe("note.md");
   });
 
   it("같은 폴더 → no-op (same path 반환)", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("notes/work/note.md", "---\nid: u\n---\n\n# n\n");
+    await adapter.write("work/note.md", "---\nid: u\n---\n\n# n\n");
     const target = await computeMovedMeetingPath(
       adapter,
-      "notes/work/note.md",
+      "work/note.md",
       "work",
     );
-    expect(target).toBe("notes/work/note.md");
+    expect(target).toBe("work/note.md");
   });
 
   it("target 에 같은 이름 메모 있으면 TitleConflictError", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("notes/note.md", "---\nid: a\n---\n\n# n\n");
-    await adapter.write("notes/work/note.md", "---\nid: b\n---\n\n# n\n");
+    await adapter.write("note.md", "---\nid: a\n---\n\n# n\n");
+    await adapter.write("work/note.md", "---\nid: b\n---\n\n# n\n");
     await expect(
-      computeMovedMeetingPath(adapter, "notes/note.md", "work"),
+      computeMovedMeetingPath(adapter, "note.md", "work"),
     ).rejects.toThrow(TitleConflictError);
   });
 
   it("이동 시 sidecar 도 같이 따라감", async () => {
     const adapter = createMemoryAdapter();
     adapter.setRoot("/vault");
-    await adapter.write("notes/note.md", "---\nid: u\n---\n\n# n\n");
+    await adapter.write("note.md", "---\nid: u\n---\n\n# n\n");
     await adapter.write(
-      "notes/note.transcript.md",
+      "note.transcript.md",
       "transcript content",
     );
-    await adapter.write("notes/note.summary.md", "summary content");
+    await adapter.write("note.summary.md", "summary content");
     await moveMeetingToFolder(
       adapter,
-      "notes/note.md",
-      "notes/work/note.md",
+      "note.md",
+      "work/note.md",
     );
-    expect(await adapter.exists("notes/work/note.md")).toBe(true);
-    expect(await adapter.exists("notes/work/note.transcript.md")).toBe(true);
-    expect(await adapter.exists("notes/work/note.summary.md")).toBe(true);
-    expect(await adapter.exists("notes/note.transcript.md")).toBe(false);
+    expect(await adapter.exists("work/note.md")).toBe(true);
+    expect(await adapter.exists("work/note.transcript.md")).toBe(true);
+    expect(await adapter.exists("work/note.summary.md")).toBe(true);
+    expect(await adapter.exists("note.transcript.md")).toBe(false);
   });
 });
 

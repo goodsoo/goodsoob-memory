@@ -9,8 +9,8 @@
 // tasks.ts 와 동일 규칙(ISO, `..` 범위, HH:MM)을 재사용 — 단 leading-date 라서
 // 별도 앵커 정규식만 신규.
 
-// 일정 = vault 루트의 단일 파일. tasks/ 와 나란히 루트에 둠.
-export const SCHEDULE_PATH = "schedule.md";
+// 일정 = 앱 소유 단일 파일. `_` prefix 로 메모장 노트 스캔에서 제외 (_tasks 와 동 네임스페이스).
+export const SCHEDULE_PATH = "_schedule.md";
 
 // 줄 시작이 날짜(또는 날짜범위)인 불릿만 이벤트. 체크박스(`- [ ] …`)는 content 가
 // `[` 로 시작해 아래 LEADING_*_RE 에 안 걸리므로 자연히 제외된다.

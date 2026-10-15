@@ -118,6 +118,6 @@ export function planImagePaths(
       counters.other++;
       name = `img-${counters.other}.${ext}`;
     }
-    return { image: img, relPath: `portfolio/_attachments/${slug}/${name}` };
+    return { image: img, relPath: `_portfolio/_attachments/${slug}/${name}` };
   });
 }

@@ -57,12 +57,13 @@ export function buildMeetingsTree(
     meetings: [],
   };
 
-  // extra folder path 정규화 — "notes/" prefix 떼고 빈 segment 거름.
+  // extra folder path 정규화 — vault root 기준 경로. 빈/`_`/`.` 세그먼트는 거름
+  // (앱 소유·시스템 네임스페이스는 노트 폴더가 아님).
   for (const raw of extraFolders) {
-    let p = raw.replace(/^\/+|\/+$/g, "");
-    if (p.startsWith("notes/")) p = p.slice("notes/".length);
-    if (p === "" || p === "notes") continue;
-    if (p.split("/").some((s) => s.startsWith(".") || s === "")) continue;
+    const p = raw.replace(/^\/+|\/+$/g, "");
+    if (p === "") continue;
+    if (p.split("/").some((s) => s === "" || s.startsWith(".") || s.startsWith("_")))
+      continue;
     ensureFolder(rootNode, p);
   }
 

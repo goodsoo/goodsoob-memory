@@ -22,9 +22,11 @@ import { extractPRBodyImages, planImagePaths } from "../lib/portfolio/imageImpor
 import { patchFrontmatter, splitFrontmatter } from "../lib/vault/parser";
 import { parseStampToMs } from "../lib/vault/scan";
 
-export const PORTFOLIO_DIR = "portfolio";
-export const SYNCED_FILE = "portfolio/.synced.md";
-export const ATTACHMENTS_DIR = "portfolio/_attachments";
+// `_` prefix = 앱 소유 네임스페이스 — 메모장이 brain root 전체를 노트로 띄우되
+// `_`/`.` 세그먼트는 제외하므로, 포트폴리오 카드가 노트 목록에 섞이지 않는다.
+export const PORTFOLIO_DIR = "_portfolio";
+export const SYNCED_FILE = "_portfolio/.synced.md";
+export const ATTACHMENTS_DIR = "_portfolio/_attachments";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Category model — vault union
@@ -322,10 +324,10 @@ export function fileToPortfolioWork(
 // portfolio/categories.md 는 옛 master list 파일 — V0.7.3 부터 사용 안 함. 카드와 type
 // 다르므로 fileToPortfolioWork 가 자연 skip. 사용자가 옵시디안에서 직접 삭제 가능.
 const PORTFOLIO_SKIP = new Set<string>([
-  "portfolio/.synced.md",
+  "_portfolio/.synced.md",
 ]);
 
-export const PORTFOLIO_TRASH_DIR = "portfolio/.trash";
+export const PORTFOLIO_TRASH_DIR = "_portfolio/.trash";
 
 // portfolio/_attachments/... 는 카드가 아니므로 scan 제외. 옛 layout 호환.
 function isAttachmentPath(path: string): boolean {

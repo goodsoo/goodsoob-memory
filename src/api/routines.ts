@@ -13,13 +13,14 @@ import type { VaultAdapter } from "../lib/vault/adapter";
 import { splitFrontmatter } from "../lib/vault/parser";
 import { freshStamp, parseStampToMs } from "../lib/vault/scan";
 
-export const ROUTINES_DIR = "routines";
-// 휴지통은 routines 도메인 안 별도 폴더 — 메모 `.trash/` / 포트폴리오 `portfolio/.trash`
+// `_` prefix = 앱 소유 네임스페이스 (메모장 노트 스캔에서 자동 제외).
+export const ROUTINES_DIR = "_routines";
+// 휴지통은 routines 도메인 안 별도 폴더 — 메모 `.trash/` / 포트폴리오 `_portfolio/.trash`
 // 와 격리. 도메인별 분리는 복원 라우팅 단순화 (origin 추적 불필요).
-export const ROUTINE_TRASH_DIR = "routines/.trash";
+export const ROUTINE_TRASH_DIR = "_routines/.trash";
 // stamp prefix: `YYYY-MM-DDTHH-MM-SS-{name}.md` — portfolio trash 패턴과 동일.
 const TRASH_STAMP_RE =
-  /^routines\/\.trash\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})-(.+)\.md$/;
+  /^_routines\/\.trash\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})-(.+)\.md$/;
 
 export interface RoutineFrontmatter {
   id: string; // uuid (영구 식별자)

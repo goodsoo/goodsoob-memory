@@ -1,10 +1,11 @@
 // 메모 본문 (편집 모드 textarea) 안 이미지 paste / drag&drop 저장 helpers.
 //
-// 저장 경로: `{baseDir}/_attachments/{slug}/{N}.{ext}`. 메모는 baseDir="notes",
-// slug = 메모 title kebab-case (fallback uid). portfolio 카드의
-// `portfolio/_attachments/{slug}/before-N.{ext}` 와 같은 패턴 — 자산 위치 일관.
+// 저장 경로: `{baseDir}/_attachments/{slug}/{N}.{ext}`. 메모는 baseDir=""
+// (= brain root 의 `_attachments/`, brain 기존 컨벤션과 일치), slug = 메모 title
+// kebab-case (fallback uid). portfolio 카드의
+// `_portfolio/_attachments/{slug}/before-N.{ext}` 와 같은 패턴 — 자산 위치 일관.
 //
-// 본문에는 vault root 기준 상대 path 로 `![](notes/_attachments/{slug}/{N}.{ext})`
+// 본문에는 vault root 기준 상대 path 로 `![](_attachments/{slug}/{N}.{ext})`
 // 박힘. MarkdownView 의 `resolveImageSrc` → `vaultAssetSrc` 가 그대로 처리.
 
 import type { VaultAdapter } from "./vault/adapter";
@@ -58,7 +59,7 @@ export async function nextAttachmentIndex(
 }
 
 export interface SaveAttachmentOpts {
-  baseDir: string; // 예: "notes"
+  baseDir: string; // "" = vault root. 예: 메모는 "", 포트폴리오는 "_portfolio"
   slug: string; // 메모 단위 폴더명 — title kebab-case 또는 uid fallback
   file: File | Blob;
   // file.type 이 비어있을 때 (일부 clipboard 경로) override. 없으면 file.type 사용.
@@ -75,7 +76,9 @@ export async function saveAttachment(
   const ext = mimeToExt(mime);
   if (!ext) throw new Error(`unsupported image mime: ${mime || "(empty)"}`);
   if (!opts.slug) throw new Error("slug required");
-  const dir = `${opts.baseDir}/_attachments/${opts.slug}`;
+  const dir = opts.baseDir
+    ? `${opts.baseDir}/_attachments/${opts.slug}`
+    : `_attachments/${opts.slug}`;
   await adapter.mkdir(dir);
   const n = await nextAttachmentIndex(adapter, dir);
   const relPath = `${dir}/${n}.${ext}`;
@@ -109,7 +112,7 @@ export async function findOrphanAttachments(
   adapter: VaultAdapter,
   baseDir: string,
 ): Promise<string[]> {
-  const attachmentsRoot = `${baseDir}/_attachments`;
+  const attachmentsRoot = baseDir ? `${baseDir}/_attachments` : `_attachments`;
   let files: string[];
   try {
     files = await adapter.listRecursive(attachmentsRoot);

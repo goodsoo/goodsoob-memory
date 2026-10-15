@@ -170,8 +170,11 @@ export async function createMeeting(
   input: MeetingCreateInput,
 ): Promise<Meeting> {
   const title = input.title ?? "";
-  // folder 지정 시 그 폴더 안에 생성 (현재 선택된 메모 폴더 이어받기). 미지정 = root.
-  const path = await generateMeetingPath(adapter, title, input.folder ?? "");
+  // folder 지정 시 그 폴더 안에 생성 (현재 선택된 메모 폴더 이어받기).
+  // 미지정 = `inbox/` (brain 의 미분류 캡처 폴더) — 새 노트가 brain root 에
+  // 흩뿌려지지 않도록.
+  const folder = input.folder && input.folder.trim() !== "" ? input.folder : "inbox";
+  const path = await generateMeetingPath(adapter, title, folder);
   const uid = crypto.randomUUID();
   const meeting = buildMeeting({ ...input, title }, path, uid);
 
@@ -393,7 +396,7 @@ export async function countMeetingsInFolder(
 ): Promise<number> {
   const normalized = normalizeFolderPath(folderPath);
   if (normalized === "") return 0;
-  const full = `notes/${normalized}`;
+  const full = normalized;
   const files = await adapter.listRecursive(full);
   return files.filter(
     (p) => p.endsWith(".md") && !isMeetingSidecar(p),
@@ -412,7 +415,7 @@ export async function deleteMeetingFolder(
   if (normalized === "") {
     throw new Error("root 폴더는 삭제할 수 없습니다");
   }
-  const full = `notes/${normalized}`;
+  const full = normalized;
   if (!(await adapter.exists(full))) {
     return { trashed: 0 };
   }
@@ -448,7 +451,7 @@ export async function createMeetingFolder(
   if (normalized === "") {
     throw new Error("폴더 이름이 비어있습니다");
   }
-  const full = `notes/${normalized}`;
+  const full = normalized;
   await adapter.mkdir(full);
   return full;
 }

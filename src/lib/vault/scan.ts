@@ -86,6 +86,19 @@ export function isSyncNoiseFile(path: string): boolean {
   return SYNC_NOISE_RE.test(name);
 }
 
+// 메모장은 vault(= brain) 폴더 **전체**를 노트로 띄운다 — 특정 `notes/` 하위가
+// 아니라 root 재귀. 단 "앱/시스템 소유" 네임스페이스는 노트가 아니다:
+//   - `_` 로 시작하는 세그먼트 = 앱 소유(`_portfolio` / `_tasks` / `_journals` /
+//     `_routines`) 또는 자산(`_attachments`) / 비공개(`_sensitive`).
+//   - `.` 로 시작하는 세그먼트 = dot (`.git` / `.backups` / `.trash` …).
+// 사람이 만든 brain 폴더(`development` / `me` / `work` …)는 전부 노트.
+// 경로 어느 세그먼트든 `_`/`.` 로 시작하면 노트에서 제외 (nested `foo/_attachments/...` 포함).
+export function isNonNotePath(relPath: string): boolean {
+  return relPath
+    .split("/")
+    .some((seg) => seg.startsWith("_") || seg.startsWith("."));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Frontmatter helpers
 
@@ -114,6 +127,20 @@ function fmBoolean(value: unknown): boolean {
   return false;
 }
 
+// frontmatter `id` 없는 노트(= 앱이 안 만든 brain 파일)용 합성 uid. 경로에서
+// 결정적으로 유도 — 같은 path 는 매 스캔 같은 uid, 서로 다른 path 는 (해시 충돌
+// 무시 가능한 범위에서) 다른 uid. URL hash·React key·cache key 에 안전한 토큰이라
+// `#meeting-{uid}` 라우팅과 uidToPath lookup 이 그대로 동작. frontmatter 를 쓰지
+// 않으므로 brain 파일은 디스크상 무변경. FNV-1a 32-bit → hex.
+export function syntheticUid(filePath: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < filePath.length; i++) {
+    h ^= filePath.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return `p-${(h >>> 0).toString(16).padStart(8, "0")}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // File → Meeting/Journal
 
@@ -130,8 +157,14 @@ export function fileToMeeting(
   const isoMtime = new Date(mtime || Date.now()).toISOString();
   const isInTrash = filePath.startsWith(".trash/");
 
-  const uid = fmString(fm.id);
-  if (!uid) throw new Error(`missing frontmatter id: ${filePath}`);
+  // 앱이 만든 노트는 frontmatter `id`(영구 uuid)를 갖는다. 하지만 메모장은 이제
+  // brain 폴더 전체를 노트로 띄우고, 사람이 손으로 쓴 brain 파일 대부분은 그 `id` 가
+  // 없다. 그런 파일엔 **경로 기반 합성 uid** 를 부여한다 — 디스크(frontmatter)를
+  // 건드리지 않는 읽기-친화 모델(brain 지식베이스를 앱 메타로 오염시키지 않음).
+  // 트레이드오프: path 가 곧 uid 라 제목 rename 시 uid 가 바뀌어 그 노트의 세션
+  // 히스토리/열린 탭 라우팅이 끊긴다(뷰어 용도라 허용). 앱이 만든 노트는 기존대로
+  // rename-안정 uuid 유지.
+  const uid = fmString(fm.id) ?? syntheticUid(filePath);
 
   return {
     id: filePath,
@@ -267,21 +300,19 @@ function filePathToDate(filePath: string): string {
   return m ? m[1] : "";
 }
 
-// 메모 경로에서 폴더 부분 추출. `notes/foo.md` → `""`, `notes/work/foo.md`
-// → `"work"`, `notes/work/2026/foo.md` → `"work/2026"`. id 가 `notes/` 로
-// 시작 안 하면 빈 문자열 (방어).
+// 메모 경로에서 폴더 부분 추출 (vault root 기준). `foo.md` → `""`,
+// `work/foo.md` → `"work"`, `work/2026/foo.md` → `"work/2026"`.
+// 노트 path 는 이제 brain root 상대 경로 그대로 (옛 `notes/` prefix 없음).
 export function meetingFolder(meetingPath: string): string {
-  if (!meetingPath.startsWith("notes/")) return "";
-  const rest = meetingPath.slice("notes/".length);
-  const lastSlash = rest.lastIndexOf("/");
+  const lastSlash = meetingPath.lastIndexOf("/");
   if (lastSlash === -1) return "";
-  return rest.slice(0, lastSlash);
+  return meetingPath.slice(0, lastSlash);
 }
 
-// `notes/{folder?}/{slug}.md` 빌더. folder 가 빈 문자열이면 root.
+// `{folder?}/{slug}.md` 빌더 (vault root 기준). folder 가 빈 문자열이면 root.
 function buildMeetingPath(folder: string, slug: string): string {
   const f = folder.replace(/^\/+|\/+$/g, "");
-  return f === "" ? `notes/${slug}.md` : `notes/${f}/${slug}.md`;
+  return f === "" ? `${slug}.md` : `${f}/${slug}.md`;
 }
 
 // 폴더 path 정규화 + 검증. 외부 슬래시 trim, `..` 차단, segment 별 slugify 적용
@@ -354,7 +385,7 @@ export async function computeMovedMeetingPath(
   currentId: string,
   newFolder: string,
 ): Promise<string> {
-  if (!currentId.startsWith("notes/")) {
+  if (isNonNotePath(currentId) || !currentId.endsWith(".md")) {
     throw new Error(`not a meeting path: ${currentId}`);
   }
   const base = currentId.split("/").pop() ?? "";
@@ -388,8 +419,8 @@ export async function moveMeetingToFolder(
 // 폴더 자체의 마지막 segment 이름만 바꿈. 부모 path 유지 — 위계 이동 X.
 // "work" → "프로젝트" (root 폴더 rename), "work/2026" → "work/2027" (sub-folder rename).
 // 안에 있는 메모는 디스크 rename 으로 자동 따라옴 (POSIX mv). 충돌 시 throw.
-// oldFolder 는 notes-relative ("work" 또는 "work/2026"), newName 은 새 마지막 segment.
-// 반환: 새 vault-relative path ("notes/프로젝트").
+// oldFolder 는 vault-relative ("work" 또는 "work/2026"), newName 은 새 마지막 segment.
+// 반환: 새 vault-relative path ("프로젝트").
 export async function renameMeetingFolder(
   adapter: VaultAdapter,
   oldFolder: string,
@@ -406,24 +437,22 @@ export async function renameMeetingFolder(
   const lastSlash = normalized.lastIndexOf("/");
   const parent = lastSlash === -1 ? "" : normalized.slice(0, lastSlash);
   const newRel = parent === "" ? newSeg : `${parent}/${newSeg}`;
-  if (newRel === normalized) return `notes/${normalized}`;
-  const oldFull = `notes/${normalized}`;
-  const newFull = `notes/${newRel}`;
-  if (await adapter.exists(newFull)) {
-    throw new TitleConflictError(newSeg, newFull);
+  if (newRel === normalized) return normalized;
+  if (await adapter.exists(newRel)) {
+    throw new TitleConflictError(newSeg, newRel);
   }
-  // 부모 폴더가 사라진 경우 (외부 삭제 등) 만 mkdir. parent === "" 이면 notes/ 가 부모.
-  await adapter.mkdir(parent === "" ? "notes" : `notes/${parent}`);
-  await adapter.rename(oldFull, newFull);
-  return newFull;
+  // 부모 폴더가 사라진 경우 (외부 삭제 등) 만 mkdir. parent === "" 이면 vault root 라 보장됨.
+  if (parent !== "") await adapter.mkdir(parent);
+  await adapter.rename(normalized, newRel);
+  return newRel;
 }
 
 // 폴더 자체를 다른 폴더 아래로 이동 — 위계 이동. rename(마지막 segment 만 바꿈)과
 // 달리 부모 path 가 바뀐다. 안 메모·sub-folder 는 disk rename (POSIX mv) 으로 통째
 // 따라옴 (adapter.rename 의 디렉토리 케이스). 이름은 유지.
-// srcFolder: 옮길 폴더 (notes-relative, "work" 또는 "work/2026").
-// destParent: 새 부모 폴더 (notes-relative, "" = root).
-// 반환: 새 vault-relative path ("notes/personal/work").
+// srcFolder: 옮길 폴더 (vault-relative, "work" 또는 "work/2026").
+// destParent: 새 부모 폴더 (vault-relative, "" = root).
+// 반환: 새 vault-relative path ("personal/work").
 // 가드: root 이동 X / 자기 자신·자손으로 이동 X (cycle) / 대상에 동명 폴더 있으면 throw.
 export async function moveFolder(
   adapter: VaultAdapter,
@@ -442,20 +471,18 @@ export async function moveFolder(
   }
   const name = src.split("/").pop() ?? src;
   const newRel = dest === "" ? name : `${dest}/${name}`;
-  const oldFull = `notes/${src}`;
   // 이미 그 부모 안에 있으면 no-op (현재 부모 위로 drop).
-  if (newRel === src) return oldFull;
-  if (!(await adapter.exists(oldFull))) {
-    throw new Error(`folder not found: ${oldFull}`);
+  if (newRel === src) return src;
+  if (!(await adapter.exists(src))) {
+    throw new Error(`folder not found: ${src}`);
   }
-  const newFull = `notes/${newRel}`;
-  if (await adapter.exists(newFull)) {
-    throw new TitleConflictError(name, newFull);
+  if (await adapter.exists(newRel)) {
+    throw new TitleConflictError(name, newRel);
   }
-  // 대상 부모 폴더 보장 (fs rename 은 부모가 없으면 실패).
-  await adapter.mkdir(dest === "" ? "notes" : `notes/${dest}`);
-  await adapter.rename(oldFull, newFull);
-  return newFull;
+  // 대상 부모 폴더 보장 (fs rename 은 부모가 없으면 실패). dest === "" 이면 vault root.
+  if (dest !== "") await adapter.mkdir(dest);
+  await adapter.rename(src, newRel);
+  return newRel;
 }
 
 // 메인 + 두 sidecar 한 묶음 rename. sidecar 가 없으면 skip.
@@ -479,7 +506,7 @@ export async function renameMeetingFiles(
 }
 
 export function journalPath(date: string): string {
-  return `journals/${date}.md`;
+  return `_journals/${date}.md`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -487,29 +514,15 @@ export function journalPath(date: string): string {
 
 // 메모 도메인 안 시스템 폴더 — 사이드바 트리/메모 scan 양쪽에서 제외. underscore prefix
 // 는 옵시디안 convention 으로 메모와 구분되는 "자산/시스템" 표시 (`_attachments` 등).
-// dotfile 처럼 listRecursive 단에서 막진 않음 — 사용자 mkdir 한 일반 메모 폴더가
-// underscore 로 시작할 수 있어 (rare 지만), domain-specific 한 곳에서만 차단.
-function isMeetingSystemSegment(seg: string): boolean {
-  return seg === "_attachments";
-}
-
-function isInMeetingSystemFolder(relPath: string): boolean {
-  // relPath = "notes/_attachments/..." 같은 형식. "notes/" 떼고 첫 segment 검사.
-  if (!relPath.startsWith("notes/")) return false;
-  const rest = relPath.slice("notes/".length);
-  const firstSeg = rest.split("/")[0];
-  return isMeetingSystemSegment(firstSeg);
-}
-
-// notes/ 안 모든 폴더 path 반환 (빈 폴더 포함, vault root 기준).
-// `["notes/work", "notes/work/2026", "notes/personal"]` 처럼.
-// 메모 0개라도 옵시디안에서 mkdir 한 폴더는 보여야 — 사이드바 트리가 buildMeetingsTree
-// 에 이 list 를 extra 로 전달. `_attachments` 는 메모가 아니라 자산 폴더라 제외.
+// brain 안 모든 폴더 path 반환 (빈 폴더 포함, vault root 기준).
+// `["development", "work", "work/2026"]` 처럼. 메모 0개여도 빈 폴더는 보여야 —
+// 사이드바 트리가 buildMeetingsTree 에 이 list 를 extra 로 전달.
+// `_`/`.` 네임스페이스(앱 소유·자산·dot)는 노트 폴더가 아니라 제외.
 export async function scanMeetingFolders(
   adapter: VaultAdapter,
 ): Promise<string[]> {
-  const all = await adapter.listFoldersRecursive("notes");
-  return all.filter((p) => !isInMeetingSystemFolder(p));
+  const all = await adapter.listFoldersRecursive("");
+  return all.filter((p) => !isNonNotePath(p));
 }
 
 export async function scanMeetings(adapter: VaultAdapter): Promise<MeetingMeta[]> {
@@ -518,11 +531,11 @@ export async function scanMeetings(adapter: VaultAdapter): Promise<MeetingMeta[]
   // 수십 초 비어 보였음 — portfolio 는 scanAll 로 고쳤는데 여기만 남아있었다).
   // after: scanAll(1) = 1 왕복. nav-restructure 의 `notes/{folder}/...` 중첩 폴더도
   // 서버 recursive scan 으로 그대로 잡힘.
-  const entries = await adapter.scanAll("notes");
+  const entries = await adapter.scanAll("");
   const results: MeetingMeta[] = [];
   for (const { path, content, meta } of entries) {
     if (!path.endsWith(".md")) continue;
-    if (isInMeetingSystemFolder(path)) continue; // _attachments 등 자산 폴더 제외
+    if (isNonNotePath(path)) continue; // _portfolio/_attachments/.git 등 비노트 네임스페이스 제외
     if (isMeetingSidecar(path)) continue; // sidecar 는 scan 대상 X
     if (isSyncNoiseFile(path)) continue; // iCloud/Dropbox 충돌·placeholder skip
     try {
@@ -609,7 +622,7 @@ export async function dedupeUids(
 }
 
 export async function scanJournals(adapter: VaultAdapter): Promise<JournalMeta[]> {
-  const files = await adapter.list("journals");
+  const files = await adapter.list("_journals");
   const results: JournalMeta[] = [];
   for (const path of files) {
     if (!path.endsWith(".md")) continue;
@@ -627,10 +640,10 @@ export async function scanJournals(adapter: VaultAdapter): Promise<JournalMeta[]
   return results;
 }
 
-// 할 일 = `tasks/` 폴더의 프로젝트별 md 파일들. `tasks/inbox.md` = 미분류.
+// 할 일 = `_tasks/` 폴더의 프로젝트별 md 파일들. `_tasks/inbox.md` = 미분류.
 // 폴더 전체를 가로질러 스캔 — 각 TaskItem 의 source.file 이 프로젝트(파일)를 가리킴.
-// (옛 모델: 루트 inbox.md 단일 파일. lazy migration 으로 tasks/ 로 이관됨.)
-export const TASKS_DIR = "tasks";
+// `_` prefix = 앱 소유 네임스페이스 (메모장 노트 스캔에서 자동 제외).
+export const TASKS_DIR = "_tasks";
 
 export async function scanAllTasks(adapter: VaultAdapter): Promise<TaskItem[]> {
   let files: string[];
@@ -701,11 +714,13 @@ export async function restoreFromTrash(
     "",
   );
   // 원본 폴더 구조 추정: 순수 YYYY-MM-DD.md 는 일기, 그 외는 메모.
+  // 메모는 이제 brain root 전체가 대상이고 trash 이름에 원본 폴더가 안 남으므로
+  // root 로 복원 (복원 후 사용자가 원하는 폴더로 이동).
   let target: string;
   if (base.match(/^\d{4}-\d{2}-\d{2}\.md$/)) {
-    target = `journals/${base}`;
+    target = `_journals/${base}`;
   } else {
-    target = `notes/${base}`;
+    target = base;
   }
   // 충돌 회피
   let n = 2;
@@ -745,11 +760,13 @@ export async function scanTrash(
 export async function ensureVaultStructure(
   adapter: VaultAdapter,
 ): Promise<void> {
-  await adapter.mkdir("notes");
-  await adapter.mkdir("journals");
-  await adapter.mkdir("portfolio"); // V0.7
-  await adapter.mkdir(TASKS_DIR); // V0.8 — 할 일 프로젝트 파일들의 집
-  // V0.8 lazy migration — 옛 루트 inbox.md 를 tasks/ + schedule.md 로 가른다.
+  // 메모장은 brain root 전체를 노트로 쓴다 — `notes/` 전용 폴더를 더 만들지 않는다.
+  // 새 노트 기본 저장 위치 = `inbox/` (brain 의 미분류 캡처 폴더).
+  await adapter.mkdir("inbox");
+  await adapter.mkdir("_journals"); // 앱 소유 (일기)
+  await adapter.mkdir(TASKS_DIR); // V0.8 — 할 일 프로젝트 파일들의 집 (_tasks)
+  // portfolio 폴더(_portfolio)는 첫 sync 때 생성 — 여기서 미리 만들지 않음.
+  // V0.8 lazy migration — 옛 루트 inbox.md 를 _tasks/ + _schedule.md 로 가른다.
   // (idempotent: 루트 inbox.md 가 없으면 즉시 반환.)
   await migrateRootInbox(adapter);
   if (!(await adapter.exists(`${TASKS_DIR}/inbox.md`))) {

@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* DS 컴포넌트(@goodsoob/ds)가 방출하는 Tailwind 유틸(bg-primary·inline-flex 등)을
+   memory 자체 Tailwind 빌드가 생성하도록 DS 패키지 소스를 content 스캔에 추가한다.
+   Tailwind v4 는 node_modules 를 기본 제외하므로 @source 로 명시해야 한다. memory 는
+   Tailwind consumer 라 DS 의 컴파일된 ds-utilities.css 를 받으면 이중빌드 cascade 충돌이
+   난다(2026-10-15 사이드바 사고) → 받지 않고 여기서 자체 생성한다. non-Tailwind consumer
+   (tower/growth)만 @goodsoob/ds/utilities.css 를 로드한다. */
+@source "../node_modules/@goodsoob/ds/dist/ds";
+
 /* Attribute-based dark mode for Tailwind v4 (canonical: [data-theme=dark]) */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -229,12 +237,13 @@
     --secondary-foreground: var(--ink);
     --muted: var(--surface-2);           /* 약화 표면 */
     --muted-foreground: var(--sub);      /* 약화 글자 (sub = 보조 텍스트) */
-    /* ⚠️ 이름 충돌 해소: shadcn --accent = "hover/active 표면"(브랜드색 아님).
-       goodsoob --accent 는 브랜드 블루(#0071e3)라 의미가 다르다. 그래서 shadcn
-       --accent 는 goodsoob hover 표면(--surface-2)을 가리키고, goodsoob 브랜드
-       블루는 여기서 매핑하지 않는다(필요 시 별도 유틸로 노출 — bg-accent 는
-       shadcn 의미인 hover 표면). */
-    --accent: var(--surface-2);          /* shadcn accent = hover 표면 (브랜드 블루 아님) */
+    /* ⚠️ 이름 충돌: shadcn 관례의 --accent("hover/active 표면")와 goodsoob --accent
+       (브랜드 블루 #0071e3)는 의미가 다르다. consumer 의 :root 에는 goodsoob --accent
+       (브랜드 블루)가 color.css 로 이미 정의돼 있으므로 여기서 재정의하지 않는다 —
+       재정의하면 consumer 의 브랜드 accent 를 덮어 UI 가 깨진다(2026-10-15 memory 사고:
+       shadcn-alias 를 consumer :root 로 sync 하며 --accent:surface-2 가 브랜드 블루를
+       가림). goodsoob 에서 bg-accent = 브랜드 블루 의미로 쓰고, hover/muted 표면이
+       필요하면 bg-secondary(=surface-2)를 쓴다. accent-foreground(유색 위 글자)만 신규. */
     --accent-foreground: var(--ink);
     --destructive: var(--down);          /* 파괴/위험 (빨강) */
     --destructive-foreground: var(--on-accent); /* 유색 solid 위 글자 = 항상 흰색 고정(on-accent) */

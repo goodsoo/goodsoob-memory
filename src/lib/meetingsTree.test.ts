@@ -30,10 +30,10 @@ function fakeMeeting(id: string, title: string, mtime = 1000): Meeting {
 describe("buildMeetingsTree", () => {
   it("root 메모는 rootMeetings 로, 폴더 안 메모는 트리로", () => {
     const tree = buildMeetingsTree([
-      fakeMeeting("notes/inbox.md", "inbox"),
-      fakeMeeting("notes/work/q1.md", "q1"),
-      fakeMeeting("notes/work/q2.md", "q2"),
-      fakeMeeting("notes/personal/run.md", "run"),
+      fakeMeeting("inbox.md", "inbox"),
+      fakeMeeting("work/q1.md", "q1"),
+      fakeMeeting("work/q2.md", "q2"),
+      fakeMeeting("personal/run.md", "run"),
     ]);
     expect(tree.rootMeetings.map((m) => m.title)).toEqual(["inbox"]);
     expect(tree.folders.map((f) => f.path)).toEqual(["personal", "work"]); // alphabetic
@@ -43,9 +43,9 @@ describe("buildMeetingsTree", () => {
 
   it("중첩 폴더 (`work/2026`) 도 트리로", () => {
     const tree = buildMeetingsTree([
-      fakeMeeting("notes/work/2026/jan.md", "jan"),
-      fakeMeeting("notes/work/2026/feb.md", "feb"),
-      fakeMeeting("notes/work/strategy.md", "strategy"),
+      fakeMeeting("work/2026/jan.md", "jan"),
+      fakeMeeting("work/2026/feb.md", "feb"),
+      fakeMeeting("work/strategy.md", "strategy"),
     ]);
     const work = tree.folders[0];
     expect(work.path).toBe("work");
@@ -59,8 +59,8 @@ describe("buildMeetingsTree", () => {
   it("sortMeetings comparator 적용 — 같은 폴더 안에서만", () => {
     const tree = buildMeetingsTree(
       [
-        fakeMeeting("notes/work/b.md", "b", 1000),
-        fakeMeeting("notes/work/a.md", "a", 2000), // 더 최신
+        fakeMeeting("work/b.md", "b", 1000),
+        fakeMeeting("work/a.md", "a", 2000), // 더 최신
       ],
       (a, b) => b.mtime - a.mtime, // mtime desc
     );
@@ -69,8 +69,8 @@ describe("buildMeetingsTree", () => {
 
   it("폴더 0개 — rootMeetings 만", () => {
     const tree = buildMeetingsTree([
-      fakeMeeting("notes/x.md", "x"),
-      fakeMeeting("notes/y.md", "y"),
+      fakeMeeting("x.md", "x"),
+      fakeMeeting("y.md", "y"),
     ]);
     expect(tree.folders).toEqual([]);
     expect(tree.rootMeetings).toHaveLength(2);
@@ -79,7 +79,7 @@ describe("buildMeetingsTree", () => {
 
 describe("buildMeetingsTree — extraFolders (빈 폴더 시각화)", () => {
   it("메모 0개 폴더도 트리에 포함", () => {
-    const tree = buildMeetingsTree([], undefined, ["notes/empty"]);
+    const tree = buildMeetingsTree([], undefined, ["empty"]);
     expect(tree.folders.map((f) => f.path)).toEqual(["empty"]);
     expect(tree.folders[0].meetings).toEqual([]);
   });
@@ -92,9 +92,9 @@ describe("buildMeetingsTree — extraFolders (빈 폴더 시각화)", () => {
 
   it("메모 있는 폴더 + 빈 폴더 mix", () => {
     const tree = buildMeetingsTree(
-      [fakeMeeting("notes/work/q1.md", "q1")],
+      [fakeMeeting("work/q1.md", "q1")],
       undefined,
-      ["notes/work", "notes/personal"],
+      ["work", "personal"],
     );
     const work = tree.folders.find((f) => f.path === "work")!;
     const personal = tree.folders.find((f) => f.path === "personal")!;
@@ -111,8 +111,8 @@ describe("buildMeetingsTree — extraFolders (빈 폴더 시각화)", () => {
 describe("flattenFolderPaths", () => {
   it("root + 깊이 우선 폴더 path 평면화", () => {
     const tree = buildMeetingsTree([
-      fakeMeeting("notes/work/2026/jan.md", "jan"),
-      fakeMeeting("notes/personal/run.md", "run"),
+      fakeMeeting("work/2026/jan.md", "jan"),
+      fakeMeeting("personal/run.md", "run"),
     ]);
     expect(flattenFolderPaths(tree)).toEqual([
       "",
@@ -123,7 +123,7 @@ describe("flattenFolderPaths", () => {
   });
 
   it("폴더 0개 → root 만", () => {
-    const tree = buildMeetingsTree([fakeMeeting("notes/x.md", "x")]);
+    const tree = buildMeetingsTree([fakeMeeting("x.md", "x")]);
     expect(flattenFolderPaths(tree)).toEqual([""]);
   });
 });

@@ -228,7 +228,7 @@ const LEGACY_CARD_PROMPT_BODY = `
 - \`git remote -v\` 로 owner/repo 확인 (\`origin\` 기준, GitHub Enterprise 면 host 도 메모).
 - \`git log --reverse --pretty=format:"%h|%ai|%an|%ae|%s"\` 로 전체 히스토리 확보.
 - 작성자 필터: 본인 이메일/이름 커밋만 매칭. 이메일은 \`zzompang2@gmail.com\`, author name 은 \`goodsoo\` 또는 옛 username \`zzompang2\` (rename 전 커밋). 회사 도메인 (\`@angel-robotics.com\` 등) 이메일로 커밋된 작업이 있으면 그것도 본인 거니까 포함. 다른 사람 커밋은 카드 만들지 마.
-- vault 폴더 \`portfolio/\` 안에 이미 같은 owner/repo 의 카드가 있는지 확인. 있으면 그 다음 시점부터만 만들고, 기존 카드는 절대 덮어쓰지 마.
+- vault 폴더 \`_portfolio/\` 안에 이미 같은 owner/repo 의 카드가 있는지 확인. 있으면 그 다음 시점부터만 만들고, 기존 카드는 절대 덮어쓰지 마.
 
 ## 2. 그룹핑 룰
 
@@ -242,7 +242,7 @@ PR 사이즈를 흉내내: 같은 주제 + 시간 근접 (보통 1-3일 안) + �
 
 ## 3. 파일 작성
 
-파일 이름: \`portfolio/{owner}-{repo}-{milestone-slug}.md\` (전부 kebab-case). 예: \`goodsoo-work-v0-7-portfolio.md\`. \`{milestone-slug}\` 는 버전 또는 짧은 영문/숫자 식별자 (한글 X).
+파일 이름: \`_portfolio/{owner}-{repo}-{milestone-slug}.md\` (전부 kebab-case). 예: \`goodsoo-work-v0-7-portfolio.md\`. \`{milestone-slug}\` 는 버전 또는 짧은 영문/숫자 식별자 (한글 X).
 
 각 파일 내용:
 
@@ -299,7 +299,7 @@ synced_at: ''
 
 ## 4. project 분류
 
-\`portfolio/projects.md\` 를 먼저 읽어. frontmatter 의 \`projects:\` 배열에서 이 repo 의 \`nameWithOwner\` 가 \`repos:\` 에 포함된 항목 찾아 그 \`slug\` 를 카드의 \`project\` 필드에 써.
+\`_portfolio/projects.md\` 를 먼저 읽어. frontmatter 의 \`projects:\` 배열에서 이 repo 의 \`nameWithOwner\` 가 \`repos:\` 에 포함된 항목 찾아 그 \`slug\` 를 카드의 \`project\` 필드에 써.
 
 없으면 \`projects:\` 배열 끝에 새 항목을 추가:
 
@@ -353,7 +353,7 @@ const PR_GUIDE_PROMPT = `# Goodsoob 포트폴리오 호환: PR 작성 가이드
 \`\`\`\`markdown
 ## PR 작성 규칙 (포트폴리오 호환)
 
-이 repo 의 모든 PR 은 본인의 goodsoob-work vault \`portfolio/\` 카드의 본문이 됨. PR body 가 곧 포트폴리오 글감이라 다음 7섹션 템플릿대로 작성. UI/UX 작업이 주력이라 before/after 스크린샷이 핵심.
+이 repo 의 모든 PR 은 본인의 goodsoob-work vault \`_portfolio/\` 카드의 본문이 됨. PR body 가 곧 포트폴리오 글감이라 다음 7섹션 템플릿대로 작성. UI/UX 작업이 주력이라 before/after 스크린샷이 핵심.
 
 ### PR body 템플릿
 

@@ -172,7 +172,7 @@ export function MeetingForm({
   const initialBody = data?.content ?? "";
   const initialTranscript = data?.transcript ?? "";
 
-  // 본문 textarea 안 이미지 paste/drop → vault `notes/_attachments/{uid}/{N}.{ext}`
+  // 본문 textarea 안 이미지 paste/drop → vault 루트 `_attachments/{uid}/{N}.{ext}`
   // 저장 후 `![](path)` insert. slug 는 영구 식별자 uid — 메모 title 은 자주 바뀌니
   // title 기반 폴더는 흩어짐/orphan 비용. V0.7.1 의 "모든 client cache key 는 uid 기반"
   // 정책과 정합. Finder 가독성은 떨어지지만 본인 빌더 모드 + grep 으로 역추적 가능.
@@ -181,7 +181,7 @@ export function MeetingForm({
       if (!uid) return null;
       try {
         return await saveAttachment(adapter, {
-          baseDir: "notes",
+          baseDir: "",
           slug: uid,
           file,
         });

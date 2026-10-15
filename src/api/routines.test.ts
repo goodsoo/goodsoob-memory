@@ -136,7 +136,7 @@ describe("createRoutine", () => {
     });
     expect(r.name).toBe("운동");
     expect(r.frontmatter.id).toBeTruthy();
-    expect(await a.exists("routines/운동.md")).toBe(true);
+    expect(await a.exists("_routines/운동.md")).toBe(true);
   });
 
   it("중복 이름 reject", async () => {
@@ -195,8 +195,8 @@ describe("updateRoutine", () => {
     const a = makeAdapter();
     await createRoutine(a, { name: "조깅", started: "2026-05-25" });
     await updateRoutine(a, "조깅", { rename: "달리기" });
-    expect(await a.exists("routines/조깅.md")).toBe(false);
-    expect(await a.exists("routines/달리기.md")).toBe(true);
+    expect(await a.exists("_routines/조깅.md")).toBe(false);
+    expect(await a.exists("_routines/달리기.md")).toBe(true);
   });
 
   it("rename 충돌 reject", async () => {

@@ -164,8 +164,8 @@ export async function listTodos(adapter: VaultAdapter): Promise<Task[]> {
   return tasks;
 }
 
-// 미분류 할 일의 기본 집. 프로젝트 분리 후 tasks/ 폴더 안.
-const INBOX_PATH = "tasks/inbox.md";
+// 미분류 할 일의 기본 집. 프로젝트 분리 후 _tasks/ 폴더 안.
+const INBOX_PATH = "_tasks/inbox.md";
 
 export async function createTodo(
   adapter: VaultAdapter,

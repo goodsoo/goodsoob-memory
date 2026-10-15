@@ -1,39 +1,43 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type { VaultAdapter, VaultWatchEvent } from "./adapter";
-import { isMeetingSidecar, meetingMainPath } from "./scan";
+import { isMeetingSidecar, isNonNotePath, meetingMainPath } from "./scan";
 
 // vault 변경 시 어떤 query key 를 invalidate 할지 매핑.
-// hooks 의 query key 와 일치해야 함.
+// hooks 의 query key 와 일치해야 함. 앱 소유 폴더는 `_` prefix (메모장 노트는
+// brain root 전체라 `_`/`.` 네임스페이스 밖의 .md 전부가 메모 대상).
 function affectedQueryKeys(path: string): unknown[][] {
   const keys: unknown[][] = [];
-  if (path.startsWith("notes/")) {
-    keys.push(["meetings"]);
-    // sidecar (.transcript.md / .summary.md) 변경 시 메인 path key 로 invalidate.
-    const mainPath = isMeetingSidecar(path) ? meetingMainPath(path) : path;
-    keys.push(["meetings", mainPath]);
-    keys.push(["todos"]); // 메모 안 task 가 통합 뷰에 영향
-  } else if (path.startsWith("journals/")) {
+  if (path.startsWith("_journals/")) {
     keys.push(["journals"]);
     keys.push(["journals", path]);
     keys.push(["todos"]);
-  } else if (path.startsWith("routines/")) {
+  } else if (path.startsWith("_routines/")) {
     keys.push(["routines"]);
     const base = path.split("/").pop() ?? "";
     const name = base.replace(/\.md$/, "");
     if (name) keys.push(["routine", name]);
-  } else if (path.startsWith("portfolio/")) {
+  } else if (path.startsWith("_portfolio/")) {
     keys.push(["portfolio"]);
     keys.push(["portfolio", path]);
-    if (path === "portfolio/categories.md") {
+    if (path === "_portfolio/categories.md") {
       keys.push(["portfolio-categories"]);
     }
     // 폴더 변경 (rename/create/delete) 도 사이드바 트리 새로고침 필요
     keys.push(["portfolio-folders"]);
     // _attachments/* 변경도 카드 새로고침 필요 (썸네일 캐시)
-  } else if (path === "inbox.md" || !path.includes("/")) {
-    // root level *.md (inbox 등)
+  } else if (path === "_tasks/inbox.md" || path.startsWith("_tasks/")) {
     keys.push(["todos"]);
     keys.push(["inbox"]);
+  } else if (path === "_schedule.md") {
+    keys.push(["schedule"]);
+    keys.push(["todos"]); // 일정이 오늘/할 일 통합 뷰에 영향
+  } else if (path.endsWith(".md") && !isNonNotePath(path)) {
+    // brain 안 일반 노트 (`_`/`.` 네임스페이스 밖의 모든 .md) = 메모장 대상.
+    keys.push(["meetings"]);
+    // sidecar (.transcript.md / .summary.md) 변경 시 메인 path key 로 invalidate.
+    const mainPath = isMeetingSidecar(path) ? meetingMainPath(path) : path;
+    keys.push(["meetings", mainPath]);
+    keys.push(["todos"]); // 메모 안 task 가 통합 뷰에 영향
   }
   return keys;
 }

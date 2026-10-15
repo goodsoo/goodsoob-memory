@@ -196,6 +196,54 @@
   }
 /* DESIGN-SYSTEM:color END */
 
+/* DESIGN-SYSTEM:shadcn-alias START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* ── shadcn 시맨틱 색 alias (canonical 전용) ──
+       shadcn 컴포넌트/CVA 는 --background·--primary·--border 같은 자체 토큰명을
+       기대한다. 여기서 그 이름들을 goodsoob 진실원본 토큰(color.css)으로 alias 한다
+       — 값은 복제하지 않고 var() 로만 가리킨다(진실원본 = color.css). @theme inline
+       (tailwind-entry.generated.css) 이 --color-* 를 다시 이 토큰들로 매핑해
+       bg-primary·text-foreground 등 유틸이 생성된다.
+
+       Phase 3 (2026-10-15): manifest.json "blocks"에 등록되어 app consumer
+       (memory·tower·growth)의 :root 로도 sync 된다. canonical CVA 컴포넌트가
+       bg-primary·text-foreground 같은 유틸을 방출하고, 그 유틸은 @theme inline 이라
+       var(--primary) 등으로 use-site resolve 되므로 — consumer 에 이 alias 가 있어야
+       색이 먹는다. :root alias 일 뿐 @theme 이 아니라 memory @theme 과 충돌하지 않는다.
+       생성기(gen-systems-css.mjs)는 이 파일을 color.css 뒤에 읽어 .ds-base 로 감싸
+       systems.generated.css(playground)에도 포함시킨다.
+
+       dark: color.css 의 :root[data-theme="dark"] 가 goodsoob 토큰(--surface·--ink 등)
+       자체를 갈아끼우므로, 이 alias 는 var() 참조라 dark 값이 자동 반영된다
+       → dark alias 블록 불필요. */
+
+    --background: var(--bg);              /* 페이지 배경 (앱 캔버스) */
+    --foreground: var(--ink);            /* 본문 글자 */
+    --card: var(--surface);              /* 카드 표면 */
+    --card-foreground: var(--ink);
+    --popover: var(--surface);           /* 팝오버/드롭다운 표면 (base 보다 surface 가 분리감) */
+    --popover-foreground: var(--ink);
+    --primary: var(--btn-primary);       /* 주 버튼 (중립 강조 — light #1d1d1f / dark #e4e4e7) */
+    --primary-foreground: var(--text-inverse); /* btn-primary 배경이 명암 반전하므로 글자도 반전(text-inverse) */
+    --secondary: var(--surface-2);       /* 보조 표면 */
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-2);           /* 약화 표면 */
+    --muted-foreground: var(--sub);      /* 약화 글자 (sub = 보조 텍스트) */
+    /* ⚠️ 이름 충돌 해소: shadcn --accent = "hover/active 표면"(브랜드색 아님).
+       goodsoob --accent 는 브랜드 블루(#0071e3)라 의미가 다르다. 그래서 shadcn
+       --accent 는 goodsoob hover 표면(--surface-2)을 가리키고, goodsoob 브랜드
+       블루는 여기서 매핑하지 않는다(필요 시 별도 유틸로 노출 — bg-accent 는
+       shadcn 의미인 hover 표면). */
+    --accent: var(--surface-2);          /* shadcn accent = hover 표면 (브랜드 블루 아님) */
+    --accent-foreground: var(--ink);
+    --destructive: var(--down);          /* 파괴/위험 (빨강) */
+    --destructive-foreground: var(--on-accent); /* 유색 solid 위 글자 = 항상 흰색 고정(on-accent) */
+    --border: var(--line);               /* 외곽선 */
+    --input: var(--line);                /* 입력 테두리 */
+    --ring: var(--focus-ring);           /* 포커스 링 */
+  }
+/* DESIGN-SYSTEM:shadcn-alias END */
+
 /* DESIGN-SYSTEM:tokens START — managed by goodsoob-design-system, do not edit */
   :root {
     color-scheme: light;

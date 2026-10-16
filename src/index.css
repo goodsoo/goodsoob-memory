@@ -108,6 +108,7 @@
        consumer 가 Button lg 등에서 아이콘/외곽선/텍스트 색으로 사용. 라이트/다크 동일(색 유지). */
     --except: #2f7d6e;
     --freeze: #2b9fc9;
+    --fire: #d97a1a;    /* 연속(streak) 불꽃 — except/freeze 와 streak 3종. growth 승격(2026-10-16) */
     /* status tone 글자색(soft 배경 위 대비) — 앱-로컬 tokens.css 에서 공유 파운데이션으로
        이관(2026-09-23). accent-theme consumer 도 DS Button tone 을 쓸 수 있게. */
     --ok-ink: #166b2e;
@@ -155,6 +156,19 @@
     --speaker-7-bg: #fae8ff; --speaker-7-text: #a21caf; /* fuchsia */
     --speaker-8-bg: #ecfccb; --speaker-8-text: #4d7c0f; /* lime */
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
+
+    /* ── growth 승격 도메인색(2026-10-16) — 전 consumer 공유. 다크값은 [data-theme=dark] 블록 참조. ── */
+    --miss: #d64545;        /* 습관 셀 실패 ✕ (↔ down=일반 위험, 의미 구분) */
+    --rank-bronze: #c1803f; /* 연속 등급 — 동 */
+    --rank-silver: #cbd0d6; /* 연속 등급 — 은 */
+    --rank-gold: #ffcf3f;   /* 연속 등급 — 금 */
+    --cal-sat: #0071e3;     /* 캘린더 토요일 */
+    --cal-sun: #f06060;     /* 캘린더 일요일 */
+    --cal-today-bg: rgba(0, 113, 227, 0.10); /* 캘린더 오늘 셀 배경 */
+    --write: #c9a24b;       /* 기록·돈 금색 강조 */
+    --offline-bg: #7a3a00;  /* 오프라인 배너 배경 */
+    --offline-fg: #ffd7a8;  /* 오프라인 배너 글자 */
+    --bg-hud: #e4e9f1;      /* HUD 상태바 — surface 한 단계 위(구분) */
   }
 
   :root[data-theme="dark"] {
@@ -182,8 +196,9 @@
     --down: #ff5a4d;
     --down-soft: #331810;
     --down-line: #5a2a22;
-    --except: #2f7d6e;
-    --freeze: #2b9fc9;
+    --except: #4f9084;
+    --freeze: #6cc4e8;
+    --fire: #f0913a;
     --ok-ink: #7fe0a0;
     --warn-ink: #f0b565;
     --down-ink: #fca5a5;
@@ -217,6 +232,14 @@
     --speaker-7-bg: rgba(232, 121, 249, 0.15); --speaker-7-text: #f0abfc; /* fuchsia */
     --speaker-8-bg: rgba(163, 230, 53, 0.15);  --speaker-8-text: #bef264; /* lime */
     --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
+
+    /* growth 승격 도메인색(dark) — growth 다크 오버라이드값(시각 회귀 0) */
+    --miss: #e35555;
+    --rank-bronze: #c1803f; --rank-silver: #cbd0d6; --rank-gold: #ffcf3f;
+    --cal-sat: #2f8fff; --cal-sun: #f06060; --cal-today-bg: rgba(47, 143, 255, 0.07);
+    --write: #c9a24b;
+    --offline-bg: #7a3a00; --offline-fg: #ffd7a8;
+    --bg-hud: #161b24;
   }
 /* DESIGN-SYSTEM:color END */
 

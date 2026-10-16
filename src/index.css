@@ -54,6 +54,22 @@
 /* DESIGN-SYSTEM:tokens-theme END */
 }
 
+/* z-index 시맨틱 유틸 — DS 컴포넌트가 z-modal·z-popover·z-toast 등 named 유틸을
+   emit 한다(Modal backdrop=z-modal, Popover=z-popover, Toast=z-toast …). memory 는
+   자기 코드엔 z-index 를 인라인 var() 로 쓰지만(관례), DS 컴포넌트 유틸을 **생성**하려면
+   이 @utility 정의가 있어야 한다. 없으면 z-index:auto → 모달이 사이드바(lg:z-30)·
+   드로어(z-40) 뒤로 깔린다(2026-10-16 사고). @utility 는 top-level 전용(@layer 중첩 불가)
+   이고 Tailwind default z-10/20/50 스케일도 안 건드린다. 값=@layer base 의 --z-* 토큰
+   (var() use-site resolve). DS 레퍼런스=canonical ds-utilities-entry. (색 브리지와 같은
+   "DS 유틸이 consumer 에 sync 안 됨" 갭 — Tailwind consumer 늘면 DS sync 로 승격 필요.) */
+@utility z-dropdown { z-index: var(--z-dropdown); }
+@utility z-sticky { z-index: var(--z-sticky); }
+@utility z-overlay { z-index: var(--z-overlay); }
+@utility z-modal { z-index: var(--z-modal); }
+@utility z-popover { z-index: var(--z-popover); }
+@utility z-tooltip { z-index: var(--z-tooltip); }
+@utility z-toast { z-index: var(--z-toast); }
+
 @layer base {
   /* ── Design Tokens ── */
 
@@ -252,6 +268,38 @@
     --ring: var(--focus-ring);           /* 포커스 링 */
   }
 /* DESIGN-SYSTEM:shadcn-alias END */
+
+/* shadcn 색 → Tailwind color 유틸 브리지. 위 shadcn-alias 가 정의한 --card/--border
+   등을 Tailwind v4 의 --color-* 테마 키로 매핑해야 DS 의 CVA 컴포넌트가 방출하는
+   bg-card·bg-popover·border-border·text-foreground·border-input 등 유틸이 **생성**된다.
+   없으면 Tailwind 가 그 유틸을 조용히 스킵 → Modal·Popover·Dropdown·Select·Combobox
+   표면이 안 칠해진다(2026-10-16 모달 backdrop/패널 무배경 사고).
+   @theme inline = var() 를 use-site 에서 resolve → dark 토큰 자동 반영.
+   ⚠️ DS 레퍼런스 = canonical src/tailwind-entry.generated.css(플레이그라운드 전용, consumer
+   로 sync 안 됨). 이 브리지는 현재 유일한 Tailwind consumer 인 memory 가 직접 소유 —
+   향후 Tailwind consumer(real-lunatic 등) 늘면 DS sync(shadcn-alias 처럼 sentinel)로
+   승격 필요. --accent 는 goodsoob 브랜드 블루(color.css) 를 그대로 가리킨다. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
 
 /* DESIGN-SYSTEM:tokens START — managed by goodsoob-design-system, do not edit */
   :root {

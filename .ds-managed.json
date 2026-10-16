@@ -26,7 +26,9 @@
         "tokens": "3b5cd6bf9753c345c13306beda4fe49bee14ce072e87f8ac8337f3174882f028",
         "system": "ad7bd92e020b81b9d521e7c4256da82bf182dd66cf31989033d0e699b847e728",
         "tokens-scale": "bf1382c55fa608c6c9c3b02df02345222ee462f334bdf579b688da14eb4e2c43",
-        "layout": "7fe7a1c1dda6567bc8766d133f32bcaa942962fdaab686854f9eb9b6b4539356"
+        "layout": "7fe7a1c1dda6567bc8766d133f32bcaa942962fdaab686854f9eb9b6b4539356",
+        "tailwind-color-bridge": "57b0379b3d0feb815262e4955c08bdca62d73ed36bddc4fe32856e956a6f1013",
+        "tailwind-utilities": "59b9036729839a570924cba91c3e7bcd52700557ed52b79fd9eb4e1b4a6d8013"
       }
     }
   }

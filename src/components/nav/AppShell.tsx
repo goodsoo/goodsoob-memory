@@ -20,9 +20,8 @@ import { formatClockNow } from "../../lib/dates";
 import { useVault } from "../../lib/vault/useVault";
 import { SettingsModal } from "../settings/SettingsModal";
 import { Button } from "../common/Button";
-import { Button as DSButton } from "@goodsoob/ds";
+import { Button as DSButton, Popover } from "@goodsoob/ds";
 import { Text } from "../common/Text";
-import { Popover } from "../common/Popover";
 import { TABS, type Tab } from "./tabs";
 import { SyncIndicator } from "./SyncIndicator";
 
@@ -449,11 +448,12 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <Popover
       open={open}
-      onClose={() => setOpen(false)}
+      onOpenChange={setOpen}
+      width={240}
+      zIndex={30}
       trigger={
         <Button
           variant="ghost"
-          onClick={() => setOpen((v) => !v)}
           title={vaultRoot}
           aria-label={`vault: ${activeName}`}
           className="h-7 max-w-full gap-1 px-2 text-sm"
@@ -463,65 +463,61 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
           <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
         </Button>
       }
-      panelClassName="absolute left-0 top-full mt-1 w-60 rounded-md p-1"
-      panelStyle={{
-        background: "var(--bg)",
-        border: "1px solid var(--line)",
-        boxShadow: "var(--shadow-popover)",
-        zIndex: 30,
-      }}
-    >
-      {/* vault 목록 — 라디오. active 행에 체크. */}
-      <div className="max-h-64 overflow-y-auto">
-        {vaults.map((v) => {
-          const active = v.id === activeVaultId;
-          return (
-            <button
-              key={v.id}
-              type="button"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-              style={{ color: "var(--ink)" }}
-              onClick={async () => {
-                if (!active) await switchVault(v.id);
-                setOpen(false);
-              }}
-              title={v.path}
-            >
-              <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-                {active ? <Check className="h-3.5 w-3.5" /> : null}
-              </span>
-              <span className="min-w-0 flex-1 truncate">{v.name}</span>
-            </button>
-          );
-        })}
-      </div>
-      <div
-        className="my-1 h-px"
-        style={{ background: "var(--line-2)" }}
-        aria-hidden
-      />
-      <DSButton
-        variant="ghost"
-        size="sm"
-        className="w-full !justify-start"
-        onClick={() => {
-          setOpen(false);
-          onOpenSettings();
-        }}
-      >
-        Vault 설정
-      </DSButton>
-      <DSButton
-        variant="ghost"
-        size="sm"
-        className="w-full !justify-start"
-        onClick={() => {
-          setOpen(false);
-          window.location.hash = "#styleguide";
-        }}
-      >
-        스타일가이드
-      </DSButton>
-    </Popover>
+      content={
+        <>
+          {/* vault 목록 — 라디오. active 행에 체크. */}
+          <div className="max-h-64 overflow-y-auto">
+            {vaults.map((v) => {
+              const active = v.id === activeVaultId;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
+                  style={{ color: "var(--ink)" }}
+                  onClick={async () => {
+                    if (!active) await switchVault(v.id);
+                    setOpen(false);
+                  }}
+                  title={v.path}
+                >
+                  <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
+                    {active ? <Check className="h-3.5 w-3.5" /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">{v.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div
+            className="my-1 h-px"
+            style={{ background: "var(--line-2)" }}
+            aria-hidden
+          />
+          <DSButton
+            variant="ghost"
+            size="sm"
+            className="w-full !justify-start"
+            onClick={() => {
+              setOpen(false);
+              onOpenSettings();
+            }}
+          >
+            Vault 설정
+          </DSButton>
+          <DSButton
+            variant="ghost"
+            size="sm"
+            className="w-full !justify-start"
+            onClick={() => {
+              setOpen(false);
+              window.location.hash = "#styleguide";
+            }}
+          >
+            스타일가이드
+          </DSButton>
+        </>
+      }
+    />
   );
 }

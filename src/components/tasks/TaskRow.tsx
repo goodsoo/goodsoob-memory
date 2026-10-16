@@ -16,12 +16,11 @@ import {
   formatDateShortWithDay,
   formatDisplayDate,
 } from "../../lib/dates";
-import { Input } from "@goodsoob/ds";
+import { Input, Popover } from "@goodsoob/ds";
 import { LooseDateInput } from "../common/LooseDateInput";
 import { LooseTimeInput } from "../common/LooseTimeInput";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
-import { Popover } from "../common/Popover";
 import { MeetingPicker } from "../common/MeetingPicker";
 import { CheckboxButton } from "./CheckboxButton";
 
@@ -481,18 +480,17 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
   return (
     <Popover
       open={open}
-      onClose={() => setOpen(false)}
-      className="relative inline-flex"
-      panelClassName="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-md shadow-md"
-      panelStyle={{
-        backgroundColor: "var(--bg)",
-        border: "1px solid var(--line)",
-      }}
+      onOpenChange={setOpen}
+      width={256}
+      zIndex={30}
       trigger={
         <Button
           variant="ghost"
           size="sm"
           onClick={(e) => {
+            // 행 클릭(카드 네비게이션) 차단 + 수동 토글. stopPropagation 이
+            // Base UI Trigger 토글을 막으므로 open 은 여기서 직접 관리하고,
+            // 외부클릭·ESC 닫힘만 onOpenChange 로 Base UI 에 위임한다.
             e.stopPropagation();
             setOpen((v) => !v);
           }}
@@ -505,8 +503,8 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
           <span className="truncate">{chipLabel}</span>
         </Button>
       }
-    >
-      <div onClick={(e) => e.stopPropagation()}>
+      content={
+        <div>
           <Text
             variant="caption"
             color="secondary"
@@ -589,7 +587,8 @@ function SourceMeetingLink({ uid, todoId }: { uid: string; todoId: string }) {
               {disconnected ? "연결 해제" : "메모로 이동"}
             </Button>
           </div>
-      </div>
-    </Popover>
+        </div>
+      }
+    />
   );
 }

@@ -27,7 +27,7 @@ import { Kbd } from "../components/common/Kbd";
 import { Spinner } from "../components/common/Spinner";
 import { Toggle } from "../components/common/Toggle";
 import { Modal } from "../components/common/Modal";
-import { Popover } from "../components/common/Popover";
+import { Popover } from "@goodsoob/ds";
 import { EmptyState } from "../components/common/EmptyState";
 import { useTheme } from "../hooks/useTheme";
 
@@ -951,41 +951,37 @@ export function StyleguidePage() {
             <div className="flex items-center gap-3">
               <Popover
                 open={popoverOpen}
-                onClose={() => setPopoverOpen(false)}
+                onOpenChange={setPopoverOpen}
+                width={176}
                 trigger={
                   <Button
                     variant="secondary"
                     rightIcon={<MoreVertical className="h-4 w-4" />}
-                    onClick={() => setPopoverOpen((v) => !v)}
                   >
                     팝오버 열기
                   </Button>
                 }
-                panelClassName="absolute left-0 top-full mt-1 w-44 rounded-md p-1"
-                panelStyle={{
-                  background: "var(--bg)",
-                  border: "1px solid var(--line)",
-                  boxShadow: "var(--shadow-popover)",
-                  zIndex: "var(--z-popover)" as unknown as number,
-                }}
-              >
-                <DSButton
-                  variant="ghost"
-                  size="sm"
-                  className="w-full !justify-start"
-                  onClick={() => setPopoverOpen(false)}
-                >
-                  옵션 1
-                </DSButton>
-                <DSButton
-                  variant="ghost"
-                  size="sm"
-                  className="w-full !justify-start"
-                  onClick={() => setPopoverOpen(false)}
-                >
-                  옵션 2
-                </DSButton>
-              </Popover>
+                content={
+                  <>
+                    <DSButton
+                      variant="ghost"
+                      size="sm"
+                      className="w-full !justify-start"
+                      onClick={() => setPopoverOpen(false)}
+                    >
+                      옵션 1
+                    </DSButton>
+                    <DSButton
+                      variant="ghost"
+                      size="sm"
+                      className="w-full !justify-start"
+                      onClick={() => setPopoverOpen(false)}
+                    >
+                      옵션 2
+                    </DSButton>
+                  </>
+                }
+              />
               <Text variant="caption" color="muted">
                 외부 클릭 / Esc 로 닫힘
               </Text>

@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { ArrowUpDown, Check } from "lucide-react";
-import { Button } from "../common/Button";
-import { Popover } from "../common/Popover";
+import { ArrowUpDown } from "lucide-react";
+import { Dropdown, Button } from "@goodsoob/ds";
 import type { TaskSortKey } from "../../hooks/useTaskSort";
 
 const SORT_OPTIONS: Array<{ id: TaskSortKey; label: string }> = [
@@ -16,68 +14,24 @@ type Props = {
   onChange: (next: TaskSortKey) => void;
 };
 
-// 할 일 정렬 picker — popover 안 라디오 menu. 본문 CategoryChipRow 의
-// 오른쪽 끝에서 띄움 (옛 사이드바 헤더 자리에서 이동, 포트폴리오와 통일).
+// 할 일 정렬 picker — DS Dropdown(라디오 메뉴). 현재 정렬은 Dropdown 의
+// selected 하이라이트로 표시된다(별도 Check 아이콘 불필요). 본문 CategoryChipRow
+// 오른쪽 끝에서 띄움. (Phase 4 conform: 자체 common/Popover + 토큰 override →
+// DS Dropdown. open/외부클릭/ESC/패널 스타일은 DS 가 내부 처리.)
 export function TaskSortMenu({ value, onChange }: Props) {
-  const [open, setOpen] = useState(false);
   return (
-    <Popover
-      open={open}
-      onClose={() => setOpen(false)}
-      className="relative"
-      panelClassName="absolute right-0 top-full z-30 mt-1 min-w-[120px] overflow-hidden rounded-md shadow-md"
-      panelStyle={{
-        backgroundColor: "var(--surface)",
-        border: "1px solid var(--line)",
-      }}
+    <Dropdown
       trigger={
-        <Button
-          variant="icon"
-          onClick={() => setOpen((v) => !v)}
-          title="정렬"
-          aria-label="정렬"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          style={{
-            color: "var(--sub)",
-            backgroundColor: open ? "var(--surface-3)" : undefined,
-          }}
-        >
+        <Button variant="ghost" iconOnly title="정렬" aria-label="정렬">
           <ArrowUpDown className="h-3.5 w-3.5" />
         </Button>
       }
-    >
-      <div role="menu">
-        {SORT_OPTIONS.map((opt) => {
-          const active = opt.id === value;
-          return (
-            <Button
-              key={opt.id}
-              variant="ghost"
-              size="sm"
-              role="menuitemradio"
-              aria-checked={active}
-              onClick={() => {
-                onChange(opt.id);
-                setOpen(false);
-              }}
-              className="w-full justify-between rounded-none px-3 py-1.5"
-              style={{
-                color: active ? "var(--ink)" : "var(--sub)",
-                backgroundColor: active ? "var(--surface-3)" : undefined,
-              }}
-            >
-              <span className="whitespace-nowrap">{opt.label}</span>
-              {active ? (
-                <Check
-                  className="h-3 w-3"
-                  style={{ color: "var(--sub)" }}
-                />
-              ) : null}
-            </Button>
-          );
-        })}
-      </div>
-    </Popover>
+      items={SORT_OPTIONS.map((opt) => ({
+        key: opt.id,
+        label: opt.label,
+        selected: opt.id === value,
+        onSelect: () => onChange(opt.id),
+      }))}
+    />
   );
 }

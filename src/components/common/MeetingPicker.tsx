@@ -3,9 +3,8 @@ import { FileText, Search } from "lucide-react";
 import { useMeetings } from "../../hooks/useMeetings";
 import { formatDateShortWithDay } from "../../lib/dates";
 import { Button } from "./Button";
-import { Input, NavItem } from "@goodsoob/ds";
+import { Input, NavItem, Popover } from "@goodsoob/ds";
 import { Text } from "./Text";
-import { Popover } from "./Popover";
 
 type Props = {
   value: string | null; // selected meeting uid
@@ -56,18 +55,17 @@ export function MeetingPicker({ value, onChange }: Props) {
   return (
     <Popover
       open={open}
-      onClose={() => setOpen(false)}
-      className="relative inline-flex items-center"
-      panelClassName="absolute left-0 top-full z-30 mt-1 w-72 overflow-hidden rounded-md shadow-md"
-      panelStyle={{
-        backgroundColor: "var(--bg)",
-        border: "1px solid var(--line)",
-      }}
+      onOpenChange={setOpen}
+      width={288}
+      zIndex={30}
       trigger={
         <Button
           variant="ghost"
           size="sm"
           onClick={(e) => {
+            // 편집 행 안에서 쓰이므로 행 클릭 차단 + 수동 토글. stopPropagation 이
+            // Base UI Trigger 토글을 막으므로 open 은 직접 관리하고, 외부클릭·ESC
+            // 닫힘만 onOpenChange 로 Base UI 에 위임한다.
             e.stopPropagation();
             setOpen((v) => !v);
           }}
@@ -82,8 +80,8 @@ export function MeetingPicker({ value, onChange }: Props) {
           <span className="truncate">{buttonLabel}</span>
         </Button>
       }
-    >
-      <div onClick={(e) => e.stopPropagation()}>
+      content={
+        <div>
           <div
             className="flex items-center gap-1.5 px-2.5 py-1.5"
             style={{ borderBottom: "1px solid var(--line-2)" }}
@@ -168,7 +166,8 @@ export function MeetingPicker({ value, onChange }: Props) {
               })
             )}
           </ul>
-      </div>
-    </Popover>
+        </div>
+      }
+    />
   );
 }

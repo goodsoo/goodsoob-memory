@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* DS 컴포넌트(@goodsoob/ds)가 방출하는 Tailwind 유틸(bg-primary·inline-flex 등)을
+   memory 자체 Tailwind 빌드가 생성하도록 DS 패키지 소스를 content 스캔에 추가한다.
+   Tailwind v4 는 node_modules 를 기본 제외하므로 @source 로 명시해야 한다. memory 는
+   Tailwind consumer 라 DS 의 컴파일된 ds-utilities.css 를 받으면 이중빌드 cascade 충돌이
+   난다(2026-10-15 사이드바 사고) → 받지 않고 여기서 자체 생성한다. non-Tailwind consumer
+   (tower/growth)만 @goodsoob/ds/utilities.css 를 로드한다. */
+@source "../node_modules/@goodsoob/ds/dist/ds";
+
 /* Attribute-based dark mode for Tailwind v4 (canonical: [data-theme=dark]) */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -46,6 +54,22 @@
 /* DESIGN-SYSTEM:tokens-theme END */
 }
 
+/* z-index 시맨틱 유틸 — DS 컴포넌트가 z-modal·z-popover·z-toast 등 named 유틸을
+   emit 한다(Modal backdrop=z-modal, Popover=z-popover, Toast=z-toast …). memory 는
+   자기 코드엔 z-index 를 인라인 var() 로 쓰지만(관례), DS 컴포넌트 유틸을 **생성**하려면
+   이 @utility 정의가 있어야 한다. 없으면 z-index:auto → 모달이 사이드바(lg:z-30)·
+   드로어(z-40) 뒤로 깔린다(2026-10-16 사고). @utility 는 top-level 전용(@layer 중첩 불가)
+   이고 Tailwind default z-10/20/50 스케일도 안 건드린다. 값=@layer base 의 --z-* 토큰
+   (var() use-site resolve). DS 레퍼런스=canonical ds-utilities-entry. (색 브리지와 같은
+   "DS 유틸이 consumer 에 sync 안 됨" 갭 — Tailwind consumer 늘면 DS sync 로 승격 필요.) */
+@utility z-dropdown { z-index: var(--z-dropdown); }
+@utility z-sticky { z-index: var(--z-sticky); }
+@utility z-overlay { z-index: var(--z-overlay); }
+@utility z-modal { z-index: var(--z-modal); }
+@utility z-popover { z-index: var(--z-popover); }
+@utility z-tooltip { z-index: var(--z-tooltip); }
+@utility z-toast { z-index: var(--z-toast); }
+
 @layer base {
   /* ── Design Tokens ── */
 
@@ -84,6 +108,7 @@
        consumer 가 Button lg 등에서 아이콘/외곽선/텍스트 색으로 사용. 라이트/다크 동일(색 유지). */
     --except: #2f7d6e;
     --freeze: #2b9fc9;
+    --fire: #d97a1a;    /* 연속(streak) 불꽃 — except/freeze 와 streak 3종. growth 승격(2026-10-16) */
     /* status tone 글자색(soft 배경 위 대비) — 앱-로컬 tokens.css 에서 공유 파운데이션으로
        이관(2026-09-23). accent-theme consumer 도 DS Button tone 을 쓸 수 있게. */
     --ok-ink: #166b2e;
@@ -131,6 +156,19 @@
     --speaker-7-bg: #fae8ff; --speaker-7-text: #a21caf; /* fuchsia */
     --speaker-8-bg: #ecfccb; --speaker-8-text: #4d7c0f; /* lime */
     --speaker-9-bg: #e0e7ff; --speaker-9-text: #4338ca; /* indigo */
+
+    /* ── growth 승격 도메인색(2026-10-16) — 전 consumer 공유. 다크값은 [data-theme=dark] 블록 참조. ── */
+    --miss: #d64545;        /* 습관 셀 실패 ✕ (↔ down=일반 위험, 의미 구분) */
+    --rank-bronze: #c1803f; /* 연속 등급 — 동 */
+    --rank-silver: #cbd0d6; /* 연속 등급 — 은 */
+    --rank-gold: #ffcf3f;   /* 연속 등급 — 금 */
+    --cal-sat: #0071e3;     /* 캘린더 토요일 */
+    --cal-sun: #f06060;     /* 캘린더 일요일 */
+    --cal-today-bg: rgba(0, 113, 227, 0.10); /* 캘린더 오늘 셀 배경 */
+    --write: #c9a24b;       /* 기록·돈 금색 강조 */
+    --offline-bg: #7a3a00;  /* 오프라인 배너 배경 */
+    --offline-fg: #ffd7a8;  /* 오프라인 배너 글자 */
+    --bg-hud: #e4e9f1;      /* HUD 상태바 — surface 한 단계 위(구분) */
   }
 
   :root[data-theme="dark"] {
@@ -158,8 +196,9 @@
     --down: #ff5a4d;
     --down-soft: #331810;
     --down-line: #5a2a22;
-    --except: #2f7d6e;
-    --freeze: #2b9fc9;
+    --except: #4f9084;
+    --freeze: #6cc4e8;
+    --fire: #f0913a;
     --ok-ink: #7fe0a0;
     --warn-ink: #f0b565;
     --down-ink: #fca5a5;
@@ -193,8 +232,97 @@
     --speaker-7-bg: rgba(232, 121, 249, 0.15); --speaker-7-text: #f0abfc; /* fuchsia */
     --speaker-8-bg: rgba(163, 230, 53, 0.15);  --speaker-8-text: #bef264; /* lime */
     --speaker-9-bg: rgba(129, 140, 248, 0.15); --speaker-9-text: #a5b4fc; /* indigo */
+
+    /* growth 승격 도메인색(dark) — growth 다크 오버라이드값(시각 회귀 0) */
+    --miss: #e35555;
+    --rank-bronze: #c1803f; --rank-silver: #cbd0d6; --rank-gold: #ffcf3f;
+    --cal-sat: #2f8fff; --cal-sun: #f06060; --cal-today-bg: rgba(47, 143, 255, 0.07);
+    --write: #c9a24b;
+    --offline-bg: #7a3a00; --offline-fg: #ffd7a8;
+    --bg-hud: #161b24;
   }
 /* DESIGN-SYSTEM:color END */
+
+/* DESIGN-SYSTEM:shadcn-alias START — managed by goodsoob-design-system, do not edit */
+  :root {
+    /* ── shadcn 시맨틱 색 alias (canonical 전용) ──
+       shadcn 컴포넌트/CVA 는 --background·--primary·--border 같은 자체 토큰명을
+       기대한다. 여기서 그 이름들을 goodsoob 진실원본 토큰(color.css)으로 alias 한다
+       — 값은 복제하지 않고 var() 로만 가리킨다(진실원본 = color.css). @theme inline
+       (tailwind-entry.generated.css) 이 --color-* 를 다시 이 토큰들로 매핑해
+       bg-primary·text-foreground 등 유틸이 생성된다.
+
+       Phase 3 (2026-10-15): manifest.json "blocks"에 등록되어 app consumer
+       (memory·tower·growth)의 :root 로도 sync 된다. canonical CVA 컴포넌트가
+       bg-primary·text-foreground 같은 유틸을 방출하고, 그 유틸은 @theme inline 이라
+       var(--primary) 등으로 use-site resolve 되므로 — consumer 에 이 alias 가 있어야
+       색이 먹는다. :root alias 일 뿐 @theme 이 아니라 memory @theme 과 충돌하지 않는다.
+       생성기(gen-systems-css.mjs)는 이 파일을 color.css 뒤에 읽어 .ds-base 로 감싸
+       systems.generated.css(playground)에도 포함시킨다.
+
+       dark: color.css 의 :root[data-theme="dark"] 가 goodsoob 토큰(--surface·--ink 등)
+       자체를 갈아끼우므로, 이 alias 는 var() 참조라 dark 값이 자동 반영된다
+       → dark alias 블록 불필요. */
+
+    --background: var(--bg);              /* 페이지 배경 (앱 캔버스) */
+    --foreground: var(--ink);            /* 본문 글자 */
+    --card: var(--surface);              /* 카드 표면 */
+    --card-foreground: var(--ink);
+    --popover: var(--surface);           /* 팝오버/드롭다운 표면 (base 보다 surface 가 분리감) */
+    --popover-foreground: var(--ink);
+    --primary: var(--btn-primary);       /* 주 버튼 (중립 강조 — light #1d1d1f / dark #e4e4e7) */
+    --primary-foreground: var(--text-inverse); /* btn-primary 배경이 명암 반전하므로 글자도 반전(text-inverse) */
+    --secondary: var(--surface-2);       /* 보조 표면 */
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-2);           /* 약화 표면 */
+    --muted-foreground: var(--sub);      /* 약화 글자 (sub = 보조 텍스트) */
+    /* ⚠️ 이름 충돌: shadcn 관례의 --accent("hover/active 표면")와 goodsoob --accent
+       (브랜드 블루 #0071e3)는 의미가 다르다. consumer 의 :root 에는 goodsoob --accent
+       (브랜드 블루)가 color.css 로 이미 정의돼 있으므로 여기서 재정의하지 않는다 —
+       재정의하면 consumer 의 브랜드 accent 를 덮어 UI 가 깨진다(2026-10-15 memory 사고:
+       shadcn-alias 를 consumer :root 로 sync 하며 --accent:surface-2 가 브랜드 블루를
+       가림). goodsoob 에서 bg-accent = 브랜드 블루 의미로 쓰고, hover/muted 표면이
+       필요하면 bg-secondary(=surface-2)를 쓴다. accent-foreground(유색 위 글자)만 신규. */
+    --accent-foreground: var(--ink);
+    --destructive: var(--down);          /* 파괴/위험 (빨강) */
+    --destructive-foreground: var(--on-accent); /* 유색 solid 위 글자 = 항상 흰색 고정(on-accent) */
+    --border: var(--line);               /* 외곽선 */
+    --input: var(--line);                /* 입력 테두리 */
+    --ring: var(--focus-ring);           /* 포커스 링 */
+  }
+/* DESIGN-SYSTEM:shadcn-alias END */
+
+/* shadcn 색 → Tailwind color 유틸 브리지. 위 shadcn-alias 가 정의한 --card/--border
+   등을 Tailwind v4 의 --color-* 테마 키로 매핑해야 DS 의 CVA 컴포넌트가 방출하는
+   bg-card·bg-popover·border-border·text-foreground·border-input 등 유틸이 **생성**된다.
+   없으면 Tailwind 가 그 유틸을 조용히 스킵 → Modal·Popover·Dropdown·Select·Combobox
+   표면이 안 칠해진다(2026-10-16 모달 backdrop/패널 무배경 사고).
+   @theme inline = var() 를 use-site 에서 resolve → dark 토큰 자동 반영.
+   ⚠️ DS 레퍼런스 = canonical src/tailwind-entry.generated.css(플레이그라운드 전용, consumer
+   로 sync 안 됨). 이 브리지는 현재 유일한 Tailwind consumer 인 memory 가 직접 소유 —
+   향후 Tailwind consumer(real-lunatic 등) 늘면 DS sync(shadcn-alias 처럼 sentinel)로
+   승격 필요. --accent 는 goodsoob 브랜드 블루(color.css) 를 그대로 가리킨다. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
 
 /* DESIGN-SYSTEM:tokens START — managed by goodsoob-design-system, do not edit */
   :root {

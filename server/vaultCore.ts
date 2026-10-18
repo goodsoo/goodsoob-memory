@@ -130,7 +130,7 @@ export class VaultCore {
     // 아직 커밋 안 된(디바운스 대기 중) 파일은 disk mtime fallback.
     let mtime = s.mtimeMs;
     if (this.gitEnabled) {
-      const t = this.gitLastCommitTime(rel);
+      const t = await this.gitLastCommitTime(rel);
       if (t !== null) mtime = t;
     }
     return { mtime, size: s.size };
@@ -189,12 +189,11 @@ export class VaultCore {
       paths.map(async (rel) => {
         try {
           // meta.mtime = disk mtime (statSync) — git 커밋 시각 조회를 의도적으로
-          // 생략. readMeta 는 파일당 gitLastCommitTime → execFileSync("git log")
-          // 를 부르는데, 이게 동기 블로킹이라 Promise.all 병렬이 무의미하고 771개
-          // 순차 spawn 으로 scanAll 이 ~13초 걸렸다(메모장 사이드바가 수십 초 비어
-          // 보이던 진범). scanAll 은 목록 batch 이고 정렬 키는 date→time→mtime 라
-          // disk mtime 으로 충분. 정확한 git 커밋 시각이 필요한 개별 파일 열기는
-          // readMeta 가 그대로 담당.
+          // 생략. readMeta 는 파일당 gitLastCommitTime → "git log" spawn 을 부르는데
+          // (지금은 async), 수백 개 파일에 git 프로세스를 수백 번 띄우는 비용 자체가
+          // 커서 scanAll 이 ~13초 걸렸다(메모장 사이드바가 수십 초 비어 보이던 진범).
+          // scanAll 은 목록 batch 이고 정렬 키는 date→time→mtime 라 disk mtime 으로
+          // 충분. 정확한 git 커밋 시각이 필요한 개별 파일 열기는 readMeta 가 담당.
           const content = await this.read(rel);
           const s = statSync(this.abs(rel));
           return {
@@ -402,15 +401,15 @@ export class VaultCore {
     }
   }
 
-  private gitLastCommitTime(rel: string): number | null {
+  // 비동기 execFile(gitExec) 사용 — 동기 execFileSync 는 git log 가 끝날 때까지
+  // 서버 이벤트 루프 전체를 막아, iCloud 지연 + 대형 .git 에서 파일 하나 열 때마다
+  // 수 초간 다른 모든 요청(예: 헬스 체크·목록 조회)을 블로킹했다. async 로 바꿔
+  // git log 가 도는 동안 서버가 다른 요청을 계속 처리한다.
+  private async gitLastCommitTime(rel: string): Promise<number | null> {
     try {
-      const out = this.gitSync([
-        "log",
-        "-n1",
-        "--format=%ct",
-        "--",
-        rel,
-      ]).trim();
+      const out = (
+        await this.gitExec(["log", "-n1", "--format=%ct", "--", rel])
+      ).trim();
       if (!out) return null;
       return Number(out) * 1000;
     } catch {

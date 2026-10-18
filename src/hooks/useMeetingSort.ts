@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useScopedKey } from "../lib/vault/scopedStorage";
 
 export type MeetingSortKey = "name" | "date_desc" | "date_asc";
 
-const BASE_KEY = "goodsoob:meetingSort";
+const KEY = "goodsoob:meetingSort";
 
 function readKey(key: string): MeetingSortKey {
   if (typeof localStorage === "undefined") return "date_desc";
@@ -13,7 +12,7 @@ function readKey(key: string): MeetingSortKey {
 }
 
 export function useMeetingSort() {
-  const key = useScopedKey(BASE_KEY);
+  const key = KEY;
   const [sortKey, setSortKey] = useState<MeetingSortKey>(() => readKey(key));
   useEffect(() => {
     setSortKey(readKey(key));

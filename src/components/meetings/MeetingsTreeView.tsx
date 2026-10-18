@@ -7,15 +7,13 @@ import {
   type MeetingComparator,
   type MeetingsFolderNode,
 } from "../../lib/meetingsTree";
-import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { formatDisplayDate } from "../../lib/dates";
 import { Input, NavItem } from "@goodsoob/ds";
 
-const FOLDER_EXPAND_BASE_KEY = "goodsoob:meetingFolderExpandedV2";
+const FOLDER_EXPAND_KEY = "goodsoob:meetingFolderExpandedV2";
 // 트리 펼침 상태를 localStorage 에 저장. "collapsed" set 이 아니라 "expanded" set 으로
 // 보관 — 폴더는 default 접힘이고, 사용자가 명시적으로 펼친 폴더만 기억한다. (구 V1 은
 // collapsed set = default 펼침이라 의미가 정반대 → key 를 V2 로 올려 교차오독 차단.)
-// vault 별로 폴더 위계가 다르므로 useScopedKey 로 vault id namespace.
 function loadExpanded(key: string): Set<string> {
   try {
     const raw = window.localStorage.getItem(key);
@@ -110,12 +108,11 @@ export function MeetingsTreeView({
   revealPath,
   revealNonce,
 }: Props) {
-  const folderExpandKey = useScopedKey(FOLDER_EXPAND_BASE_KEY);
+  const folderExpandKey = FOLDER_EXPAND_KEY;
   const [expanded, setExpanded] = useState<Set<string>>(() => loadExpanded(folderExpandKey));
   const [dropTarget, setDropTarget] = useState<string | null>(null); // 강조 중인 폴더 path
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
 
-  // vault 전환 시 새 vault 의 expanded set 으로 갈아끼움.
   useEffect(() => {
     setExpanded(loadExpanded(folderExpandKey));
   }, [folderExpandKey]);

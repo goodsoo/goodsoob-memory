@@ -15,7 +15,6 @@ import {
   Trash2,
 } from "lucide-react";
 import type { PortfolioWorkMeta } from "../../api/portfolio";
-import { useScopedKey } from "../../lib/vault/scopedStorage";
 import { folderPathOfCard, isGithubCard } from "../../api/portfolio";
 import {
   useCreatePortfolioFolder,
@@ -78,8 +77,8 @@ export const PortfolioSourceTree = forwardRef<
 
   const folders = foldersQuery.data ?? [];
 
-  // 섹션 접힘 상태 — vault 별 분리 (개인/회사 vault 별 다른 default).
-  const collapseKey = useScopedKey(COLLAPSE_KEY);
+  // 섹션 접힘 상태.
+  const collapseKey = COLLAPSE_KEY;
   const [collapse, setCollapse] = useState<CollapseState>(() =>
     readCollapse(collapseKey),
   );

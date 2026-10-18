@@ -3,11 +3,7 @@ import { useVault } from "../../lib/vault/useVault";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 
-interface Props {
-  from: string;
-}
-
-export function VaultDisconnected({ from }: Props) {
+export function VaultDisconnected() {
   const { reconnect } = useVault();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +19,7 @@ export function VaultDisconnected({ from }: Props) {
           ? err.message
           : typeof err === "string"
             ? err
-            : "여전히 vault 폴더에 접근할 수 없어요.",
+            : "여전히 vault 에 연결할 수 없어요.",
       );
     } finally {
       setBusy(false);
@@ -43,24 +39,11 @@ export function VaultDisconnected({ from }: Props) {
         }}
       >
         <Text variant="h2" weight="bold" as="h1" className="mb-2">
-          vault 폴더에 접근할 수 없어요
+          vault 에 연결할 수 없어요
         </Text>
-        <Text variant="body" color="secondary" as="p" className="mb-3">
-          서버가 실행 중인지, 외장 디스크나 iCloud 동기화가 정상인지 확인한 후
-          재연결해 주세요.
-        </Text>
-
-        <Text
-          variant="caption"
-          color="secondary"
-          as="div"
-          className="mb-5 break-all rounded px-3 py-2"
-          style={{
-            background: "var(--bg)",
-            border: "1px solid var(--line)",
-          }}
-        >
-          이전 vault: <span className="font-mono">{from}</span>
+        <Text variant="body" color="secondary" as="p" className="mb-5">
+          로컬 서버가 실행 중인지 확인한 후 재연결해 주세요. iCloud 동기화 중이라면
+          잠시 후 다시 시도하세요.
         </Text>
 
         <Button

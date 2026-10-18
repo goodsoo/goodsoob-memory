@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useScopedKey } from "../lib/vault/scopedStorage";
 
-const BASE_KEY = "goodsoob:sidebarCollapsed";
+const KEY = "goodsoob:sidebarCollapsed";
 
 function readKey(key: string): boolean {
   if (typeof window === "undefined") return false;
@@ -13,7 +12,7 @@ function readKey(key: string): boolean {
 }
 
 export function useSidebarCollapsed() {
-  const key = useScopedKey(BASE_KEY);
+  const key = KEY;
   const [collapsed, setCollapsed] = useState<boolean>(() => readKey(key));
 
   useEffect(() => {

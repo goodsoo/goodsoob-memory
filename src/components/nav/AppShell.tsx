@@ -6,7 +6,6 @@ import {
   Settings,
   Search,
   ChevronDown,
-  Check,
 } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 import {
@@ -433,17 +432,12 @@ function TitlebarClock() {
   );
 }
 
-// 윈도우 헤더 좌측의 vault 이름 chip — 클릭 시 dropdown 진입점.
-// 항목: vault 목록 (라디오 전환) → "Vault 설정" → "스타일가이드".
-// vault > tabs 시각 계층 명시 — vault 가 root container 임을 좌→우 순서로 표현.
+// 윈도우 헤더 좌측의 vault 이름 chip — 클릭 시 설정/스타일가이드 메뉴.
 function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
-  const { vaultRoot, vaults, activeVaultId, switchVault } = useVault();
+  const { vaultRoot } = useVault();
   const [open, setOpen] = useState(false);
   if (!vaultRoot) return null;
-  const activeName =
-    vaults.find((v) => v.id === activeVaultId)?.name ??
-    vaultRoot.split("/").filter(Boolean).pop() ??
-    vaultRoot;
+  const vaultName = vaultRoot.split("/").filter(Boolean).pop() ?? vaultRoot;
 
   return (
     <Popover
@@ -455,45 +449,16 @@ function VaultBadge({ onOpenSettings }: { onOpenSettings: () => void }) {
         <Button
           variant="ghost"
           title={vaultRoot}
-          aria-label={`vault: ${activeName}`}
+          aria-label={`vault: ${vaultName}`}
           className="h-7 max-w-full gap-1 px-2 text-sm"
           style={{ color: "var(--ink)" }}
         >
-          <span className="truncate">{activeName}</span>
+          <span className="truncate">{vaultName}</span>
           <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
         </Button>
       }
       content={
         <>
-          {/* vault 목록 — 라디오. active 행에 체크. */}
-          <div className="max-h-64 overflow-y-auto">
-            {vaults.map((v) => {
-              const active = v.id === activeVaultId;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)]"
-                  style={{ color: "var(--ink)" }}
-                  onClick={async () => {
-                    if (!active) await switchVault(v.id);
-                    setOpen(false);
-                  }}
-                  title={v.path}
-                >
-                  <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
-                    {active ? <Check className="h-3.5 w-3.5" /> : null}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{v.name}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div
-            className="my-1 h-px"
-            style={{ background: "var(--line-2)" }}
-            aria-hidden
-          />
           <DSButton
             variant="ghost"
             size="sm"

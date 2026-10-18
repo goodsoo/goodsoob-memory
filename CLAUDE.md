@@ -127,7 +127,7 @@ results than an ad-hoc answer.
 - Tests: `bun run test:run` (one-off), `bun run test` (watch)
 - Build: `bun run build`
 - Typecheck: `bun run typecheck`
-- CI: `.github/workflows/ci.yml` — push(main) + PR 마다 `bun install --frozen-lockfile` → typecheck → test:run 자동 실행 (ubuntu, oven-sh/setup-bun@v2). Tauri build 는 OS 종속이라 CI 에서 skip.
+- CI: **없음** (2026-09-20 커밋 `a462752` 에서 `ci.yml`·`px-guard` 제거). memory 는 Pro맥 로컬 전용(외부 배포 없음)이고, GitHub CI 가 `@goodsoob/ds` 의 `file:` 로컬 의존 + 패키지로 이동하며 삭제된 `src/ds` 참조로 계속 실패해서 뗐다. **검증은 로컬 수동** — `bun run typecheck` + `bun run test:run` (스크립트는 package.json 에 유지). 컴포넌트 px-guard 는 canonical(`@goodsoob/ds`) 소유로 이전. ⚠️ PR 머지 전 CI 통과를 기다리지 말 것 — 로컬 typecheck/test 가 게이트다.
 - 배포: 없음 (Tauri 데스크탑 전용). `vercel.json` 으로 main deploy 비활성화. Vercel 대시보드 연동은 남아있지만 deploy 자체는 막혀있음.
 - 마이그레이션 (DB): V0.6 부터 없음. vault = 로컬 md 파일. 스키마 변경 = md 파일 형식 변경 (frontmatter 필드 추가/이름 변경 등).
 - **vault schema 변경 룰** (2026-05-27 첫 배포 이후): 첫 배포 전엔 "실데이터 가능성 0" 전제로 migration 코드를 생략했지만, 첫 배포로 매일 실데이터가 쌓이므로 그 전제는 폐기. 이제 frontmatter 필드 추가·이름 변경·structural 변경 모두 lazy migration 코드를 박는다 (첫 read 시 변환 + rewrite, V0.7.1 의 date-prefix→uid 발급 패턴이 선례). **단순 신규 필드** = default 값 fallback 으로 흡수 (migration 불필요), **의미 변경·필드 rename·structural 변경** = lazy migration 필수, 다단계면 versioned tag (`frontmatter.schema: N`) 검토. 산재 호출 방지용 runner 추상화는 todo.md "마이그레이션 헬퍼 추상화" 참조 — 첫 실제 schema 변경 PR 에 같이 도입.

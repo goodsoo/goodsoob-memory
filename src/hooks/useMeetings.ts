@@ -230,7 +230,7 @@ export function useGetFullMeeting() {
 }
 
 export function useCreateMeeting() {
-  const { adapter, watcher, activeVaultId } = useVault();
+  const { adapter, watcher } = useVault();
   const qc = useQueryClient();
   return useMutation({
     scope: VAULT_WRITE_SCOPE,
@@ -238,9 +238,9 @@ export function useCreateMeeting() {
       const created = await createMeeting(adapter, input);
       markMeetingSelfWrite(watcher, created.id);
       _justCreatedMeetingUid = created.uid;
-      // 새 메모는 본문 편집 모드로 열리도록 — MeetingForm mount 전에 vault 전역
+      // 새 메모는 본문 편집 모드로 열리도록 — MeetingForm mount 전에 전역
       // viewMode 를 edit 로 써둔다 (mount 후 setState 는 useViewMode 초기화와 race).
-      setStoredViewMode(activeVaultId, "edit");
+      setStoredViewMode("edit");
       return created;
     },
     onSuccess: (created) => {

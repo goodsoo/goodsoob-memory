@@ -11,35 +11,15 @@ import type { VaultAdapter } from "./adapter";
 import { selectAdapter } from "./selectAdapter";
 import { createVaultWatcher, type VaultWatcher } from "./watcher";
 import { ensureVaultStructure } from "./scan";
-import {
-  addVault as registryAddVault,
-  getActiveVaultId,
-  getVaults,
-  removeVault as registryRemoveVault,
-  renameVault as registryRenameVault,
-  setActiveVaultId,
-  type VaultEntry,
-} from "./registry";
 
 interface VaultContextValue {
   adapter: VaultAdapter;
   watcher: VaultWatcher;
-  vaults: VaultEntry[];
-  activeVaultId: string | null;
-  activeVault: VaultEntry | null;
-  /** activeVault?.path ?? null — 단일 vault 시절 코드 호환용. */
+  /** 서버가 소유한 단일 vault(VAULT_DIR) 의 절대경로. 초기화 전/접근 불가 시 null. */
   vaultRoot: string | null;
-  /** path 로 새 vault 추가 + 활성화. 기존 path 면 그 entry 재활성화. */
-  setVaultRoot: (path: string, name?: string) => Promise<void>;
-  switchVault: (id: string) => Promise<void>;
-  addVault: (name: string, path: string) => Promise<VaultEntry>;
-  removeVault: (id: string) => void;
-  renameVault: (id: string, name: string) => void;
-  /** 활성 해제 (list 는 보존). 다시 클릭하면 재연결. */
-  disconnect: () => void;
   isReady: boolean;
-  /** 접근 불가로 끊긴 vault path. 명시 disconnect 일 땐 null. */
-  disconnectedFrom: string | null;
+  /** 서버/폴더 접근 불가로 끊긴 상태. 재연결 성공 전까지 true. */
+  disconnected: boolean;
   reconnect: () => Promise<void>;
 }
 
@@ -47,6 +27,15 @@ interface VaultContextValue {
 export const VaultContext = createContext<VaultContextValue | null>(null);
 export type { VaultContextValue };
 
+// vault 는 서버가 소유한 단일 VAULT_DIR 하나로 고정. 클라이언트는 /api/vault/init 로
+// 그 경로를 받아 adapter 에 연결만 한다 — 선택·추가·전환 개념 없음.
+//
+// 연결 모델: 최초 1회 연결에 성공하면 그 뒤로는 끊김 판정을 하지 않는다. 서버가
+// 잠깐 깜빡여도(auto-commit git lock·fsWatch churn·iCloud 지연·탭 복귀) 읽기는
+// offlineAdapter 의 IndexedDB 캐시가 흡수하고, 쓰기는 outbox 가 큐잉한다. 옛 3초
+// 주기 exists 폴링은 이 일시 깜빡임을 "폴더 소실"로 오판해 멀쩡한 화면을 덮던
+// 과민 판정이라 제거했다(자매 앱 growth 와 동일한 캐시 폴백 모델). disconnected 는
+// "최초 연결·초기화 실패"(= 보여줄 데이터가 아예 없음) 에서만 true.
 export function VaultProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [adapter] = useState<VaultAdapter>(() => selectAdapter());
@@ -54,126 +43,51 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     createVaultWatcher(adapter, queryClient),
   );
 
-  const [vaults, setVaultsState] = useState<VaultEntry[]>(() => getVaults());
-  const [activeVaultId, setActiveVaultIdState] = useState<string | null>(() =>
-    getActiveVaultId(),
-  );
+  const [vaultRoot, setVaultRootState] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [disconnectedFrom, setDisconnectedFrom] = useState<string | null>(null);
+  const [disconnected, setDisconnected] = useState(false);
 
-  const activeVault = useMemo(
-    () => vaults.find((v) => v.id === activeVaultId) ?? null,
-    [vaults, activeVaultId],
-  );
-  const vaultRoot = activeVault?.path ?? null;
-
-  const refreshVaults = useCallback(() => {
-    setVaultsState(getVaults());
-  }, []);
-
-  const setVaultRoot = useCallback(
-    async (path: string, name?: string) => {
-      const entry = registryAddVault(name ?? "", path);
-      refreshVaults();
-      setActiveVaultId(entry.id);
-      setActiveVaultIdState(entry.id);
-      // 실제 watcher / adapter 셋업은 activeVaultId 변경 useEffect 가 담당.
-      // 다만 setVaultRoot caller (VaultPicker / Settings) 는 await 으로 "준비됨"
-      // 상태를 기대하므로 여기서 동기적으로 root 가 디스크에 실재하는지 확인.
-      adapter.setRoot(path);
-      if (!(await adapter.exists(""))) {
-        // path missing → vault 자체는 list 에 남기되 활성 해제 + disconnected 분기.
-        setActiveVaultId(null);
-        setActiveVaultIdState(null);
-        setDisconnectedFrom(path);
-        throw new Error(
-          "폴더에 접근할 수 없어요. 외장 디스크 / iCloud 연결을 확인하세요.",
-        );
-      }
-      setDisconnectedFrom(null);
-    },
-    [adapter, refreshVaults],
-  );
-
-  const switchVault = useCallback(
-    async (id: string) => {
-      const next = getVaults().find((v) => v.id === id);
-      if (!next) return;
-      if (id === activeVaultId) return;
-      setActiveVaultId(id);
-      setActiveVaultIdState(id);
-      setDisconnectedFrom(null);
-      // 사이드패널이 옛 vault 의 선택 meeting uid 를 들고 있으면 빈 detail 로 깜빡임 — hash 비움.
-      if (window.location.hash.startsWith("#meeting-")) {
-        window.location.hash = "#meetings";
-      }
-    },
-    [activeVaultId],
-  );
-
-  const addVault = useCallback(
-    async (name: string, path: string): Promise<VaultEntry> => {
-      const entry = registryAddVault(name, path);
-      refreshVaults();
-      return entry;
-    },
-    [refreshVaults],
-  );
-
-  const removeVault = useCallback(
-    (id: string) => {
-      registryRemoveVault(id);
-      refreshVaults();
-      if (id === activeVaultId) {
-        setActiveVaultIdState(null);
-      }
-    },
-    [activeVaultId, refreshVaults],
-  );
-
-  const renameVault = useCallback(
-    (id: string, name: string) => {
-      registryRenameVault(id, name);
-      refreshVaults();
-    },
-    [refreshVaults],
-  );
-
-  const disconnect = useCallback(() => {
-    setActiveVaultId(null);
-    setActiveVaultIdState(null);
-    setDisconnectedFrom(null);
-    // watcher / queryClient.clear 는 activeVaultId useEffect cleanup 에서.
-  }, []);
+  // 서버가 소유한 VAULT_DIR 를 받아 adapter 에 연결. 폴더 실재 확인까지.
+  // 성공 시 disconnected=false + vaultRoot 세팅 → watcher useEffect 가 활성화.
+  const connect = useCallback(async () => {
+    const res = await fetch("/api/vault/init");
+    if (!res.ok) throw new Error("서버에 연결할 수 없어요.");
+    const { vaultPath } = (await res.json()) as { vaultPath?: string };
+    if (!vaultPath) throw new Error("서버가 vault 경로를 반환하지 않았어요.");
+    adapter.setRoot(vaultPath);
+    if (!(await adapter.exists(""))) {
+      throw new Error("vault 폴더에 접근할 수 없어요.");
+    }
+    setDisconnected(false);
+    setVaultRootState(vaultPath);
+  }, [adapter]);
 
   const reconnect = useCallback(async () => {
-    if (!disconnectedFrom) return;
-    await setVaultRoot(disconnectedFrom);
-  }, [disconnectedFrom, setVaultRoot]);
+    try {
+      await connect();
+    } catch (err) {
+      setDisconnected(true);
+      throw err; // VaultDisconnected 가 메시지로 표시
+    }
+  }, [connect]);
 
-  // 브라우저(웹앱) 모드 — 마운트 1회: 서버가 소유한 vault 를 자동 등록·활성화.
-  // 이미 활성 vault 가 있으면 즉시 return (재방문 무손상).
+  // 마운트 1회: 서버 vault 자동 연결. 실패하면 disconnected 화면으로.
   useEffect(() => {
-    if (activeVaultId) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/vault/init");
-        if (!res.ok || cancelled) return;
-        const { vaultPath } = (await res.json()) as { vaultPath?: string };
-        if (!vaultPath || cancelled) return;
-        await setVaultRoot(vaultPath);
+        await connect();
       } catch {
-        // fetch 실패 → 폴더 선택 화면으로 자연 폴백
+        if (!cancelled) setDisconnected(true);
       }
     })();
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 마운트 1회만 — activeVaultId/setVaultRoot 의존성 의도적으로 제외
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 마운트 1회만 — connect 의존성 의도적으로 제외
 
-  // activeVaultId 변화에 반응해서 watcher 재시작 + queryClient 초기화.
+  // vaultRoot 활성화에 반응해서 watcher 시작. (상시 폴링 없음 — 위 주석 참조.)
   useEffect(() => {
     if (!vaultRoot) {
       setIsReady(false);
@@ -182,65 +96,28 @@ export function VaultProvider({ children }: { children: ReactNode }) {
       return;
     }
     let cancelled = false;
-    let aliveTimer: ReturnType<typeof setInterval> | null = null;
-    // 연속 실패 카운터 — 1회 hiccup(서버 재시작·원격 접속 레이턴시·iCloud 순간
-    // 지연)에 바로 끊지 않고, 연속 MAX_ALIVE_FAILURES 회 실패해야 vault-gone 처리.
-    // 성공하면 리셋. 3초 간격 × 3 = ~9초 연속 불통이라야 disconnected 화면.
-    let aliveFailures = 0;
-    const MAX_ALIVE_FAILURES = 3;
-
-    function handleVaultGone() {
-      if (cancelled) return;
-      cancelled = true;
-      watcher.stop();
-      if (aliveTimer) clearInterval(aliveTimer);
-      window.removeEventListener("focus", checkAlive);
-      queryClient.clear();
-      setDisconnectedFrom(vaultRoot);
-      setActiveVaultId(null);
-      setActiveVaultIdState(null);
-    }
-
-    async function checkAlive() {
-      if (cancelled) return;
-      try {
-        const ok = await adapter.exists("");
-        if (ok) {
-          aliveFailures = 0; // 한 번이라도 살아있으면 카운터 리셋
-          return;
-        }
-      } catch {
-        // 네트워크/서버 실패 — 아래 실패 처리로 fall through
-      }
-      aliveFailures += 1;
-      if (aliveFailures >= MAX_ALIVE_FAILURES) handleVaultGone();
-    }
 
     (async () => {
       adapter.setRoot(vaultRoot);
-      // 전환 시 옛 vault 의 React Query cache 가 잠깐 보이는 거 차단.
       queryClient.clear();
       try {
         await ensureVaultStructure(adapter);
         if (cancelled) return;
         await watcher.start();
         setIsReady(true);
-        aliveTimer = setInterval(checkAlive, 3000);
-        window.addEventListener("focus", checkAlive);
       } catch (err) {
         console.error("vault init failed", err);
         if (cancelled) return;
-        setDisconnectedFrom(vaultRoot);
-        setActiveVaultId(null);
-        setActiveVaultIdState(null);
+        // 최초 초기화 실패만 끊김 처리 — 일단 ready 가 된 뒤엔 여기 안 온다.
+        // 운영 중 서버 깜빡임은 offlineAdapter 읽기 캐시 / outbox 가 흡수.
+        setDisconnected(true);
+        setVaultRootState(null);
         setIsReady(false);
       }
     })();
     return () => {
       cancelled = true;
       watcher.stop();
-      if (aliveTimer) clearInterval(aliveTimer);
-      window.removeEventListener("focus", checkAlive);
     };
   }, [vaultRoot, adapter, watcher, queryClient]);
 
@@ -248,37 +125,12 @@ export function VaultProvider({ children }: { children: ReactNode }) {
     () => ({
       adapter,
       watcher,
-      vaults,
-      activeVaultId,
-      activeVault,
       vaultRoot,
-      setVaultRoot,
-      switchVault,
-      addVault,
-      removeVault,
-      renameVault,
-      disconnect,
       isReady,
-      disconnectedFrom,
+      disconnected,
       reconnect,
     }),
-    [
-      adapter,
-      watcher,
-      vaults,
-      activeVaultId,
-      activeVault,
-      vaultRoot,
-      setVaultRoot,
-      switchVault,
-      addVault,
-      removeVault,
-      renameVault,
-      disconnect,
-      isReady,
-      disconnectedFrom,
-      reconnect,
-    ],
+    [adapter, watcher, vaultRoot, isReady, disconnected, reconnect],
   );
 
   return <VaultContext.Provider value={value}>{children}</VaultContext.Provider>;

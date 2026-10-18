@@ -92,7 +92,7 @@ export function SettingsModal({ open, onClose, initialSection = "vault" }: Props
           </header>
           <div className="flex-1 overflow-y-auto px-5 py-4">
             {section === "vault" ? (
-              <VaultSection onAfterSwitch={onClose} />
+              <VaultSection />
             ) : section === "backup" ? (
               <BackupSection />
             ) : section === "attachments" ? (

@@ -1,18 +1,15 @@
 import type { ReactNode } from "react";
 import { useVault } from "../../lib/vault/useVault";
 import { VaultDisconnected } from "./VaultDisconnected";
-import { VaultPicker } from "./VaultPicker";
 
 export function VaultGate({ children }: { children: ReactNode }) {
-  const { vaultRoot, isReady, disconnectedFrom } = useVault();
+  const { vaultRoot, isReady, disconnected } = useVault();
 
-  if (!vaultRoot) {
-    if (disconnectedFrom) {
-      return <VaultDisconnected from={disconnectedFrom} />;
-    }
-    return <VaultPicker />;
+  if (disconnected) {
+    return <VaultDisconnected />;
   }
-  if (!isReady) {
+  if (!vaultRoot || !isReady) {
+    // 서버 vault 연결 + 초기화 중 — 잠깐 스피너.
     return (
       <main className="flex min-h-svh items-center justify-center">
         <div
@@ -23,7 +20,7 @@ export function VaultGate({ children }: { children: ReactNode }) {
             borderTopColor: "var(--down)",
           }}
         />
-        <span className="sr-only">vault 로딩 중</span>
+        <span className="sr-only">vault 연결 중</span>
       </main>
     );
   }

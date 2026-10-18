@@ -1066,7 +1066,7 @@ export function StyleguidePage() {
             </Text>
             <Text variant="caption" color="muted" as="p" className="mb-3">
               `1px solid var(--down)` 전체 border + 텍스트 `--down`.
-              자리: `VaultSection` disconnect, `BackupSection` wipe.
+              자리: `BackupSection` 데이터 초기화 등 되돌릴 수 없는 작업.
             </Text>
             <div
               className="rounded-md p-3"
@@ -1076,10 +1076,10 @@ export function StyleguidePage() {
               }}
             >
               <Text variant="caption" weight="semibold" as="p" className="mb-1" style={{ color: "var(--down)" }}>
-                Vault 연결 해제
+                데이터 초기화
               </Text>
               <Text variant="caption" as="p" style={{ color: "var(--down)" }}>
-                연결을 끊으면 다시 폴더를 선택해야 합니다.
+                초기화하면 되돌릴 수 없습니다.
               </Text>
             </div>
           </Card>

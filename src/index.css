@@ -395,6 +395,11 @@
     --space-20: 20px;
     --space-24: 24px;
     --space-32: 32px;
+    /* ── 섹션급 스페이싱 ── 페이지 섹션 수직 리듬(hero·콘텐츠 블록 간 여백).
+       마케팅 홈·랜딩·대시보드 섹션 구분에 쓴다. 2026-10-19 신설(제보 20261019-0953). */
+    --space-40: 40px;
+    --space-48: 48px;
+    --space-64: 64px;
 
     /* ── Radius scale ── 4는 쳐냄(growth focus-outline 단독→6 흡수), 10도 쳐냄(8과 2px차→8 통합). */
     --radius-6: 6px;        /* 버튼·인풋 */
@@ -476,6 +481,15 @@
     --safe-top: env(safe-area-inset-top);
     /* 모달 시트 최대 너비 — 데스크탑 중앙 다이얼로그 폭. 모든 모달 이 한 값으로 통일. */
     --modal-w: 640px;
+    /* ── App-shell 레이아웃 슬롯 ── DS 가 기본값을 주고 consumer 가 앱별 override.
+       override 는 consumer 의 app-local sentinel 블록(`:root { ... }`)에서 한다.
+       2026-10-19 신설(제보 20261019-0953, 결정 ds-owns-all). */
+    /* 페이지 컨테이너 최대폭 — main/article 의 max-width. 넓은 마케팅 레이아웃은 1440px 등으로 override. */
+    --page-max: 1200px;
+    /* sticky 헤더 높이 — DS Header 컴포넌트 실제 높이(--page-header-h = 3.25rem = 52px)와 일치.
+       consumer 가 다른 헤더 높이를 쓸 경우 override(예: 56px dense, 64px marketing). */
+    --header-h: 3.25rem;
+
     /* z-index 전체 스택: dropdown < sticky < overlay < modal < popover < tooltip < toast.
        공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신. */
     --z-dropdown: 10;

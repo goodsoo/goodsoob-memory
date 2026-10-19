@@ -11,8 +11,10 @@ export interface BackupEntry {
 }
 
 // 보관 개수 default. 사용자가 설정 모달에서 조정 가능.
-export const DEFAULT_KEEP_COUNT = 10;
-export const KEEP_COUNT_OPTIONS = [5, 10, 20, 30, 50] as const;
+// 백업 1개가 vault 전체 zip(수백MB~GB)이라 개수 × 크기 = 디스크·iCloud 용량 —
+// 작게 둔다(default 10 × ~1GB = 10GB 가 iCloud 를 먹던 사고 이후 하향).
+export const DEFAULT_KEEP_COUNT = 3;
+export const KEEP_COUNT_OPTIONS = [3, 5, 10, 20] as const;
 
 export interface AutoBackupConfig {
   enabled: boolean;
@@ -73,7 +75,9 @@ export async function runBackup(adapter: VaultAdapter): Promise<BackupEntry> {
 
   const cmd = [
     `cd ${shellQuote(root)}`,
-    `zip -rq ${shellQuote(absTmp)} . -x ${shellQuote(`${BACKUP_DIR}/*`)} -x ${shellQuote(BACKUP_DIR)} -x '.DS_Store' -x '**/.DS_Store'`,
+    // .git 제외 — git 히스토리는 그 자체가 백업이라 zip 에 또 넣으면 중복(백업
+    // 크기 ~절반 절감). 복구는 md 파일 내용 기준이고 히스토리는 .git 이 보관.
+    `zip -rq ${shellQuote(absTmp)} . -x ${shellQuote(`${BACKUP_DIR}/*`)} -x ${shellQuote(BACKUP_DIR)} -x '.git/*' -x '.git' -x '.DS_Store' -x '**/.DS_Store'`,
   ].join(" && ");
 
   const result = await runShellCommand("sh", ["-lc", cmd]);
@@ -122,6 +126,28 @@ export async function deleteBackup(adapter: VaultAdapter, path: string): Promise
   await adapter.delete(path);
 }
 
+// 실패한 백업의 고아 .tmp 정리. listBackups 는 .zip 만 세므로 retention 이 .tmp 를
+// 못 건드려, zip 중 프로세스가 죽으면 ~1GB .tmp 가 영원히 남던 잔재를 청소한다.
+export async function cleanupOrphanedTmp(adapter: VaultAdapter): Promise<number> {
+  let files: string[];
+  try {
+    files = await adapter.list(BACKUP_DIR);
+  } catch {
+    return 0;
+  }
+  let removed = 0;
+  for (const path of files) {
+    if (!path.endsWith(".tmp")) continue;
+    try {
+      await adapter.delete(path);
+      removed++;
+    } catch {
+      // best-effort
+    }
+  }
+  return removed;
+}
+
 // 새 백업 1개 만들기 위해 삭제해야 할 오래된 entries.
 // entries.length + 1 > keepCount 일 때 (length + 1 - keepCount) 개 반환.
 export function deletionsRequiredForNewBackup(
@@ -145,6 +171,7 @@ export async function maybeAutoBackup(
 ): Promise<AutoBackupResult> {
   const cfg = readAutoBackupConfig();
   if (!cfg.enabled) return { kind: "skipped", reason: "disabled" };
+  await cleanupOrphanedTmp(adapter);
   const entries = await listBackups(adapter);
   const intervalMs = cfg.intervalDays * 24 * 60 * 60 * 1000;
   if (entries.length > 0 && Date.now() - entries[0].mtime < intervalMs) {

@@ -486,9 +486,9 @@
        2026-10-19 신설(제보 20261019-0953, 결정 ds-owns-all). */
     /* 페이지 컨테이너 최대폭 — main/article 의 max-width. 넓은 마케팅 레이아웃은 1440px 등으로 override. */
     --page-max: 1200px;
-    /* sticky 헤더 높이 — DS Header 컴포넌트 실제 높이(--page-header-h = 3.25rem = 52px)와 일치.
+    /* sticky 헤더 높이 — 단일출처: DS Header 실제 높이(--page-header-h, scale.css)를 참조.
        consumer 가 다른 헤더 높이를 쓸 경우 override(예: 56px dense, 64px marketing). */
-    --header-h: 3.25rem;
+    --header-h: var(--page-header-h);
 
     /* z-index 전체 스택: dropdown < sticky < overlay < modal < popover < tooltip < toast.
        공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신. */

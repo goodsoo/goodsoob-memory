@@ -13,7 +13,7 @@ export interface BackupEntry {
 // 보관 개수 default. 사용자가 설정 모달에서 조정 가능.
 // 백업 1개가 vault 전체 zip(수백MB~GB)이라 개수 × 크기 = 디스크·iCloud 용량 —
 // 작게 둔다(default 10 × ~1GB = 10GB 가 iCloud 를 먹던 사고 이후 하향).
-export const DEFAULT_KEEP_COUNT = 3;
+export const DEFAULT_KEEP_COUNT = 5;
 export const KEEP_COUNT_OPTIONS = [3, 5, 10, 20] as const;
 
 export interface AutoBackupConfig {

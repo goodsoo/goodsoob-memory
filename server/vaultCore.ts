@@ -26,6 +26,7 @@ import {
   openSync,
   closeSync,
   fsyncSync,
+  type Dirent,
 } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
@@ -144,12 +145,25 @@ export class VaultCore {
       .map((e) => (subdir === "" ? e.name : `${subdir}/${e.name}`));
   }
 
+  // 디렉토리 하나를 못 읽어도 재귀 스캔 전체를 죽이지 않는다 — iCloud 가
+  // evict 한(dataless) 폴더는 readdir 이 EDEADLK 를 던지는데, 그 한 폴더 때문에
+  // scanAll 이 500 이 되어 메모장 사이드바 전체가 비던 사례(_archive 하위).
+  // 해당 폴더만 skip + 경고 로그.
+  private readdirSafe(abs: string): Dirent[] {
+    try {
+      return readdirSync(abs, { withFileTypes: true });
+    } catch (err) {
+      console.warn(`[vault] readdir skip ${abs}:`, (err as Error).message);
+      return [];
+    }
+  }
+
   listRecursive(subdir: string): string[] {
     const results: string[] = [];
     const walk = (rel: string): void => {
       const abs = this.abs(rel);
       if (!existsSync(abs)) return;
-      for (const e of readdirSync(abs, { withFileTypes: true })) {
+      for (const e of this.readdirSafe(abs)) {
         if (e.name.startsWith(".")) continue;
         const childRel = rel === "" ? e.name : `${rel}/${e.name}`;
         if (e.isFile()) results.push(childRel);
@@ -165,7 +179,7 @@ export class VaultCore {
     const walk = (rel: string): void => {
       const abs = this.abs(rel);
       if (!existsSync(abs)) return;
-      for (const e of readdirSync(abs, { withFileTypes: true })) {
+      for (const e of this.readdirSafe(abs)) {
         if (e.name.startsWith(".")) continue;
         if (!e.isDirectory()) continue;
         const childRel = rel === "" ? e.name : `${rel}/${e.name}`;

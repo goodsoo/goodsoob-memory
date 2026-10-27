@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { execSync } from "node:child_process";
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import * as babel from "@babel/core";
@@ -75,5 +76,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     css: false,
+    // node_modules 가 node_modules.nosync 심링크(iCloud 동기화 제외)라 기본
+    // exclude(**/node_modules/**)에 안 걸려 서드파티 테스트까지 수집됐다.
+    exclude: [...configDefaults.exclude, "**/node_modules.nosync/**", "**/node_modules */**"],
   },
 });

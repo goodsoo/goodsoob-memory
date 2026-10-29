@@ -102,7 +102,7 @@
 
 PR body 가 곧 vault `portfolio/` 카드의 본문이 됨. 양식 (한 줄 임팩트 / 문제 / Before / After / 디자인 결정 / 유저가 얻는 것 / 카테고리 7섹션) 은 `src/lib/clipboardPrompt.ts` 의 `buildPRGuidePrompt()` 가 single source. 카테고리 enum: `ui_ux | backend | infra | fix | other`. "PR 만들어줘" 요청 받으면 의도 / 유저 가치 / before-after 스크린샷 / 디자인 결정 / 카테고리 5가지 먼저 확보. 작은 변경(오타·dep bump 등 포트폴리오 가치 없는 것)은 PR 안 만들고 main 직커밋 허용.
 
-todo.md/done.md 동기화는 `/takeoff` step 6.5 가 처리 (PR 안 미리 반영 — 머지로 main 진입).
+할일은 repo `todo.md` 가 아니라 짱수타워 할일(`goodsoob-tower/data/plans/goodsoob-memory.md`)이 단일 소스 — `/takeoff` 가 타워 API 로 반영한다. `done.md` 는 옛 완료 기록 보관용.
 
 ## Skill routing
 
@@ -130,7 +130,7 @@ results than an ad-hoc answer.
 - CI: **없음** (2026-09-20 커밋 `a462752` 에서 `ci.yml`·`px-guard` 제거). memory 는 Pro맥 로컬 전용(외부 배포 없음)이고, GitHub CI 가 `@goodsoob/ds` 의 `file:` 로컬 의존 + 패키지로 이동하며 삭제된 `src/ds` 참조로 계속 실패해서 뗐다. **검증은 로컬 수동** — `bun run typecheck` + `bun run test:run` (스크립트는 package.json 에 유지). 컴포넌트 px-guard 는 canonical(`@goodsoob/ds`) 소유로 이전. ⚠️ PR 머지 전 CI 통과를 기다리지 말 것 — 로컬 typecheck/test 가 게이트다.
 - 배포: 없음 (Tauri 데스크탑 전용). `vercel.json` 으로 main deploy 비활성화. Vercel 대시보드 연동은 남아있지만 deploy 자체는 막혀있음.
 - 마이그레이션 (DB): V0.6 부터 없음. vault = 로컬 md 파일. 스키마 변경 = md 파일 형식 변경 (frontmatter 필드 추가/이름 변경 등).
-- **vault schema 변경 룰** (2026-05-27 첫 배포 이후): 첫 배포 전엔 "실데이터 가능성 0" 전제로 migration 코드를 생략했지만, 첫 배포로 매일 실데이터가 쌓이므로 그 전제는 폐기. 이제 frontmatter 필드 추가·이름 변경·structural 변경 모두 lazy migration 코드를 박는다 (첫 read 시 변환 + rewrite, V0.7.1 의 date-prefix→uid 발급 패턴이 선례). **단순 신규 필드** = default 값 fallback 으로 흡수 (migration 불필요), **의미 변경·필드 rename·structural 변경** = lazy migration 필수, 다단계면 versioned tag (`frontmatter.schema: N`) 검토. 산재 호출 방지용 runner 추상화는 todo.md "마이그레이션 헬퍼 추상화" 참조 — 첫 실제 schema 변경 PR 에 같이 도입.
+- **vault schema 변경 룰** (2026-05-27 첫 배포 이후): 첫 배포 전엔 "실데이터 가능성 0" 전제로 migration 코드를 생략했지만, 첫 배포로 매일 실데이터가 쌓이므로 그 전제는 폐기. 이제 frontmatter 필드 추가·이름 변경·structural 변경 모두 lazy migration 코드를 박는다 (첫 read 시 변환 + rewrite, V0.7.1 의 date-prefix→uid 발급 패턴이 선례). **단순 신규 필드** = default 값 fallback 으로 흡수 (migration 불필요), **의미 변경·필드 rename·structural 변경** = lazy migration 필수, 다단계면 versioned tag (`frontmatter.schema: N`) 검토. 산재 호출 방지용 runner 추상화는 짱수타워 할일 "마이그레이션 헬퍼 추상화" 참조 — 첫 실제 schema 변경 PR 에 같이 도입.
 - **메모 파일 모델** (V0.7.1 / V0.8.1): 노트 path = **vault(brain) root 상대 경로** (`{folder}/{title}.md`, title 이 곧 파일명). V0.8.1 부터 특정 `notes/` 폴더가 아니라 **brain 전체**가 노트 소스 — `_`/`.` 로 시작하는 세그먼트(앱·시스템 네임스페이스)만 제외(`isNonNotePath`). frontmatter = `id: <uuid>`(앱 생성 노트의 영구 식별자) + `date`(optional) + `time` + `attendees` + `tags`. **id 없는 brain 파일**은 경로 기반 합성 uid(`syntheticUid`, 디스크 무변경). **frontmatter 에 title 없음** — 파일명이 곧 노트 제목. title 변경 = pure disk rename only (inode 유지). 충돌 시 `TitleConflictError` throw. sidecar (`.transcript.md` / `.summary.md`) 패턴 그대로. 앱 소유 폴더는 `_` 접두사 (`_portfolio`/`_tasks`/`_routines`/`_journals`/`_schedule.md`) — 메모 스캔에서 자동 제외.
 
 ## 주의사항 / 알려진 footgun

@@ -17,7 +17,10 @@ export interface RecordingJob {
   state: string;
   pidAlive: boolean;
   step?: string;
-  error?: string;
+  error?: string; // "interrupted" = runner 비정상 종료
+  kind?: "diarize" | "corrections" | "corrections-retry";
+  failedChunks?: number[]; // 1부터
+  anchorMisses?: number;
 }
 
 export interface RecordingEntry {

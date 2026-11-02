@@ -34,6 +34,9 @@ import { TodayAgendaPanel } from "./components/today/TodayAgendaPanel";
 import { JournalOverlay } from "./components/calendar/JournalOverlay";
 import { TasksPage } from "./pages/TasksPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
+import { RecordingsPage } from "./pages/RecordingsPage";
+import { RecordingsSidePanel } from "./components/recordings/RecordingsSidePanel";
+import { parseRecordingHash, recordingHash } from "./lib/recordings/hash";
 import { StyleguidePage } from "./pages/StyleguidePage";
 import { PortfolioSidePanel } from "./components/portfolio/PortfolioSidePanel";
 import { InstallGuideModal } from "./components/portfolio/InstallGuideModal";
@@ -61,6 +64,7 @@ import { todayIso } from "./lib/dates";
 function readTabFromHash(): Tab {
   const h = window.location.hash;
   if (h.startsWith("#meeting-")) return "meetings";
+  if (h === "#recordings" || h.startsWith("#recording-")) return "recordings";
   if (h === "#today") return "today";
   if (h === "#meetings") return "meetings";
   if (h === "#todos") return "todos";
@@ -74,6 +78,10 @@ function readMeetingFromHash(): string | null {
   const h = window.location.hash;
   if (h.startsWith("#meeting-")) return h.slice("#meeting-".length) || null;
   return null;
+}
+
+function readRecordingFromHash(): string | null {
+  return parseRecordingHash(window.location.hash);
 }
 
 // 세션 단위 한 번만 자동 선택. 사용자가 명시적으로 onBack/닫기 한 뒤 페이지
@@ -134,6 +142,10 @@ function AppContent() {
   // "오늘" 탭 메인창이 보여줄 날짜. 기본=오늘, 사이드바 날짜 선택 시 갱신.
   // 탭을 떠났다 돌아오면 오늘로 리셋(탭 정체성 유지) — 아래 effect.
   const [selectedDay, setSelectedDay] = useState<string>(() => todayIso());
+  // 녹음 탭에서 보고 있는 녹음 base. 메모 선택과 같은 방식으로 탭 전환에도 보존.
+  const [selectedRecording, setSelectedRecording] = useState<string | null>(() =>
+    readRecordingFromHash(),
+  );
   const [taskStatus, setTaskStatus] = useState<TaskStatusFilter>("all");
   // 선택된 할 일 프로젝트 파일(`tasks/{이름}.md`). null = 전체.
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -328,6 +340,8 @@ function AppContent() {
       if (idFromHash !== null) {
         setSelectedMeetingId(idFromHash);
       }
+      const recFromHash = readRecordingFromHash();
+      if (recFromHash !== null) setSelectedRecording(recFromHash);
     }
     window.addEventListener("popstate", syncFromHash);
     window.addEventListener("hashchange", syncFromHash);
@@ -354,7 +368,7 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // 페이지 단축키 (web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
+  // 페이지 단축키 (web·PWA 공통): Cmd+1~6 (TABS index), Cmd+\ (사이드바 토글),
   // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
   // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
   //    standalone PWA(홈 화면 설치)에선 앱이 받는다.
@@ -511,7 +525,9 @@ function AppContent() {
         ? selectedMeetingId
           ? `#meeting-${selectedMeetingId}`
           : ""
-        : `#${next}`;
+        : next === "recordings" && selectedRecording
+          ? recordingHash(selectedRecording)
+          : `#${next}`;
     if (window.location.hash !== target) {
       window.history.pushState(
         { tab: next, meetingId: selectedMeetingId },
@@ -531,6 +547,16 @@ function AppContent() {
     setTab("meetings");
     setSelectedMeetingId(id);
     window.history.pushState({ meetingId: id }, "", `#meeting-${id}`);
+  }
+
+  function openRecording(base: string) {
+    drawer.close();
+    setTab("recordings");
+    setSelectedRecording(base);
+    const target = recordingHash(base);
+    if (window.location.hash !== target) {
+      window.history.pushState({ tab: "recordings" }, "", target);
+    }
   }
 
   // "오늘" 대시보드의 "새 노트" — root 폴더에 생성 후 메모장 탭으로 이동.
@@ -684,6 +710,8 @@ function AppContent() {
         selectedProject={selectedProject}
         onSelectProject={setSelectedProject}
       />
+    ) : tab === "recordings" ? (
+      <RecordingsSidePanel selectedBase={selectedRecording} onSelect={openRecording} />
     ) : tab === "routines" ? (
       <RoutinesSidePanel
         selectedRoutineName={selectedRoutineName}
@@ -739,6 +767,13 @@ function AppContent() {
           onOpenMeeting={openMeeting}
           onOpenTask={openTask}
           onCreateNote={() => void createNoteFromToday()}
+          onOpenRecordings={() => changeTab("recordings")}
+        />
+      ) : tab === "recordings" ? (
+        <RecordingsPage
+          selectedBase={selectedRecording}
+          onSelect={openRecording}
+          onOpenMeeting={openMeeting}
         />
       ) : tab === "meetings" ? (
         selectedMeetingId ? (

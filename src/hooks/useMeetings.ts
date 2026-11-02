@@ -45,7 +45,7 @@ const meetingKey = (uid: string) => ["meetings", "detail", uid] as const;
 // 본문 편집(useUpdateMeeting)도 제목 변경 시 rename 을 유발하므로 같은 scope 에 둔다.
 // 단일 사용자라 cross-memo 병렬 손실은 무의미하고, 에디터는 로컬 state 로 렌더돼
 // 직렬화가 타이핑 체감에 영향 없음 (mutation 은 백그라운드 persist).
-const VAULT_WRITE_SCOPE = { id: "vault:structural" } as const;
+export const VAULT_WRITE_SCOPE = { id: "vault:structural" } as const;
 
 // uid → file path lookup. list query cache 에 의존. list 가 active 면 항상 valid.
 function uidToPath(qc: QueryClient, uid: string): string | undefined {

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   Ban,
   Copy,
@@ -26,7 +34,16 @@ import {
   useTogglePinMeeting,
 } from "../../hooks/useMeetings";
 import { useStateHistory } from "../../hooks/useStateHistory";
-import type { MeetingUpdate } from "../../api/meetings";
+import type { Meeting, MeetingUpdate } from "../../api/meetings";
+import {
+  diffDocPatch,
+  fieldsPatch,
+  meetingToDocSnapshot,
+  type DocSnapshot,
+  type MetaDoc,
+} from "./docPatch";
+import { docHistoryKey, registerDocFlush, registerDocReset } from "./docReset";
+import { createSaveRetryStore, isSaveErrorVisible, runSave } from "./saveRetry";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SaveIndicator } from "../common/SaveIndicator";
@@ -43,6 +60,8 @@ import { measureCaretTop } from "../../lib/textareaMeasure";
 import { useVault } from "../../lib/vault/useVault";
 import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
+import { TranscriptView } from "./TranscriptView";
+import { RecordingBadge } from "./RecordingBadge";
 import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
 import { MeetingExportModal } from "./MeetingExportModal";
@@ -72,37 +91,12 @@ type Props = {
 };
 
 // title 은 history 미참여 (별도 commitTitle 가 직접 mutation).
-type MetaDoc = {
-  date: string;
-  time: string;
-  attendees: string;
-};
-
-// 전체 메모 도큐먼트 = 1 history stack (옵시디안/notion 패턴).
-// __source = 마지막 set 의 출처 ("body"/"transcript"/"summary"/"meta:*"). undo/redo 시
-// 자동으로 그 탭으로 setActiveTab 하는 UX 용 metadata. docsEqual / docToPatch 에서 무시.
-type DocSnapshot = {
-  body: string;
-  transcript: string;
-  summary: string; // V0.7.3 — 마크다운 텍스트 통째. 본문과 동일 모델.
-  meta: MetaDoc;
-  __source?: string;
-};
-
 function trimNewlines(s: string): string {
   return s.replace(/^\n+/, "").replace(/\n+$/, "");
 }
 
 function metasEqual(a: MetaDoc, b: MetaDoc): boolean {
   return a.date === b.date && a.time === b.time && a.attendees === b.attendees;
-}
-
-function metaToPatch(m: MetaDoc): MeetingUpdate {
-  return {
-    date: m.date || null,
-    time: m.time.trim() || null,
-    attendees: m.attendees.trim() || null,
-  };
 }
 
 function docsEqual(a: DocSnapshot, b: DocSnapshot): boolean {
@@ -114,14 +108,12 @@ function docsEqual(a: DocSnapshot, b: DocSnapshot): boolean {
   );
 }
 
-function docToPatch(d: DocSnapshot): MeetingUpdate {
-  return {
-    content: d.body,
-    transcript: d.transcript || null,
-    summary: d.summary || null,
-    ...metaToPatch(d.meta),
-  };
-}
+// 저장 실패한 칸 (uid → DocField) + 에러 표시 source (saveRetry.ts). diff 는 commit
+// 시점에 baseline 을 넘기므로 실패한 칸은 다음 diff 에서 빠진다 — 여기 남겨 다음
+// 저장/재시도에 강제로 포함. 모듈 레벨 = unmount/remount 후에도 에러 표시 유지.
+const SAVE_RETRY = createSaveRetryStore();
+// 마지막 commit 된 doc (uid →). 복구 send 가 "지금" 값을 보내도록 (unmount 후 포함).
+const COMMITTED_DOC = new Map<string, DocSnapshot>();
 
 
 type ActiveTab = "body" | "transcript" | "summary";
@@ -217,11 +209,58 @@ export function MeetingForm({
   // 변경 undo (옵시디안/notion 패턴). 제목은 history 미참여 — commitTitle 직접 mutation.
   const docHistory = useStateHistory<DocSnapshot>({
     initial: initialDoc,
-    cacheKey: uid ? `${uid}:doc` : undefined,
+    cacheKey: uid ? docHistoryKey(uid) : undefined,
     commitMs: 1000,
     isEqual: docsEqual,
-    onCommit: (d) => updateMutation.mutate(docToPatch(d)),
+    // 직전 commit 대비 바뀐 칸만 저장 (D5). 안 바뀐 transcript 는 절대 안 보냄 —
+    // 디스크 사이드카가 폼 로드 뒤 바뀌었어도 본문 저장이 덮어쓰지 않는다.
+    onCommit: (d, prev) => {
+      if (!uid) return;
+      COMMITTED_DOC.set(uid, d);
+      savePatch(uid, diffDocPatch(prev, d, SAVE_RETRY.get(uid).fields));
+    },
   });
+
+  // 빈 patch 는 skip. 실패 칸은 SAVE_RETRY 에 남고, 이후 성공 시 남은 칸을 현재 committed
+  // 값으로 1회 자동 복구 (runSave). mutateAsync 의 promise 는 call 단위라 연속 mutate
+  // 에서도 각 실패를 놓치지 않음 (mutate 의 per-call onError 는 마지막 call 만 받음).
+  function savePatch(targetUid: string, patch: MeetingUpdate) {
+    void runSave(SAVE_RETRY, targetUid, patch, updateMutation.mutateAsync, () =>
+      COMMITTED_DOC.get(targetUid),
+    );
+  }
+
+  // 에러 표시는 useMutation.isError 가 아니라 남은 실패 칸 기준 — 마지막 call 성공이나
+  // remount(새 mutation 인스턴스) 로 에러가 조용히 사라지지 않게.
+  const retryEntry = useSyncExternalStore(SAVE_RETRY.subscribe, () =>
+    SAVE_RETRY.get(uid ?? ""),
+  );
+  // updateMutation.isError 는 칸 없는 실패(제목 rename 등) 표시용으로만 OR.
+  const saveErrorVisible = (!!uid && isSaveErrorVisible(retryEntry)) || updateMutation.isError;
+  const saveErrorBanner =
+    (!!uid && retryEntry.fields.size > 0 && !retryEntry.dismissed) || updateMutation.isError;
+  const saveError = retryEntry.error ?? updateMutation.error;
+
+  // 외부 변경 신호 (docReset.ts 의 resetMeetingDoc) — 디스크 fresh 값으로 doc history
+  // 재시작. 녹음 link·unlink·apply 성공 후 호출 측에서 resetMeetingDoc(uid, fresh).
+  const resetDoc = docHistory.reset;
+  useEffect(() => {
+    if (!uid) return;
+    return registerDocReset(uid, (fresh: Meeting) => {
+      SAVE_RETRY.clear(uid);
+      const snap = meetingToDocSnapshot(fresh);
+      COMMITTED_DOC.set(uid, snap);
+      lastSourceRef.current = null;
+      resetDoc(snap);
+    });
+  }, [uid, resetDoc]);
+
+  // 녹음 link·unlink 직전 호출 측이 flushMeetingDoc(uid) 로 pending 편집을 동기 commit.
+  const flushDoc = docHistory.flush;
+  useEffect(() => {
+    if (!uid) return;
+    return registerDocFlush(uid, () => flushDoc());
+  }, [uid, flushDoc]);
 
   const doc = docHistory.value;
   const body = doc.body;
@@ -766,9 +805,11 @@ export function MeetingForm({
 
   function retrySave() {
     if (updateMutation.isPending) return;
-    updateMutation.mutate({
+    if (!uid) return;
+    // 실패한 칸만 다시 보냄 — 전체 doc 을 보내면 안 바뀐 transcript 가 디스크를 덮는다 (D5).
+    savePatch(uid, {
       title: titleDraft.trim() || initialTitle || "untitled",
-      ...docToPatch(doc),
+      ...fieldsPatch(COMMITTED_DOC.get(uid) ?? doc, SAVE_RETRY.get(uid).fields),
     });
   }
 
@@ -958,7 +999,7 @@ export function MeetingForm({
             </div>
             <SaveIndicator
               isPending={updateMutation.isPending || hasUnsavedChange}
-              isError={updateMutation.isError}
+              isError={saveErrorVisible}
               onRetry={retrySave}
             />
           </>
@@ -1015,7 +1056,7 @@ export function MeetingForm({
       />
 
       {/* Error toasts — fixed bottom-right, 본문 레이아웃에 영향 없음 */}
-      {updateMutation.isError || actionError ? (
+      {saveErrorBanner || actionError ? (
         <div
           className="fixed z-50 flex max-w-sm flex-col gap-2"
           style={{
@@ -1023,7 +1064,7 @@ export function MeetingForm({
             right: "1rem",
           }}
         >
-          {updateMutation.isError ? (
+          {saveErrorBanner ? (
             <div
               className="animate-page-in flex flex-col gap-2 rounded-2xl p-3 text-sm backdrop-blur-xl backdrop-saturate-150"
               style={{
@@ -1043,7 +1084,10 @@ export function MeetingForm({
                 </span>
                 <Button
                   variant="icon"
-                  onClick={() => updateMutation.reset()}
+                  onClick={() => {
+                    updateMutation.reset();
+                    if (uid) SAVE_RETRY.dismiss(uid);
+                  }}
                   title="닫기"
                   aria-label="닫기"
                   className="shrink-0 p-0.5"
@@ -1052,14 +1096,14 @@ export function MeetingForm({
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              {updateMutation.error ? (
+              {saveError ? (
                 <Text
                   variant="caption"
                   color="secondary"
                   as="div"
                   className="break-all wrap-anywhere"
                 >
-                  {formatError(updateMutation.error)}
+                  {formatError(saveError)}
                 </Text>
               ) : null}
               <div className="flex justify-end gap-1.5">
@@ -1067,7 +1111,7 @@ export function MeetingForm({
                   variant="ghost"
                   onClick={() =>
                     copyToastMessage(
-                      updateMutation.error ? formatError(updateMutation.error) : "자동 저장 실패",
+                      saveError ? formatError(saveError) : "자동 저장 실패",
                       "update",
                     )
                   }
@@ -1164,6 +1208,7 @@ export function MeetingForm({
               backgroundColor: "var(--surface-frost)",
             }}
           >
+            <div className="flex items-center gap-1 min-w-0">
             <Tabs
               items={[
                 { key: "body", label: "메모" },
@@ -1174,6 +1219,8 @@ export function MeetingForm({
               onChange={(key) => setActiveTab(key as ActiveTab)}
               accentColor={tabAccentColor}
             />
+            <RecordingBadge audio={data?.audio ?? []} />
+            </div>
             <div className="flex items-center gap-1.5 pb-1">
               {/* 탭별 액션 — 편집 토글 왼쪽. 음성 기록 업로드(편집 모드만) /
                   요약 자동요약·붙여넣기(항상). */}
@@ -1407,6 +1454,7 @@ export function MeetingForm({
                   <TranscriptView
                     transcript={transcript}
                     attendees={meta.attendees}
+                    audio={data?.audio ?? []}
                   />
                 </div>
               )}
@@ -1811,133 +1859,6 @@ function TranscriptArea({
           }}
         />
       </div>
-    </div>
-  );
-}
-
-// 음성 기록 보기 모드 — 읽기 전용 평문(pre-wrap, 마크다운 렌더 X) + 참석자별 색상 칩
-// + mm:ss 타임스탬프(회색 박스) 하이라이트. textarea 안에선 inline 색을 못 넣어 div 로
-// 렌더 → 자연히 편집 불가. STT 줄바꿈/들여쓰기 보존.
-const SPEAKER_COLOR_COUNT = 10; // index.css 의 --speaker-0..9 와 일치.
-
-function TranscriptView({
-  transcript,
-  attendees,
-}: {
-  transcript: string;
-  attendees: string;
-}) {
-  // 참석자 문자열(", " join) → 적힌 순서 유지 unique 이름 배열. 1글자 이름은 오버매치
-  // (전부 하이라이트) 회피로 제외. 색은 이 순서대로 i%N 배정 → 한 회의 안 색 안 겹침.
-  const orderedNames = useMemo(() => {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    for (const raw of attendees.split(",")) {
-      const n = raw.trim();
-      if (n.length >= 2 && !seen.has(n)) {
-        seen.add(n);
-        out.push(n);
-      }
-    }
-    return out;
-  }, [attendees]);
-
-  // 이름 → speaker 색 인덱스 (적힌 순서 기준, 매칭 정렬과 무관).
-  const colorOf = useMemo(() => {
-    const m = new Map<string, number>();
-    orderedNames.forEach((n, i) => m.set(n, i % SPEAKER_COLOR_COUNT));
-    return m;
-  }, [orderedNames]);
-
-  // 참석자 이름 + mm:ss / h:mm:ss 타임스탬프를 한 토크나이저로 분리. named group 으로
-  // 어느 종류가 매칭됐는지 판별. 둘 다 없으면 통짜 plain.
-  const segments = useMemo<
-    { text: string; kind: "plain" | "name" | "time" }[]
-  >(() => {
-    if (transcript.length === 0) return [];
-    const patterns: string[] = [];
-    if (orderedNames.length > 0) {
-      // 매칭은 긴 이름 우선(부분 매칭 방지) — 색 배정 순서와 무관하므로 정렬 복사본.
-      const escaped = [...orderedNames]
-        .sort((a, b) => b.length - a.length)
-        .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-      patterns.push(`(?<name>${escaped.join("|")})`);
-    }
-    // STT 시간 마커 — 1:23 / 01:23 / 1:23:45. 단어 경계로 12.3 같은 숫자 오매칭 회피.
-    patterns.push(`(?<time>\\b\\d{1,2}:\\d{2}(?::\\d{2})?\\b)`);
-    const re = new RegExp(patterns.join("|"), "g");
-    const out: { text: string; kind: "plain" | "name" | "time" }[] = [];
-    let last = 0;
-    for (const m of transcript.matchAll(re)) {
-      const idx = m.index ?? 0;
-      if (idx > last) out.push({ text: transcript.slice(last, idx), kind: "plain" });
-      out.push({ text: m[0], kind: m.groups?.name ? "name" : "time" });
-      last = idx + m[0].length;
-    }
-    if (last < transcript.length) {
-      out.push({ text: transcript.slice(last), kind: "plain" });
-    }
-    return out;
-  }, [transcript, orderedNames]);
-
-  if (transcript.trim() === "") {
-    return (
-      <div style={{ minHeight: "60vh" }}>
-        <Text variant="body" color="muted" as="p">
-          음성 기록이 없습니다. 편집 모드에서 입력하거나 파일을 업로드하세요.
-        </Text>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="text-base leading-relaxed"
-      style={{
-        minHeight: "60vh",
-        color: "var(--ink)",
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
-        // 보기 모드 음성 기록도 외부 복사 주 경로 — body { user-select: none } 를
-        // override 해 드래그 선택 허용 (.markdown-view 와 동일 정책).
-        userSelect: "text",
-        WebkitUserSelect: "text",
-      }}
-    >
-      {segments.map((seg, i) => {
-        if (seg.kind === "name") {
-          const ci = colorOf.get(seg.text) ?? 0;
-          return (
-            <span
-              key={i}
-              className="rounded px-1"
-              style={{
-                backgroundColor: `var(--speaker-${ci}-bg)`,
-                color: `var(--speaker-${ci}-text)`,
-              }}
-            >
-              {seg.text}
-            </span>
-          );
-        }
-        if (seg.kind === "time") {
-          // 인라인 코드 칩과 동일 레시피 (MarkdownView) — surface-hover + primary.
-          // surface-active 는 한 단계 진한 active/선택 상태색이라 정적 칩엔 무거움.
-          return (
-            <span
-              key={i}
-              className="rounded px-1 py-0.5 font-mono"
-              style={{
-                backgroundColor: "var(--surface-2)",
-                color: "var(--ink)",
-              }}
-            >
-              {seg.text}
-            </span>
-          );
-        }
-        return <span key={i}>{seg.text}</span>;
-      })}
     </div>
   );
 }

@@ -9,6 +9,10 @@ import {
   moveMeeting,
   moveMeetingFolder,
   renameMeetingFolder,
+  updateMeeting,
+  getMeeting,
+  deleteMeeting,
+  listDeletedMeetings,
 } from "./meetings";
 import { createMemoryAdapter } from "../lib/vault/adapter";
 
@@ -277,5 +281,37 @@ describe("deleteMeetingFolder", () => {
     expect(result.trashed).toBe(2);
     const folders = await listMeetingFolders(adapter);
     expect(folders).toEqual([]);
+  });
+});
+
+describe("frontmatter audio", () => {
+  const raw = (fm: string) => `---\nid: u-1\n${fm}---\n본문\n`;
+
+  it("list/full/trash 모두 audio 노출, 저장 시 audio 보존, 없는 파일엔 안 씀", async () => {
+    const adapter = createMemoryAdapter();
+    adapter.setRoot("/vault");
+    await adapter.write("inbox/a.md", raw("audio:\n  - rec-1\n  - 2026\n"));
+    await adapter.write("inbox/b.md", raw("").replace("u-1", "u-2"));
+
+    const list = await listMeetings(adapter);
+    expect(list.find((m) => m.id === "inbox/a.md")?.audio).toEqual(["rec-1", "2026"]);
+    expect(list.find((m) => m.id === "inbox/b.md")?.audio).toEqual([]);
+
+    await updateMeeting(adapter, "inbox/a.md", {
+      content: "수정",
+      tags: ["x"],
+      pinned: true,
+      date: "2026-01-01",
+    });
+    await updateMeeting(adapter, "inbox/b.md", { content: "수정", pinned: true });
+    const a = await getMeeting(adapter, "inbox/a.md");
+    expect(a.audio).toEqual(["rec-1", "2026"]);
+    expect(a.content).toContain("수정");
+    expect(await adapter.read("inbox/a.md")).toContain("audio:");
+    expect(await adapter.read("inbox/b.md")).not.toContain("audio");
+
+    await deleteMeeting(adapter, "inbox/a.md");
+    const trashed = await listDeletedMeetings(adapter);
+    expect(trashed[0].audio).toEqual(["rec-1", "2026"]);
   });
 });

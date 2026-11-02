@@ -4,7 +4,9 @@
 /* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type CachedState<T> = { value: T; history: T[]; pointer: number };
+// committed = 마지막으로 onCommit 에 넘긴 값 (= 저장된 것으로 간주하는 baseline).
+// onCommit(next, prevCommitted) 로 같이 넘겨 caller 가 "바뀐 칸만" 저장할 수 있게 한다.
+type CachedState<T> = { value: T; history: T[]; pointer: number; committed: T };
 
 // Module-level cache shared across all useStateHistory instances.
 // Persists across component remounts so undo/redo survives navigation.
@@ -27,6 +29,14 @@ function cacheSet(key: string, state: CachedState<unknown>): void {
   }
 }
 
+/**
+ * 마운트 안 된 history stack 을 버린다 — 다음 mount 는 `initial`(디스크 값)부터 시작.
+ * 마운트된 인스턴스는 unmount 시 다시 cache 에 쓰므로 그쪽은 `reset()` 을 써야 한다.
+ */
+export function dropStateHistory(cacheKey: string): void {
+  HISTORY_CACHE.delete(cacheKey);
+}
+
 export type UseStateHistoryOptions<T> = {
   /** Initial value. Used on first mount and on cache miss. */
   initial: T;
@@ -41,7 +51,11 @@ export type UseStateHistoryOptions<T> = {
    */
   cacheKey?: string;
   onChange?: (next: T) => void;
-  onCommit?: (next: T) => void;
+  /**
+   * debounce/flush/undo/redo 로 값이 확정될 때 호출. `prevCommitted` = 직전에
+   * commit 된 값 (첫 commit 이면 initial/cache 에서 복원된 값) — 바뀐 부분만 저장용.
+   */
+  onCommit?: (next: T, prevCommitted: T) => void;
   commitMs?: number;
   maxDepth?: number;
   isEqual?: (a: T, b: T) => boolean;
@@ -57,6 +71,13 @@ export type UseStateHistoryResult<T> = {
   redo: () => HistoryTransition<T> | null;
   /** Force commit any pending edit immediately. */
   flush: () => void;
+  /**
+   * 외부 변경(디스크) 반영용 — undo/redo stack 과 이 cacheKey 의 cache 를 버리고
+   * `next` 하나로 다시 시작한다. Cmd+Z 는 이 경계 너머로 가지 않는다. pending
+   * (debounce 중) 편집은 commit 없이 버려지므로 caller 는 외부 작업 전에 `flush()`
+   * 하고, 작업 후의 디스크 값을 넘길 것. onCommit 은 부르지 않는다.
+   */
+  reset: (next: T) => void;
   canUndo: boolean;
   canRedo: boolean;
 };
@@ -86,11 +107,14 @@ export function useStateHistory<T>(
         | undefined;
       if (cached) return cached;
     }
-    return { value: initial, history: [initial], pointer: 0 };
+    return { value: initial, history: [initial], pointer: 0, committed: initial };
   });
-  const [value, setValue] = useState<T>(() => initialState().value);
-  const [history, setHistory] = useState<T[]>(() => initialState().history);
-  const [pointer, setPointer] = useState(() => initialState().pointer);
+  const [boot] = useState(initialState);
+  const [value, setValue] = useState<T>(boot.value);
+  const [history, setHistory] = useState<T[]>(boot.history);
+  const [pointer, setPointer] = useState(boot.pointer);
+  // 마지막 commit 값. state 가 아니라 ref — 렌더와 무관한 저장 baseline.
+  const committedRef = useRef<T>(boot.committed);
 
   const onChangeRef = useRef(onChange);
   const onCommitRef = useRef(onCommit);
@@ -117,22 +141,40 @@ export function useStateHistory<T>(
 
   const commitTimerRef = useRef<number | null>(null);
   const pendingTransitionFlushRef = useRef<
-    { value: T; onCommit: ((v: T) => void) | undefined } | null
+    {
+      value: T;
+      prev: T;
+      onCommit: ((v: T, prev: T) => void) | undefined;
+    } | null
   >(null);
+
+  // 모든 commit 의 단일 경로 — committed baseline 갱신 + onCommit(next, prev).
+  const commit = useCallback((v: T) => {
+    const prev = committedRef.current;
+    committedRef.current = v;
+    onCommitRef.current?.(v, prev);
+  }, []);
 
   // cacheKey transition: save outgoing, restore incoming (state-based).
   const [trackedKey, setTrackedKey] = useState(cacheKey);
   if (trackedKey !== cacheKey) {
-    // 1) Save outgoing state.
+    const pendingTimer = commitTimerRef.current;
+    // 1) Save outgoing state. pending 은 아래 2) 에서 commit 되므로 committed = value.
     if (trackedKey !== undefined) {
-      cacheSet(trackedKey, { value, history, pointer });
+      cacheSet(trackedKey, {
+        value,
+        history,
+        pointer,
+        committed: pendingTimer != null ? value : committedRef.current,
+      });
     }
     // 2) Defer pending commit to effect (so outgoing onCommit fires).
-    if (commitTimerRef.current != null) {
-      window.clearTimeout(commitTimerRef.current);
+    if (pendingTimer != null) {
+      window.clearTimeout(pendingTimer);
       commitTimerRef.current = null;
       pendingTransitionFlushRef.current = {
         value,
+        prev: committedRef.current,
         // onCommitRef still holds the previous render's callback —
         // the ref-update effect has not fired yet for this render.
         onCommit: onCommitRef.current,
@@ -147,10 +189,12 @@ export function useStateHistory<T>(
       setValue(cached.value);
       setHistory(cached.history);
       setPointer(cached.pointer);
+      committedRef.current = cached.committed;
     } else {
       setValue(initial);
       setHistory([initial]);
       setPointer(0);
+      committedRef.current = initial;
     }
     setTrackedKey(cacheKey);
   }
@@ -158,9 +202,9 @@ export function useStateHistory<T>(
   // Fire deferred transition flush.
   useEffect(() => {
     if (pendingTransitionFlushRef.current) {
-      const { value: v, onCommit: cb } = pendingTransitionFlushRef.current;
+      const { value: v, prev, onCommit: cb } = pendingTransitionFlushRef.current;
       pendingTransitionFlushRef.current = null;
-      cb?.(v);
+      cb?.(v, prev);
     }
   }, [trackedKey]);
 
@@ -168,17 +212,21 @@ export function useStateHistory<T>(
   useEffect(() => {
     return () => {
       const ck = cacheKeyRef.current;
+      const pendingTimer = commitTimerRef.current;
       if (ck !== undefined) {
         cacheSet(ck, {
           value: valueRef.current,
           history: historyRef.current,
           pointer: pointerRef.current,
+          committed: pendingTimer != null ? valueRef.current : committedRef.current,
         });
       }
-      if (commitTimerRef.current != null) {
-        window.clearTimeout(commitTimerRef.current);
+      if (pendingTimer != null) {
+        window.clearTimeout(pendingTimer);
         commitTimerRef.current = null;
-        onCommitRef.current?.(valueRef.current);
+        const prev = committedRef.current;
+        committedRef.current = valueRef.current;
+        onCommitRef.current?.(valueRef.current, prev);
       }
     };
   }, []);
@@ -210,10 +258,10 @@ export function useStateHistory<T>(
           setPointer(trimmed.length - 1);
           return trimmed;
         });
-        onCommitRef.current?.(next);
+        commit(next);
       }, commitMs);
     },
-    [commitMs, pointer, maxDepth],
+    [commitMs, pointer, maxDepth, commit],
   );
 
   const undo = useCallback((): HistoryTransition<T> | null => {
@@ -241,10 +289,11 @@ export function useStateHistory<T>(
     setHistory(workingHistory);
     setPointer(newPointer);
     setValue(newValue);
+    valueRef.current = newValue;
     onChangeRef.current?.(newValue);
-    onCommitRef.current?.(newValue);
+    commit(newValue);
     return { from: value, to: newValue };
-  }, [history, pointer, value, maxDepth]);
+  }, [history, pointer, value, maxDepth, commit]);
 
   const redo = useCallback((): HistoryTransition<T> | null => {
     if (pointer >= history.length - 1) return null;
@@ -252,10 +301,11 @@ export function useStateHistory<T>(
     const newValue = history[newPointer];
     setPointer(newPointer);
     setValue(newValue);
+    valueRef.current = newValue;
     onChangeRef.current?.(newValue);
-    onCommitRef.current?.(newValue);
+    commit(newValue);
     return { from: value, to: newValue };
-  }, [history, pointer, value]);
+  }, [history, pointer, value, commit]);
 
   const flush = useCallback(() => {
     if (commitTimerRef.current == null) return;
@@ -279,8 +329,26 @@ export function useStateHistory<T>(
       setPointer(trimmed.length - 1);
       return trimmed;
     });
-    onCommitRef.current?.(v);
-  }, [pointer, maxDepth]);
+    commit(v);
+  }, [pointer, maxDepth, commit]);
+
+  const reset = useCallback((next: T) => {
+    // pending 편집은 버린다 (주석: UseStateHistoryResult.reset).
+    if (commitTimerRef.current != null) {
+      window.clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    const ck = cacheKeyRef.current;
+    if (ck !== undefined) HISTORY_CACHE.delete(ck);
+    setValue(next);
+    setHistory([next]);
+    setPointer(0);
+    // 같은 turn 의 flush/unmount 가 옛 값을 보지 않도록 ref 동기 갱신.
+    valueRef.current = next;
+    historyRef.current = [next];
+    pointerRef.current = 0;
+    committedRef.current = next;
+  }, []);
 
   const hasPendingEdit = !isEqual(history[pointer], value);
 
@@ -290,6 +358,7 @@ export function useStateHistory<T>(
     undo,
     redo,
     flush,
+    reset,
     canUndo: pointer > 0 || hasPendingEdit,
     canRedo: pointer < history.length - 1,
   };

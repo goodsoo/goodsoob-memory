@@ -31,6 +31,7 @@ import {
   ShellRejectedError,
   type ShellResult,
 } from "./shell.ts";
+import { createRecordings, handleRecordingsApi } from "./recordings.ts";
 
 // ── Bun 런타임 ambient (⚠️ @types/bun 미설치 — 우리가 쓰는 표면만 최소 선언) ──
 declare const Bun: {
@@ -66,6 +67,8 @@ const vault = new VaultCore({
   debounceMs: Number(Bun.env.VAULT_COMMIT_DEBOUNCE_MS) || 3000,
 });
 vault.ensureGit();
+// 녹음 탭 (link/unlink 는 같은 VaultCore 를 써서 /api/vault/write 와 per-path lock 공유)
+const recordings = createRecordings({ vault });
 
 // ── SSE watch 브로드캐스트 ───────────────────────────────────────────────────
 type WatchEvent =
@@ -208,6 +211,13 @@ async function handle(req: Request): Promise<Response> {
   // ── /api/attachment (T3 — asset:// 대체: vault 안 이미지 서빙) ──────────────
   if (pathname === "/api/attachment" && req.method === "GET") {
     return handleAttachment(url);
+  }
+
+  // ── /api/recordings* · /api/audio (녹음 탭 — server/recordings.ts) ─────────
+  if (pathname === "/api/audio" || pathname === "/api/recordings" || pathname.startsWith("/api/recordings/")) {
+    const res = await handleRecordingsApi(req, url, recordings);
+    if (res) return res;
+    return err("Not Found", 404);
   }
 
   // ── 정적 서빙 + SPA fallback ────────────────────────────────────────────────

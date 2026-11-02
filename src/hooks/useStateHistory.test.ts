@@ -130,3 +130,86 @@ describe("useStateHistory LRU eviction", () => {
     expect(result.current.canUndo).toBe(true);
   });
 });
+
+describe("useStateHistory reset", () => {
+  // D5: 외부 변경(녹음 link 등) 뒤 디스크 값으로 다시 시작 — Cmd+Z 가 경계를 못 넘는다.
+  it("reset discards undo/redo so undo cannot cross the reset boundary", () => {
+    const FRESH: Doc = { title: "회의록", body: "디스크에서 새로 읽음" };
+    const { result, rerender } = renderHook(
+      ({ cacheKey }: { cacheKey: string }) =>
+        useStateHistory<Doc>({ cacheKey, initial: REAL }),
+      { initialProps: { cacheKey: "reset-boundary" } },
+    );
+    act(() => {
+      result.current.set({ title: "회의록", body: "편집 1" });
+      result.current.flush();
+    });
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => result.current.reset(FRESH));
+    expect(result.current.value).toEqual(FRESH);
+    expect(result.current.canUndo).toBe(false);
+    expect(result.current.canRedo).toBe(false);
+    let t: unknown = "unset";
+    act(() => {
+      t = result.current.undo();
+    });
+    expect(t).toBeNull();
+    expect(result.current.value).toEqual(FRESH);
+
+    // 다른 key 로 갔다 와도 reset 이전 stack 이 되살아나지 않는다.
+    rerender({ cacheKey: "reset-boundary-other" });
+    rerender({ cacheKey: "reset-boundary" });
+    expect(result.current.value).toEqual(FRESH);
+    expect(result.current.canUndo).toBe(false);
+  });
+
+  it("reset becomes the commit baseline (onCommit prev = reset value)", () => {
+    const FRESH: Doc = { title: "회의록", body: "fresh" };
+    const commits: Array<{ next: Doc; prev: Doc }> = [];
+    const { result } = renderHook(() =>
+      useStateHistory<Doc>({
+        cacheKey: "reset-baseline",
+        initial: REAL,
+        onCommit: (next, prev) => commits.push({ next, prev }),
+      }),
+    );
+    act(() => result.current.reset(FRESH));
+    act(() => {
+      result.current.set({ title: "회의록", body: "fresh+1" });
+      result.current.flush();
+    });
+    expect(commits).toEqual([
+      { next: { title: "회의록", body: "fresh+1" }, prev: FRESH },
+    ]);
+  });
+
+  it("onCommit prev tracks the last committed value across commits and undo", () => {
+    const commits: Array<{ next: Doc; prev: Doc }> = [];
+    const A: Doc = { title: "t", body: "a" };
+    const B: Doc = { title: "t", body: "b" };
+    const { result } = renderHook(() =>
+      useStateHistory<Doc>({
+        cacheKey: "commit-prev",
+        initial: REAL,
+        onCommit: (next, prev) => commits.push({ next, prev }),
+      }),
+    );
+    act(() => {
+      result.current.set(A);
+      result.current.flush();
+    });
+    act(() => {
+      result.current.set(B);
+      result.current.flush();
+    });
+    act(() => {
+      result.current.undo();
+    });
+    expect(commits).toEqual([
+      { next: A, prev: REAL },
+      { next: B, prev: A },
+      { next: A, prev: B },
+    ]);
+  });
+});

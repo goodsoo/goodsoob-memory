@@ -117,6 +117,20 @@ export function unarchiveRecording(base: string): Promise<{ ok: true }> {
   return post(`/api/recordings/${enc(base)}/unarchive`);
 }
 
+export function diarizeRecording(
+  base: string,
+  body: { speakers: number; names?: string[] },
+): Promise<{ job: RecordingJob }> {
+  return post(`/api/recordings/${enc(base)}/diarize`, body);
+}
+
+export function correctionsRecording(
+  base: string,
+  body: { retryFailed?: boolean } = {},
+): Promise<{ job: RecordingJob }> {
+  return post(`/api/recordings/${enc(base)}/corrections`, body);
+}
+
 export function audioUrl(base: string): string {
   return `/api/audio?base=${enc(base)}`;
 }

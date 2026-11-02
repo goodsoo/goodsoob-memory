@@ -60,6 +60,8 @@ import { measureCaretTop } from "../../lib/textareaMeasure";
 import { useVault } from "../../lib/vault/useVault";
 import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
+import { TranscriptView } from "./TranscriptView";
+import { RecordingBadge } from "./RecordingBadge";
 import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
 import { MeetingExportModal } from "./MeetingExportModal";
@@ -1199,6 +1201,7 @@ export function MeetingForm({
               backgroundColor: "var(--surface-frost)",
             }}
           >
+            <div className="flex items-center gap-1 min-w-0">
             <Tabs
               items={[
                 { key: "body", label: "메모" },
@@ -1209,6 +1212,8 @@ export function MeetingForm({
               onChange={(key) => setActiveTab(key as ActiveTab)}
               accentColor={tabAccentColor}
             />
+            <RecordingBadge audio={data?.audio ?? []} />
+            </div>
             <div className="flex items-center gap-1.5 pb-1">
               {/* 탭별 액션 — 편집 토글 왼쪽. 음성 기록 업로드(편집 모드만) /
                   요약 자동요약·붙여넣기(항상). */}
@@ -1442,6 +1447,7 @@ export function MeetingForm({
                   <TranscriptView
                     transcript={transcript}
                     attendees={meta.attendees}
+                    audio={data?.audio ?? []}
                   />
                 </div>
               )}
@@ -1846,133 +1852,6 @@ function TranscriptArea({
           }}
         />
       </div>
-    </div>
-  );
-}
-
-// 음성 기록 보기 모드 — 읽기 전용 평문(pre-wrap, 마크다운 렌더 X) + 참석자별 색상 칩
-// + mm:ss 타임스탬프(회색 박스) 하이라이트. textarea 안에선 inline 색을 못 넣어 div 로
-// 렌더 → 자연히 편집 불가. STT 줄바꿈/들여쓰기 보존.
-const SPEAKER_COLOR_COUNT = 10; // index.css 의 --speaker-0..9 와 일치.
-
-function TranscriptView({
-  transcript,
-  attendees,
-}: {
-  transcript: string;
-  attendees: string;
-}) {
-  // 참석자 문자열(", " join) → 적힌 순서 유지 unique 이름 배열. 1글자 이름은 오버매치
-  // (전부 하이라이트) 회피로 제외. 색은 이 순서대로 i%N 배정 → 한 회의 안 색 안 겹침.
-  const orderedNames = useMemo(() => {
-    const seen = new Set<string>();
-    const out: string[] = [];
-    for (const raw of attendees.split(",")) {
-      const n = raw.trim();
-      if (n.length >= 2 && !seen.has(n)) {
-        seen.add(n);
-        out.push(n);
-      }
-    }
-    return out;
-  }, [attendees]);
-
-  // 이름 → speaker 색 인덱스 (적힌 순서 기준, 매칭 정렬과 무관).
-  const colorOf = useMemo(() => {
-    const m = new Map<string, number>();
-    orderedNames.forEach((n, i) => m.set(n, i % SPEAKER_COLOR_COUNT));
-    return m;
-  }, [orderedNames]);
-
-  // 참석자 이름 + mm:ss / h:mm:ss 타임스탬프를 한 토크나이저로 분리. named group 으로
-  // 어느 종류가 매칭됐는지 판별. 둘 다 없으면 통짜 plain.
-  const segments = useMemo<
-    { text: string; kind: "plain" | "name" | "time" }[]
-  >(() => {
-    if (transcript.length === 0) return [];
-    const patterns: string[] = [];
-    if (orderedNames.length > 0) {
-      // 매칭은 긴 이름 우선(부분 매칭 방지) — 색 배정 순서와 무관하므로 정렬 복사본.
-      const escaped = [...orderedNames]
-        .sort((a, b) => b.length - a.length)
-        .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-      patterns.push(`(?<name>${escaped.join("|")})`);
-    }
-    // STT 시간 마커 — 1:23 / 01:23 / 1:23:45. 단어 경계로 12.3 같은 숫자 오매칭 회피.
-    patterns.push(`(?<time>\\b\\d{1,2}:\\d{2}(?::\\d{2})?\\b)`);
-    const re = new RegExp(patterns.join("|"), "g");
-    const out: { text: string; kind: "plain" | "name" | "time" }[] = [];
-    let last = 0;
-    for (const m of transcript.matchAll(re)) {
-      const idx = m.index ?? 0;
-      if (idx > last) out.push({ text: transcript.slice(last, idx), kind: "plain" });
-      out.push({ text: m[0], kind: m.groups?.name ? "name" : "time" });
-      last = idx + m[0].length;
-    }
-    if (last < transcript.length) {
-      out.push({ text: transcript.slice(last), kind: "plain" });
-    }
-    return out;
-  }, [transcript, orderedNames]);
-
-  if (transcript.trim() === "") {
-    return (
-      <div style={{ minHeight: "60vh" }}>
-        <Text variant="body" color="muted" as="p">
-          음성 기록이 없습니다. 편집 모드에서 입력하거나 파일을 업로드하세요.
-        </Text>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="text-base leading-relaxed"
-      style={{
-        minHeight: "60vh",
-        color: "var(--ink)",
-        whiteSpace: "pre-wrap",
-        overflowWrap: "anywhere",
-        // 보기 모드 음성 기록도 외부 복사 주 경로 — body { user-select: none } 를
-        // override 해 드래그 선택 허용 (.markdown-view 와 동일 정책).
-        userSelect: "text",
-        WebkitUserSelect: "text",
-      }}
-    >
-      {segments.map((seg, i) => {
-        if (seg.kind === "name") {
-          const ci = colorOf.get(seg.text) ?? 0;
-          return (
-            <span
-              key={i}
-              className="rounded px-1"
-              style={{
-                backgroundColor: `var(--speaker-${ci}-bg)`,
-                color: `var(--speaker-${ci}-text)`,
-              }}
-            >
-              {seg.text}
-            </span>
-          );
-        }
-        if (seg.kind === "time") {
-          // 인라인 코드 칩과 동일 레시피 (MarkdownView) — surface-hover + primary.
-          // surface-active 는 한 단계 진한 active/선택 상태색이라 정적 칩엔 무거움.
-          return (
-            <span
-              key={i}
-              className="rounded px-1 py-0.5 font-mono"
-              style={{
-                backgroundColor: "var(--surface-2)",
-                color: "var(--ink)",
-              }}
-            >
-              {seg.text}
-            </span>
-          );
-        }
-        return <span key={i}>{seg.text}</span>;
-      })}
     </div>
   );
 }

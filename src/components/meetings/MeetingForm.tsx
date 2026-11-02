@@ -26,7 +26,17 @@ import {
   useTogglePinMeeting,
 } from "../../hooks/useMeetings";
 import { useStateHistory } from "../../hooks/useStateHistory";
-import type { MeetingUpdate } from "../../api/meetings";
+import type { Meeting, MeetingUpdate } from "../../api/meetings";
+import {
+  diffDocPatch,
+  fieldsPatch,
+  meetingToDocSnapshot,
+  patchFields,
+  type DocField,
+  type DocSnapshot,
+  type MetaDoc,
+} from "./docPatch";
+import { docHistoryKey, registerDocReset } from "./docReset";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SaveIndicator } from "../common/SaveIndicator";
@@ -72,37 +82,12 @@ type Props = {
 };
 
 // title 은 history 미참여 (별도 commitTitle 가 직접 mutation).
-type MetaDoc = {
-  date: string;
-  time: string;
-  attendees: string;
-};
-
-// 전체 메모 도큐먼트 = 1 history stack (옵시디안/notion 패턴).
-// __source = 마지막 set 의 출처 ("body"/"transcript"/"summary"/"meta:*"). undo/redo 시
-// 자동으로 그 탭으로 setActiveTab 하는 UX 용 metadata. docsEqual / docToPatch 에서 무시.
-type DocSnapshot = {
-  body: string;
-  transcript: string;
-  summary: string; // V0.7.3 — 마크다운 텍스트 통째. 본문과 동일 모델.
-  meta: MetaDoc;
-  __source?: string;
-};
-
 function trimNewlines(s: string): string {
   return s.replace(/^\n+/, "").replace(/\n+$/, "");
 }
 
 function metasEqual(a: MetaDoc, b: MetaDoc): boolean {
   return a.date === b.date && a.time === b.time && a.attendees === b.attendees;
-}
-
-function metaToPatch(m: MetaDoc): MeetingUpdate {
-  return {
-    date: m.date || null,
-    time: m.time.trim() || null,
-    attendees: m.attendees.trim() || null,
-  };
 }
 
 function docsEqual(a: DocSnapshot, b: DocSnapshot): boolean {
@@ -114,14 +99,9 @@ function docsEqual(a: DocSnapshot, b: DocSnapshot): boolean {
   );
 }
 
-function docToPatch(d: DocSnapshot): MeetingUpdate {
-  return {
-    content: d.body,
-    transcript: d.transcript || null,
-    summary: d.summary || null,
-    ...metaToPatch(d.meta),
-  };
-}
+// 저장 실패한 칸 (uid → DocField). diff 는 commit 시점에 baseline 을 넘기므로 실패한
+// 칸은 다음 diff 에서 빠진다 — 여기 남겨 다음 저장/재시도에 강제로 포함.
+const SAVE_RETRY_FIELDS = new Map<string, Set<DocField>>();
 
 
 type ActiveTab = "body" | "transcript" | "summary";
@@ -217,11 +197,42 @@ export function MeetingForm({
   // 변경 undo (옵시디안/notion 패턴). 제목은 history 미참여 — commitTitle 직접 mutation.
   const docHistory = useStateHistory<DocSnapshot>({
     initial: initialDoc,
-    cacheKey: uid ? `${uid}:doc` : undefined,
+    cacheKey: uid ? docHistoryKey(uid) : undefined,
     commitMs: 1000,
     isEqual: docsEqual,
-    onCommit: (d) => updateMutation.mutate(docToPatch(d)),
+    // 직전 commit 대비 바뀐 칸만 저장 (D5). 안 바뀐 transcript 는 절대 안 보냄 —
+    // 디스크 사이드카가 폼 로드 뒤 바뀌었어도 본문 저장이 덮어쓰지 않는다.
+    onCommit: (d, prev) => {
+      if (!uid) return;
+      savePatch(uid, diffDocPatch(prev, d, SAVE_RETRY_FIELDS.get(uid) ?? []));
+    },
   });
+
+  // 빈 patch 는 skip. 실패하면 그 칸을 SAVE_RETRY_FIELDS 에 남김. mutateAsync 의
+  // promise 는 call 단위라 연속 mutate 에서도 각 실패를 놓치지 않음 (mutate 의 per-call
+  // onError 는 마지막 call 만 받음).
+  function savePatch(targetUid: string, patch: MeetingUpdate) {
+    const fields = patchFields(patch);
+    if (fields.length === 0 && patch.title === undefined) return;
+    SAVE_RETRY_FIELDS.delete(targetUid);
+    updateMutation.mutateAsync(patch).catch(() => {
+      const set = SAVE_RETRY_FIELDS.get(targetUid) ?? new Set<DocField>();
+      for (const f of fields) set.add(f);
+      SAVE_RETRY_FIELDS.set(targetUid, set);
+    });
+  }
+
+  // 외부 변경 신호 (docReset.ts 의 resetMeetingDoc) — 디스크 fresh 값으로 doc history
+  // 재시작. 녹음 link·unlink·apply 성공 후 호출 측에서 resetMeetingDoc(uid, fresh).
+  const resetDoc = docHistory.reset;
+  useEffect(() => {
+    if (!uid) return;
+    return registerDocReset(uid, (fresh: Meeting) => {
+      SAVE_RETRY_FIELDS.delete(uid);
+      lastSourceRef.current = null;
+      resetDoc(meetingToDocSnapshot(fresh));
+    });
+  }, [uid, resetDoc]);
 
   const doc = docHistory.value;
   const body = doc.body;
@@ -766,9 +777,11 @@ export function MeetingForm({
 
   function retrySave() {
     if (updateMutation.isPending) return;
-    updateMutation.mutate({
+    if (!uid) return;
+    // 실패한 칸만 다시 보냄 — 전체 doc 을 보내면 안 바뀐 transcript 가 디스크를 덮는다 (D5).
+    savePatch(uid, {
       title: titleDraft.trim() || initialTitle || "untitled",
-      ...docToPatch(doc),
+      ...fieldsPatch(doc, SAVE_RETRY_FIELDS.get(uid) ?? []),
     });
   }
 

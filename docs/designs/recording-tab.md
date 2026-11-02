@@ -193,7 +193,7 @@ Mode: Builder
 3. **옛 `/transcribe` 처리분**(`<base>.txt` 가 있고 별도 brain 정리 문서가 있을 수 있음)은 행선지 미정 + 교정본으로 뜬다. 정리 문서 하단의 `_audio/<base>` 링크를 grep 해 그 문서를 연결 후보 1순위로 올릴 수 있는지 확인 필요.
 4. ~~gbrain-sync 가 `_audio/` 를 색인하는가~~ → 해소: `~/brain/RESOLVER.md:39` 에 "git·색인 제외" 명시(2026-10-29 eng review).
 5. ~~brain git 이력의 원문~~ → **결정(2026-10-29)**: 연결된 전사본은 사이드카로 brain git 에 들어간다(기존 18개와 같은 상태). brain git 은 원격 없음 = 이 맥 안에만 남음. 수용.
-8. **gbrain 이 `.transcript.md` 사이드카를 색인하는가**: 미확인. **PR1 선행 확인**(eng review) — 이 설계로 사이드카가 계속 늘고 상당수가 다듬지 않은 whisper 원문이다. 색인한다면 `*.transcript.md` 를 gbrain 제외 목록에 넣는 것을 PR1 에 포함.
+8. **gbrain 이 `.transcript.md` 사이드카를 색인하는가**: **확인함(2026-11-02) — 색인한다**, 기존 사이드카 18개가 전부 `note` 페이지로 들어가 있다(`gbrain list`). gbrain 에는 별도 제외 설정이 없고 제외 수단은 brain `.gitignore` 뿐인데, 그러면 사이드카가 brain git 추적에서도 빠져 위 "전사본 자리" 전제와 충돌한다. **결정: 색인 유지** — 회의 원문이 brain 검색에 걸리는 이점이 크고, 다듬지 않은 원문 노이즈는 PR3 교정으로 줄인다. PR1 에 제외 작업 없음.
 6. **터미널 `/transcribe` 의 rename**: 연결된 녹음을 스킬이 `_주제_사람` 으로 rename 해도 전사본은 메모에 안전하고 ▶ 만 끊긴다. 스킬 §0 에 "`audio:` 로 연결된 base 는 rename 하지 않음" 권고만 추가.
 7. **diarize 예상 시간**: 실측 1건(76분 ≈ 20분)뿐. v1 은 단계(step)만 표시.
 

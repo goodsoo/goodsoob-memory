@@ -12,6 +12,7 @@ import {
   TitleConflictError,
   scanMeetings,
   dedupeUids,
+  fileToMeeting,
   type MeetingMeta,
 } from "./scan";
 import { createMemoryAdapter } from "./adapter";
@@ -396,9 +397,21 @@ function makeMeta(id: string, uid: string, mtime: number): MeetingMeta {
     attendees: [],
     tags: [],
     pinned: false,
+    audio: [],
     mtime,
     created_at: iso,
     updated_at: iso,
     deleted_at: null,
   };
 }
+
+describe("fileToMeeting — audio frontmatter", () => {
+  const f = (fm: string) => fileToMeeting("n.md", `---\n${fm}---\nx\n`, "", "", 1).audio;
+  it("리스트", () => expect(f("audio:\n  - a\n  - b\n")).toEqual(["a", "b"]));
+  it("단일 스칼라", () => expect(f("audio: a\n")).toEqual(["a"]));
+  it("숫자 base → String", () => {
+    expect(f("audio: 20261102\n")).toEqual(["20261102"]);
+    expect(f("audio:\n  - 123\n  - b\n")).toEqual(["123", "b"]);
+  });
+  it("없음 → []", () => expect(f("id: u\n")).toEqual([]));
+});

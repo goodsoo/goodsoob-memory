@@ -70,6 +70,7 @@ function buildMeeting(input: MeetingInsert, id: string, uid: string): Meeting {
     attendees: normalizeAttendees(input.attendees),
     tags: input.tags ?? [],
     pinned: input.pinned ?? false,
+    audio: [],
     mtime: 0,
     created_at: now,
     updated_at: now,

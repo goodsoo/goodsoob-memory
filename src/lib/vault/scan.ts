@@ -22,6 +22,9 @@ export interface MeetingMeta {
   // 즐겨찾기 — frontmatter `pinned: true`. 옵시디안 community 표준 (bookmarks /
   // pin-it-to-the-top 등) 과 호환. 사이드바 상단에 별도 그룹으로 고정.
   pinned: boolean;
+  // 연결된 녹음 base name 목록 — frontmatter `audio:` (리스트 또는 단일 스칼라).
+  // 없으면 []. 읽기 전용 메타: updateMeeting 은 frontmatter patch 방식이라 건드리지 않음.
+  audio: string[];
   mtime: number;
   // V0.5.3 호환 필드 (UI 가 의존). vault 에선 파일 mtime 사용.
   created_at: string;
@@ -118,6 +121,16 @@ function fmStringArray(value: unknown): string[] {
   return [];
 }
 
+// `audio:` — 리스트/단일 스칼라 모두 허용. YAML 이 숫자만인 base name 을 number 로
+// 파싱하므로 String() 정규화. 빈 값 제거.
+function fmAudioList(value: unknown): string[] {
+  const arr = Array.isArray(value) ? value : value == null ? [] : [value];
+  return arr
+    .filter((v) => typeof v === "string" || typeof v === "number")
+    .map((v) => String(v).trim())
+    .filter(Boolean);
+}
+
 function fmBoolean(value: unknown): boolean {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") {
@@ -175,6 +188,7 @@ export function fileToMeeting(
     attendees: fmStringArray(fm.attendees),
     tags: fmStringArray(fm.tags),
     pinned: fmBoolean(fm.pinned),
+    audio: fmAudioList(fm.audio),
     mtime,
     created_at: isoMtime,
     updated_at: isoMtime,
@@ -227,6 +241,8 @@ export function meetingToMainRaw(meeting: Meeting): string {
   // pin 플러그인들과 mutual: 우리 앱이 false 박아두면 사용자가 옵시디안에서 pin 해도
   // 다음 write 때 사라짐). default = absent 가 곧 false.
   if (meeting.pinned) frontmatter.pinned = true;
+  // audio 는 있을 때만 (없는 파일에 `audio: []` 박지 않음).
+  if (meeting.audio && meeting.audio.length > 0) frontmatter.audio = meeting.audio;
 
   return serializeVaultFile({
     raw: "",
@@ -549,6 +565,7 @@ export async function scanMeetings(adapter: VaultAdapter): Promise<MeetingMeta[]
         attendees: m.attendees,
         tags: m.tags,
         pinned: m.pinned,
+        audio: m.audio,
         mtime: m.mtime,
         created_at: m.created_at,
         updated_at: m.updated_at,

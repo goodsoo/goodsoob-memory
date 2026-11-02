@@ -6,6 +6,7 @@ import { EmptyState } from "../components/common/EmptyState";
 import { PageHeaderBar } from "../components/common/PageHeaderBar";
 import { Text } from "../components/common/Text";
 import { AudioPlayer } from "../components/recordings/AudioPlayer";
+import { ProcessingPanel } from "../components/recordings/ProcessingPanel";
 import {
   PIPELINE_LABELS,
   formatDuration,
@@ -148,16 +149,9 @@ function RecordingDetail({
         </div>
       </header>
 
-      {status.pipeline === "processing" && entry.job?.step ? (
-        <Alert variant="info">전사 작업이 진행 중입니다 ({entry.job.step}).</Alert>
-      ) : null}
-      {status.pipeline === "error" ? (
-        <Alert variant="down" title="전사 작업이 실패했습니다">
-          {entry.job?.error || "작업이 중단됐습니다."} 터미널에서 /transcribe 로 다시 실행하세요.
-        </Alert>
-      ) : null}
-
       {entry.hasM4a ? <AudioPlayer base={entry.base} syncPending={entry.syncPending} /> : null}
+
+      <ProcessingPanel item={item} />
 
       <DestinationPanel item={item} onOpenMeeting={onOpenMeeting} />
 

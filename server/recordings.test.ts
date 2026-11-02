@@ -48,6 +48,12 @@ function make(extra: Partial<RecordingsDeps> = {}) {
     isDataless: () => false,
     requestDownload: () => {},
     pidAlive: () => false,
+    // ⚠️ job 은 절대 실제로 띄우지 않는다 — 기본 spawn 은 테스트마다 주입.
+    procStart: () => null,
+    proCheck: () => ({ ok: true }),
+    spawnJob: () => {
+      throw new Error("spawnJob not stubbed");
+    },
     ...extra,
   });
 }
@@ -342,7 +348,8 @@ describe("GET /api/recordings — 목록", () => {
     expect(e1.hasM4a).toBe(true);
     expect(e1.hasTxt).toBe(false);
     expect(e1.stt).toEqual({ done: true, archived: true, moved: false, rawPromoted: false, anchored: false, diarized: true });
-    expect(e1.job).toEqual({ state: "running", pidAlive: false, step: "diarize", error: undefined });
+    // running 인데 pid 사망 → 목록 조회가 interrupted 로 갱신 (PR2)
+    expect(e1.job).toEqual({ state: "error", pidAlive: false, step: "diarize", error: "interrupted" });
     expect(e1.durationSec).toBe(61.5);
     expect(e1.parsed).toMatchObject({ date: "2026-10-28", time: "13:00" });
     const old = recordings[2];
@@ -466,6 +473,223 @@ describe("GET /api/audio — 검증·코덱·dataless", () => {
     expect(res.status).toBe(503);
     expect(((await res.json()) as { code: string }).code).toBe("syncPending");
     expect(downloads).toEqual([join(root, `_audio/${B1}.m4a`)]);
+  });
+});
+
+// ── PR2: diarize / corrections job API ──────────────────────────────────────
+
+describe("POST diarize / corrections — job 시작·전제조건", () => {
+  const S = (f: string) => `_audio/.stt/${B1}/${f}`;
+  let spawned: Array<Record<string, unknown>>;
+  let alive: Set<number>;
+  let lstarts: Map<number, string>;
+  const jobJson = () => JSON.parse(r(S("job.json")));
+
+  function makeJob(extra: Partial<RecordingsDeps> = {}) {
+    return make({
+      pidAlive: (pid) => alive.has(pid),
+      procStart: (pid) => lstarts.get(pid) ?? null,
+      spawnJob: (a) => {
+        spawned.push({ ...a });
+        alive.add(4321);
+        lstarts.set(4321, "Mon Nov  2 13:00:00 2026");
+        return { pid: 4321 };
+      },
+      ...extra,
+    });
+  }
+  const post = async (rr: Recordings, action: string, body?: unknown, base = B1) => {
+    const req = new Request(`http://x/api/recordings/${encodeURIComponent(base)}/${action}`, {
+      method: "POST",
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const res = (await handleRecordingsApi(req, new URL(req.url), rr))!;
+    return { status: res.status, body: (await res.json()) as Record<string, unknown> & { code?: string } };
+  };
+  function seedTranscribed() {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("tr.json"), "{}");
+    w(S("done"));
+  }
+
+  beforeEach(() => {
+    spawned = [];
+    alive = new Set();
+    lstarts = new Map();
+    rec = makeJob();
+  });
+
+  it("diarize 성공 — spawn 인자, job.json running(pid·startedAt·lstart·speakers·names), 202", async () => {
+    seedTranscribed();
+    const res = await post(rec, "diarize", { speakers: 2, names: [" 함창수 ", "정진용"] });
+    expect(res.status).toBe(202);
+    expect(res.body.job).toMatchObject({ state: "running", pidAlive: true, kind: "diarize", step: "queued" });
+    expect(spawned).toHaveLength(1);
+    expect(spawned[0]).toMatchObject({ vaultDir: root, base: B1, kind: "diarize", speakers: 2, names: ["함창수", "정진용"] });
+    expect(String(spawned[0].logPath)).toBe(join(root, S("job.log")));
+    const j = jobJson();
+    expect(j).toMatchObject({ state: "running", kind: "diarize", pid: 4321, lstart: "Mon Nov  2 13:00:00 2026", speakers: 2, names: ["함창수", "정진용"] });
+    expect(Number.isNaN(Date.parse(j.startedAt))).toBe(false);
+
+    // 목록: 살아 있는 job → processing 재료
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toMatchObject({ state: "running", pidAlive: true, kind: "diarize" });
+  });
+
+  it("diarize 400 — 화자 수 0·11·소수·문자열·누락, 이름 초과·빈 이름", async () => {
+    seedTranscribed();
+    for (const speakers of [0, 11, 2.5, "3", undefined]) {
+      const res = await post(rec, "diarize", { speakers });
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe("badSpeakers");
+    }
+    for (const names of [["a", "b", "c"], ["a", ""], "a", [1]]) {
+      const res = await post(rec, "diarize", { speakers: 2, names });
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe("badNames");
+    }
+    expect(spawned).toHaveLength(0);
+  });
+
+  it("diarize 409 — 초벌 전사 done 없음 / tr.json 단독(실패 잔재) / m4a 없음", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("tr.json"), "{}");
+    let res = await post(rec, "diarize", { speakers: 2 });
+    expect([res.status, res.body.code]).toEqual([409, "notTranscribed"]);
+    rmSync(join(root, `_audio/${B1}.m4a`));
+    w(S("done"));
+    res = await post(rec, "diarize", { speakers: 2 });
+    expect([res.status, res.body.code]).toEqual([409, "noAudio"]);
+    expect(spawned).toHaveLength(0);
+  });
+
+  it("Pro 가드 — 마커 없으면 409 notPro + 이유 (diarize·corrections 둘 다)", async () => {
+    seedTranscribed();
+    w(S("화자분리.txt"), "x");
+    rec = makeJob({ proCheck: () => ({ ok: false, reason: "이 맥은 전사 작업용 맥이 아닙니다" }) });
+    for (const [action, body] of [["diarize", { speakers: 2 }], ["corrections", {}]] as const) {
+      const res = await post(rec, action, body);
+      expect(res.status).toBe(409);
+      expect(res.body.code).toBe("notPro");
+      expect(res.body.error).toContain("전사 작업용 맥");
+    }
+    expect(spawned).toHaveLength(0);
+  });
+
+  it("처리 중(pid 생존 + lstart 일치) → 두 API 모두 409 jobRunning", async () => {
+    seedTranscribed();
+    w(S("화자분리.txt"), "x");
+    alive.add(55);
+    lstarts.set(55, "L55");
+    w(S("job.json"), JSON.stringify({ state: "running", kind: "diarize", step: "diarize", pid: 55, lstart: "L55", startedAt: "s", heartbeatAt: "s" }));
+    expect((await post(rec, "diarize", { speakers: 2 })).body.code).toBe("jobRunning");
+    expect((await post(rec, "corrections", {})).body.code).toBe("jobRunning");
+    expect(spawned).toHaveLength(0);
+  });
+
+  it("동시 요청 두 개 → 하나만 spawn, 다른 하나는 409", async () => {
+    seedTranscribed();
+    const results = await Promise.all([post(rec, "diarize", { speakers: 2 }), post(rec, "diarize", { speakers: 3 })]);
+    expect(results.map((x) => x.status).sort()).toEqual([202, 409]);
+    expect(spawned).toHaveLength(1);
+  });
+
+  it("pid 재사용(살아 있지만 lstart 다름) = 실행 중 아님 → 새 job 허용", async () => {
+    seedTranscribed();
+    alive.add(55);
+    lstarts.set(55, "다른 프로세스");
+    w(S("job.json"), JSON.stringify({ state: "running", kind: "diarize", step: "diarize", pid: 55, lstart: "L55", startedAt: "s", heartbeatAt: "s" }));
+    const res = await post(rec, "diarize", { speakers: 2 });
+    expect(res.status).toBe(202);
+  });
+
+  it("corrections 409 — 화자분리.txt 없음", async () => {
+    seedTranscribed();
+    const res = await post(rec, "corrections"); // 빈 본문 허용
+    expect([res.status, res.body.code]).toEqual([409, "notDiarized"]);
+  });
+
+  it("corrections 성공 / retryFailed 는 실패 청크 + partial 이 있어야 (없으면 409 noPartial)", async () => {
+    seedTranscribed();
+    w(S("화자분리.txt"), "x");
+    let res = await post(rec, "corrections", { retryFailed: true });
+    expect([res.status, res.body.code]).toEqual([409, "noPartial"]);
+
+    res = await post(rec, "corrections");
+    expect(res.status).toBe(202);
+    expect(spawned[0]).toMatchObject({ kind: "corrections", base: B1 });
+
+    // runner 가 실패 청크를 남기고 끝난 상태
+    alive.clear();
+    w(S("job.json"), JSON.stringify({ state: "error", kind: "corrections", step: "corrections 2/3", pid: 4321, startedAt: "s", heartbeatAt: "s", error: "청크 실패", failedChunks: [2] }));
+    w(S("corrections.partial.json"), "{}");
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toEqual({ state: "error", pidAlive: false, step: "corrections 2/3", error: "청크 실패", kind: "corrections", failedChunks: [2] });
+    res = await post(rec, "corrections", { retryFailed: true });
+    expect(res.status).toBe(202);
+    expect(spawned[1]).toMatchObject({ kind: "corrections-retry" });
+  });
+
+  it("spawn 실패 → 500 spawnFailed, job.json 안 남김", async () => {
+    seedTranscribed();
+    rec = makeJob({
+      spawnJob: () => {
+        throw new Error("bun 없음");
+      },
+    });
+    const res = await post(rec, "diarize", { speakers: 2 });
+    expect([res.status, res.body.code]).toEqual([500, "spawnFailed"]);
+    expect(ex(S("job.json"))).toBe(false);
+  });
+});
+
+describe("job 생존 판정 (목록 조회 시)", () => {
+  const S = (f: string) => `_audio/.stt/${B1}/${f}`;
+  const running = (extra: Record<string, unknown> = {}) =>
+    JSON.stringify({ state: "running", kind: "diarize", step: "diarize", pid: 77, lstart: "L77", startedAt: "s", heartbeatAt: "s", ...extra });
+
+  it("pid 사망 → job.json 을 error:interrupted 로 다시 씀 (pipeline 오류 재료)", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("job.json"), running());
+    rec = make({ pidAlive: () => false });
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toMatchObject({ state: "error", error: "interrupted", pidAlive: false, kind: "diarize" });
+    const j = JSON.parse(r(S("job.json")));
+    expect(j).toMatchObject({ state: "error", error: "interrupted", pid: 77, startedAt: "s" });
+    expect(j.finishedAt).toBeTruthy();
+  });
+
+  it("pid 는 살아 있지만 lstart 불일치(재사용) → interrupted", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("job.json"), running());
+    rec = make({ pidAlive: () => true, procStart: () => "다른 시작 시각" });
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toMatchObject({ state: "error", error: "interrupted" });
+  });
+
+  it("pid 생존 + lstart 일치 → running 유지, 파일 무변경", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("job.json"), running());
+    rec = make({ pidAlive: () => true, procStart: () => "L77" });
+    const before = r(S("job.json"));
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toMatchObject({ state: "running", pidAlive: true });
+    expect(r(S("job.json"))).toBe(before);
+  });
+
+  it("done/error job 은 pid 확인 없이 그대로 (anchorMisses 노출)", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S("job.json"), running({ state: "done", step: "done", kind: "corrections", anchorMisses: 3 }));
+    let checked = 0;
+    rec = make({
+      pidAlive: () => {
+        checked++;
+        return false;
+      },
+    });
+    const { recordings } = await rec.list();
+    expect(recordings[0].job).toEqual({ state: "done", pidAlive: false, step: "done", error: undefined, kind: "corrections", anchorMisses: 3 });
+    expect(checked).toBe(0);
   });
 });
 

@@ -17,7 +17,10 @@ export interface RecordingJob {
   state: string;
   pidAlive: boolean;
   step?: string;
-  error?: string;
+  error?: string; // "interrupted" = runner 비정상 종료
+  kind?: "diarize" | "corrections" | "corrections-retry";
+  failedChunks?: number[]; // 1부터
+  anchorMisses?: number;
 }
 
 export interface RecordingEntry {
@@ -112,6 +115,20 @@ export function archiveRecording(base: string): Promise<{ ok: true; raw: boolean
 
 export function unarchiveRecording(base: string): Promise<{ ok: true }> {
   return post(`/api/recordings/${enc(base)}/unarchive`);
+}
+
+export function diarizeRecording(
+  base: string,
+  body: { speakers: number; names?: string[] },
+): Promise<{ job: RecordingJob }> {
+  return post(`/api/recordings/${enc(base)}/diarize`, body);
+}
+
+export function correctionsRecording(
+  base: string,
+  body: { retryFailed?: boolean } = {},
+): Promise<{ job: RecordingJob }> {
+  return post(`/api/recordings/${enc(base)}/corrections`, body);
 }
 
 export function audioUrl(base: string): string {

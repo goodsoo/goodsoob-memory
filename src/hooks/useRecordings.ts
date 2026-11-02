@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   archiveRecording,
+  correctionsRecording,
+  diarizeRecording,
   linkRecording,
   listRecordings,
   readRecordingTranscript,
@@ -182,6 +184,25 @@ export function useMoveRecording() {
       return { unlink: u, link: l };
     },
   };
+}
+
+// 서버 job 시작. 성공하면 목록을 다시 읽어 job.running 을 반영한다 (3초 polling 이 켜진다).
+export function useDiarizeRecording() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { base: string; speakers: number; names?: string[] }) =>
+      diarizeRecording(v.base, { speakers: v.speakers, names: v.names }),
+    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
+  });
+}
+
+export function useCorrectionsRecording() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { base: string; retryFailed?: boolean }) =>
+      correctionsRecording(v.base, { retryFailed: v.retryFailed }),
+    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
+  });
 }
 
 export function useArchiveRecording() {

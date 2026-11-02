@@ -1,5 +1,6 @@
 /**
- * recordings — 녹음 탭 서버 로직 (PR1: 목록 · 오디오 서빙 · 행선지 link/unlink/archive).
+ * recordings — 녹음 탭 서버 로직 (PR1: 목록 · 오디오 서빙 · 행선지 link/unlink/archive,
+ * PR2: diarize/corrections job 시작 · job.json 생존 판정).
  *
  * 설계 = docs/designs/recording-tab.md ("녹음 상태 — 두 축", "행선지", "서버").
  * 순수 규칙은 src/lib/recordings/* (base 파싱·섹션 조작·상태 계산)를 그대로 쓰고,
@@ -16,8 +17,12 @@
  * 인스턴스를 넘겨야 lock 이 공유된다.
  */
 
-import { existsSync, readdirSync, statSync, type Dirent } from "node:fs";
-import { execFile, spawn } from "node:child_process";
+import { closeSync, existsSync, mkdirSync, openSync, readdirSync, statSync, type Dirent } from "node:fs";
+import { execFile, execFileSync, spawn } from "node:child_process";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import type { JobFile, JobKind } from "./jobRunner.ts";
 import { VaultCore, joinVaultAbs } from "./vaultCore.ts";
 import { coreAdapter } from "./coreAdapter.ts";
 import type { VaultAdapter } from "../src/lib/vault/adapter.ts";
@@ -63,9 +68,26 @@ export interface RecordingSttMarkers {
 
 export interface RecordingJob {
   state: string; // running | done | error
+  /** running 일 때 pid 생존 + lstart 일치. 죽은 running 은 목록 조회 때 error:"interrupted" 로 바뀐다. */
   pidAlive: boolean;
   step?: string;
-  error?: string;
+  error?: string; // "interrupted" = runner 가 비정상 종료(서버가 감지)
+  kind?: JobKind;
+  failedChunks?: number[]; // 재시도까지 실패한 청크 번호(1부터) — "실패 청크만 재실행" 가능
+  anchorMisses?: number; // anchored.json 에서 위치를 못 찾아 t=0 인 항목 수
+}
+
+export interface DiarizeRequest {
+  speakers: number; // 1..10 (자동 판정은 과분할 → 필수)
+  names?: string[]; // 화자 index 순 이름 (없으면 화자N), 최대 speakers 개
+}
+
+export interface CorrectionsRequest {
+  retryFailed?: boolean; // true = corrections.partial.json 의 실패 청크만 재실행
+}
+
+export interface JobStartResponse {
+  job: RecordingJob;
 }
 
 export interface RecordingEntry {
@@ -139,6 +161,22 @@ export interface RecordingsDeps {
   pidAlive?: (pid: number) => boolean;
   /** Bun 에선 `new Response(Bun.file(abs), {headers})` — Range → 206 은 Bun.serve 가 처리. */
   fileResponse?: (abs: string, headers: Record<string, string>) => Response;
+  /** `ps -o lstart= -p <pid>` — pid 재사용 판정. null = 알 수 없음/프로세스 없음. */
+  procStart?: (pid: number) => string | null;
+  /** Pro 가드 — job 은 `~/.auto-stt-enabled` 가 있는 맥에서만. */
+  proCheck?: () => { ok: boolean; reason?: string };
+  /** jobRunner detached spawn → pid. */
+  spawnJob?: (args: SpawnJobArgs) => { pid: number };
+}
+
+export interface SpawnJobArgs {
+  vaultDir: string;
+  base: string;
+  kind: JobKind;
+  speakers?: number;
+  names?: string[];
+  /** stdout/stderr 를 붙일 로그 파일 (abs). */
+  logPath: string;
 }
 
 // launchd 최소 PATH 에선 brew 바이너리가 안 보이므로 절대경로 후보를 먼저 본다.
@@ -226,6 +264,46 @@ function defaultPidAlive(pid: number): boolean {
   }
 }
 
+export function defaultProcStart(pid: number): string | null {
+  try {
+    const out = execFileSync("/bin/ps", ["-o", "lstart=", "-p", String(pid)], { encoding: "utf8", timeout: 5_000 });
+    const s = out.trim().replace(/\s+/g, " ");
+    return s === "" ? null : s;
+  } catch {
+    return null;
+  }
+}
+
+export const PRO_MARKER = ".auto-stt-enabled";
+
+export function defaultProCheck(): { ok: boolean; reason?: string } {
+  if (existsSync(join(homedir(), PRO_MARKER))) return { ok: true };
+  return { ok: false, reason: `이 맥은 전사 작업용 맥이 아닙니다 (~/${PRO_MARKER} 없음). Pro 맥에서 실행하세요.` };
+}
+
+const JOB_RUNNER = fileURLToPath(new URL("./jobRunner.ts", import.meta.url));
+
+/** `bun server/jobRunner.ts <vault> <base> <kind> [speakers] [names...]` — detached + unref (서버 재시작에도 생존). */
+export function defaultSpawnJob(a: SpawnJobArgs): { pid: number } {
+  const argv = [JOB_RUNNER, a.vaultDir, a.base, a.kind];
+  if (a.kind === "diarize") argv.push(String(a.speakers), ...(a.names ?? []));
+  const fd = openSync(a.logPath, "a");
+  try {
+    // 서버는 bun 으로 돈다 → process.execPath = bun. PATH 는 launchd 최소 + brew.
+    const child = spawn(process.execPath, argv, {
+      detached: true,
+      stdio: ["ignore", fd, fd],
+      env: { ...process.env, PATH: "/opt/homebrew/bin:/usr/bin:/bin" },
+    });
+    child.on("error", (e) => console.error("[recordings] jobRunner spawn 실패:", e));
+    if (!child.pid) throw new Error("jobRunner 를 시작하지 못했습니다");
+    child.unref();
+    return { pid: child.pid };
+  } finally {
+    closeSync(fd);
+  }
+}
+
 function defaultFileResponse(abs: string, headers: Record<string, string>): Response {
   const B = (globalThis as unknown as { Bun?: { file(p: string): Blob } }).Bun;
   if (!B) throw new RecordingError(500, "noBun", "Bun 런타임에서만 오디오를 서빙합니다.");
@@ -287,6 +365,9 @@ export function createRecordings(deps: RecordingsDeps) {
   const requestDownload = deps.requestDownload ?? defaultRequestDownload;
   const pidAlive = deps.pidAlive ?? defaultPidAlive;
   const fileResponse = deps.fileResponse ?? defaultFileResponse;
+  const procStart = deps.procStart ?? defaultProcStart;
+  const proCheck = deps.proCheck ?? defaultProCheck;
+  const spawnJob = deps.spawnJob ?? defaultSpawnJob;
 
   // 메모 경로 기준 mutex — 같은 메모 사이드카 read-modify-write 직렬화 (link·unlink, PR3 apply).
   const withMemoLock = keyedMutex();
@@ -355,11 +436,44 @@ export function createRecordings(deps: RecordingsDeps) {
     return { durationSec: null, creationTime: null, codec: null, syncPending: false };
   }
 
+  /** running job 의 runner 가 살아 있나 — pid 생존 + (기록돼 있으면) ps lstart 일치(pid 재사용 배제). */
+  function jobAlive(j: Partial<JobFile>): boolean {
+    if (typeof j.pid !== "number" || j.pid <= 0 || !pidAlive(j.pid)) return false;
+    if (typeof j.lstart === "string" && j.lstart !== "") return procStart(j.pid) === j.lstart;
+    return true;
+  }
+
+  function toRecordingJob(j: Partial<JobFile>, alive: boolean): RecordingJob {
+    const out: RecordingJob = { state: String(j.state), pidAlive: alive, step: j.step, error: j.error };
+    if (j.kind) out.kind = j.kind;
+    if (Array.isArray(j.failedChunks)) out.failedChunks = j.failedChunks;
+    if (typeof j.anchorMisses === "number") out.anchorMisses = j.anchorMisses;
+    return out;
+  }
+
+  /**
+   * job.json 읽기 + 생존 판정. running 인데 runner 가 죽었으면 `error: "interrupted"` 로 다시 쓴다.
+   * 같은 base 를 다른 요청(job 시작 등)이 잡고 있으면 재기록은 건너뛴다(그 요청이 job.json 소유).
+   */
   async function jobFacts(base: string): Promise<RecordingJob | null> {
-    const j = await readJson<{ state?: string; pid?: number; step?: string; error?: string }>(sttRel(base, "job.json"));
+    const rel = sttRel(base, "job.json");
+    const j = await readJson<Partial<JobFile>>(rel);
     if (!j || typeof j.state !== "string") return null;
-    const alive = typeof j.pid === "number" && j.pid > 0 ? pidAlive(j.pid) : false;
-    return { state: j.state, pidAlive: alive, step: j.step, error: j.error };
+    if (j.state !== "running") return toRecordingJob(j, false);
+    if (jobAlive(j)) return toRecordingJob(j, true);
+    if (busyBases.has(base)) return toRecordingJob(j, false);
+    // 다시 읽어 같은 pid 의 running 일 때만 (그 사이 runner 가 done/error 를 썼으면 존중).
+    const again = await readJson<Partial<JobFile>>(rel);
+    if (!again || again.state !== "running" || again.pid !== j.pid) {
+      return again && typeof again.state === "string" ? toRecordingJob(again, false) : null;
+    }
+    const next = { ...again, state: "error" as const, error: "interrupted", finishedAt: new Date().toISOString() };
+    try {
+      await vault.write(rel, JSON.stringify(next, null, 2) + "\n");
+    } catch (e) {
+      console.warn("[recordings] interrupted 기록 실패:", base, (e as Error).message);
+    }
+    return toRecordingJob(next, false);
   }
 
   /**
@@ -684,7 +798,100 @@ export function createRecordings(deps: RecordingsDeps) {
     });
   }
 
-  return { list, audio, link, unlink, archive, unarchive };
+  // ── job (PR2: 화자분리 · 교정 후보) ──────────────────────────────────────
+
+  function assertPro(): void {
+    const r = proCheck();
+    if (!r.ok) throw new RecordingError(409, "notPro", r.reason ?? "이 맥에서는 전사 작업을 실행할 수 없습니다.");
+  }
+
+  /** 처리 중이면 409 — withBase 안에서 호출. 현재 job.json 반환. */
+  async function assertNoRunningJob(base: string): Promise<Partial<JobFile> | null> {
+    const j = await readJson<Partial<JobFile>>(sttRel(base, "job.json"));
+    if (j?.state === "running" && jobAlive(j)) {
+      throw new RecordingError(409, "jobRunning", "이 녹음은 이미 처리 중입니다. 끝난 뒤 다시 시도하세요.");
+    }
+    return j;
+  }
+
+  /** withBase 안: spawn → job.json {running, pid, startedAt, lstart} 기록 (runner 는 이 claim 을 기다렸다 시작). */
+  async function startJob(base: string, kind: JobKind, extra: Pick<JobFile, "speakers" | "names"> = {}): Promise<JobStartResponse> {
+    mkdirSync(abs(`${STT_DIR}/${base}`), { recursive: true });
+    let pid: number;
+    try {
+      ({ pid } = spawnJob({ vaultDir: vault.root, base, kind, ...extra, logPath: abs(sttRel(base, "job.log")) }));
+    } catch (e) {
+      throw new RecordingError(500, "spawnFailed", `작업을 시작하지 못했습니다. ${(e as Error).message}`);
+    }
+    const at = new Date().toISOString();
+    const job: JobFile = {
+      state: "running",
+      kind,
+      step: "queued",
+      pid,
+      startedAt: at,
+      lstart: procStart(pid),
+      heartbeatAt: at,
+      ...extra,
+    };
+    await vault.write(sttRel(base, "job.json"), JSON.stringify(job, null, 2) + "\n");
+    return { job: toRecordingJob(job, true) };
+  }
+
+  /** POST /api/recordings/:base/diarize `{speakers, names?}` — 단계 1~3 (로컬 전용). */
+  async function diarize(baseParam: string, body: Partial<DiarizeRequest>): Promise<JobStartResponse> {
+    const base = assertValidBase(baseParam);
+    const speakers = body.speakers;
+    if (typeof speakers !== "number" || !Number.isInteger(speakers) || speakers < 1 || speakers > 10) {
+      throw new RecordingError(400, "badSpeakers", "화자 수는 1~10 사이 정수로 입력하세요.");
+    }
+    let names: string[] = [];
+    if (body.names !== undefined) {
+      if (!Array.isArray(body.names) || body.names.some((n) => typeof n !== "string")) {
+        throw new RecordingError(400, "badNames", "화자 이름은 문자열 배열이어야 합니다.");
+      }
+      names = body.names.map((n) => n.trim());
+      if (names.length > speakers) throw new RecordingError(400, "badNames", "화자 이름이 화자 수보다 많습니다.");
+      // merge.py 는 index 순 매핑 — 빈 이름은 자리 표시가 안 되므로 거부.
+      if (names.some((n) => n === "" || /[\t\n\r]/.test(n) || n.length > 40)) {
+        throw new RecordingError(400, "badNames", "화자 이름이 비었거나 너무 깁니다. 한 줄 40자 이내로 입력하세요.");
+      }
+    }
+    return withBase(base, async () => {
+      assertPro();
+      if (!has(m4aRel(base))) throw new RecordingError(409, "noAudio", "녹음 파일이 없어 화자분리를 할 수 없습니다.");
+      if (!has(sttRel(base, "done")) || !has(sttRel(base, "tr.json"))) {
+        throw new RecordingError(409, "notTranscribed", "초벌 전사가 아직 끝나지 않았습니다. 전사가 끝난 뒤 다시 시도하세요.");
+      }
+      await assertNoRunningJob(base);
+      return startJob(base, "diarize", { speakers, names });
+    });
+  }
+
+  /** POST /api/recordings/:base/corrections `{retryFailed?}` — 단계 4~5 (Claude 전송). */
+  async function corrections(baseParam: string, body: CorrectionsRequest): Promise<JobStartResponse> {
+    const base = assertValidBase(baseParam);
+    const retry = body.retryFailed === true;
+    return withBase(base, async () => {
+      assertPro();
+      if (!has(sttRel(base, "화자분리.txt"))) {
+        throw new RecordingError(409, "notDiarized", "화자분리가 아직 없습니다. 화자분리를 먼저 실행하세요.");
+      }
+      if (!has(sttRel(base, "tr.json"))) {
+        throw new RecordingError(409, "notTranscribed", "초벌 전사(tr.json)가 없어 교정 후보 위치를 찾을 수 없습니다.");
+      }
+      const prev = await assertNoRunningJob(base);
+      if (retry) {
+        const failed = prev?.state === "error" && Array.isArray(prev.failedChunks) && prev.failedChunks.length > 0;
+        if (!failed || !has(sttRel(base, "corrections.partial.json"))) {
+          throw new RecordingError(409, "noPartial", "다시 실행할 실패 청크가 없습니다. 전체 재실행하세요.");
+        }
+      }
+      return startJob(base, retry ? "corrections-retry" : "corrections");
+    });
+  }
+
+  return { list, audio, link, unlink, archive, unarchive, diarize, corrections };
 }
 
 export type Recordings = ReturnType<typeof createRecordings>;
@@ -709,7 +916,7 @@ export async function handleRecordingsApi(req: Request, url: URL, rec: Recording
       const known = new Set((url.searchParams.get("known") ?? "").split(",").map((s) => s.trim()).filter(Boolean));
       return jsonRes(await rec.list(known));
     }
-    const m = /^\/api\/recordings\/([^/]+)\/(link|unlink|archive|unarchive)$/.exec(pathname);
+    const m = /^\/api\/recordings\/([^/]+)\/(link|unlink|archive|unarchive|diarize|corrections)$/.exec(pathname);
     if (m && req.method === "POST") {
       let base: string;
       try {
@@ -722,11 +929,16 @@ export async function handleRecordingsApi(req: Request, url: URL, rec: Recording
       if (action === "unarchive") return jsonRes(await rec.unarchive(base));
       let body: Record<string, unknown> = {};
       try {
-        body = (await req.json()) as Record<string, unknown>;
+        // 빈 본문 = {} (corrections 는 옵션 없이 호출 가능).
+        const text = await req.text();
+        body = (text.trim() === "" ? {} : JSON.parse(text)) as Record<string, unknown>;
+        if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("not an object");
       } catch {
         throw new RecordingError(400, "badBody", "잘못된 요청 본문(JSON 파싱 실패)");
       }
       if (action === "link") return jsonRes(await rec.link(base, body as LinkRequest));
+      if (action === "diarize") return jsonRes(await rec.diarize(base, body as Partial<DiarizeRequest>), 202);
+      if (action === "corrections") return jsonRes(await rec.corrections(base, body as CorrectionsRequest), 202);
       return jsonRes(await rec.unlink(base, body as { memo?: string }));
     }
     return null;

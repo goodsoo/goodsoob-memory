@@ -42,5 +42,20 @@ describe("ReviewDetail", () => {
       <ReviewDetail highlight={hl({ replacement: null })} busy={false} onAccept={() => {}} onKeep={() => {}} onEdit={() => {}} />,
     );
     expect(screen.queryByRole("button", { name: "수락" })).toBeNull();
+    // 바꿀 말이 없으면 원문에 취소선을 긋지 않는다.
+    expect(screen.getByText("생막보다").style.textDecoration).toBe("");
+  });
+
+  it("확신도 '-'(미기재)는 숨김", () => {
+    render(
+      <ReviewDetail
+        highlight={hl({ item: { ...hl().item, type: "B", conf: "-" } })}
+        busy={false}
+        onAccept={() => {}}
+        onKeep={() => {}}
+        onEdit={() => {}}
+      />,
+    );
+    expect(screen.queryByText(/확신/)).toBeNull();
   });
 });

@@ -23,13 +23,23 @@ export function ReviewDetail({
   onEdit: () => void;
 }) {
   const { item, needle, replacement } = highlight;
-  const meta = [TYPE_LABELS[item.type] ?? item.type, item.conf ? `확신 ${item.conf}` : null]
+  // 확신도는 교정 프롬프트가 "-"(미기재)로 채우기도 한다 → 값 있을 때만.
+  const conf = item.conf && item.conf.trim() !== "-" ? item.conf : null;
+  const meta = [TYPE_LABELS[item.type] ?? item.type, conf ? `확신 ${conf}` : null]
     .filter(Boolean)
     .join(" · ");
   return (
     <div className="space-y-2" data-testid="review-detail">
       <div className="text-sm leading-relaxed" style={{ color: "var(--ink)", wordBreak: "keep-all" }}>
-        <span style={{ color: "var(--sub)", textDecoration: "line-through" }}>{needle}</span>
+        {/* 취소선은 바꿀 말이 있을 때만 — 플래그(B)는 원문이 지워질 것처럼 보이면 안 된다. */}
+        <span
+          style={{
+            color: "var(--sub)",
+            textDecoration: replacement !== null ? "line-through" : undefined,
+          }}
+        >
+          {needle}
+        </span>
         {replacement !== null ? (
           <>
             <span style={{ color: "var(--faint)" }}> → </span>

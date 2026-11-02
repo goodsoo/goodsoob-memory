@@ -1,23 +1,38 @@
 /**
- * recordings — 녹음 탭 서버 로직 (PR1: 목록 · 오디오 서빙 · 행선지 link/unlink/archive,
- * PR2: diarize/corrections job 시작 · job.json 생존 판정).
+ * recordings — 녹음 탭 서버 로직 (PR1: 목록 · 오디오 서빙 · 행선지 link/unlink,
+ * PR2: diarize/corrections job 시작 · job.json 생존 판정,
+ * 개편: 삭제(휴지통 이동) · 작업 파일 GET/PUT · 교정 완료 · 교정 후보 리뷰 상태).
  *
- * 설계 = docs/designs/recording-tab.md ("녹음 상태 — 두 축", "행선지", "서버").
+ * 설계 = docs/designs/recording-tab.md (이사 메커니즘) + docs/designs/recording-redesign.md
+ * (D-R1 교정 완료 전 연결 금지 · D-R3 보관 제거 · D-R4 삭제 · D-R7 하이라이트 리뷰).
  * 순수 규칙은 src/lib/recordings/* (base 파싱·섹션 조작·상태 계산)를 그대로 쓰고,
  * 여기는 디스크 사실 수집 + 이사 순서(①~④) + 락만 담당한다.
  *
  * 디스크 레이아웃 (vault root 기준):
  *   _audio/<base>.m4a              녹음 원본 (부산물 — 지워질 수 있음)
- *   _audio/<base>.txt              연결 전 전사본 (연결하면 메모 사이드카로 이사 후 삭제)
+ *   _audio/<base>.txt              교정본 (연결하면 메모 사이드카로 이사 후 삭제)
  *   _audio/.stt/<base>/            auto_stt·job 산출물 + 마커
- *     done / archived / raw-promoted / moved.json / anchored.json / 화자분리.txt
+ *     done / moved.json / anchored.json / review.json / 화자분리.txt
  *     tr.txt (whisper 초벌) / job.json / meta.json (ffprobe 캐시) / play.m4a (비 aac 변환본)
+ *     raw-promoted (옛 초벌 승격 마커 — 읽기만) / archived (옛 보관 마커 — 무시)
  *
  * 쓰기는 전부 VaultCore(atomic tmp→rename, per-path lock) 경유 — /api/vault/write 와 같은
- * 인스턴스를 넘겨야 lock 이 공유된다.
+ * 인스턴스를 넘겨야 lock 이 공유된다. 예외: 삭제는 vault 밖(~/.Trash)으로 옮기므로 node:fs 직접.
  */
 
-import { closeSync, existsSync, mkdirSync, openSync, readdirSync, statSync, type Dirent } from "node:fs";
+import {
+  closeSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+  type Dirent,
+} from "node:fs";
 import { execFile, execFileSync, spawn } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -59,11 +74,12 @@ export const STT_DIR = "_audio/.stt";
 
 export interface RecordingSttMarkers {
   done: boolean;
-  archived: boolean;
   moved: boolean; // moved.json
-  rawPromoted: boolean;
+  rawPromoted: boolean; // 옛 초벌 승격 마커 (D-R1 이후 새로 쓰지 않음)
   anchored: boolean; // anchored.json
   diarized: boolean; // 화자분리.txt
+  /** anchored.json 항목 중 review.json 에 결정이 없는 수. anchored 없으면 0. */
+  reviewLeft: number;
 }
 
 export interface RecordingJob {
@@ -108,6 +124,8 @@ export interface RecordingEntry {
    * 필드 없음 = 확인 안 함.
    */
   orphan?: string | false;
+  /** 작업 파일(화자분리.txt → _audio/<base>.txt → tr.txt) 첫 발화 ≈60자 (식별용). */
+  firstLine: string | null;
 }
 
 export interface RecordingsListResponse {
@@ -122,7 +140,7 @@ export interface LinkRequest {
 export interface LinkResponse {
   meeting: Meeting; // 디스크에서 다시 읽은 메모 (클라 form reset 용)
   insertedSection: boolean; // false = 이미 헤딩 있음(멱등 재실행, 이사 미완료 복구)
-  raw: boolean; // 이사한 전사본이 whisper 초벌(raw-promoted)인가
+  raw: boolean; // 옛 raw-promoted 마커가 남아 있는가 (D-R1 이후 새 연결은 항상 false)
   created: boolean; // newMemo 로 생성했는가
 }
 
@@ -132,9 +150,52 @@ export interface UnlinkResponse {
   textKept: boolean;
 }
 
+export interface DeleteRequest {
+  bases: string[];
+}
+
+export interface DeleteResponse {
+  deleted: string[];
+  failed: Array<{ base: string; code: string; error: string }>;
+}
+
+export type TranscriptSource = "diarized" | "corrected" | "raw";
+
+export interface TranscriptResponse {
+  text: string;
+  source: TranscriptSource;
+  mtime: number;
+}
+
+export interface TranscriptPutRequest {
+  text: string;
+  mtime: number;
+}
+
+export type ReviewDecision = "accepted" | "kept" | "edited";
+
+export interface ReviewItem {
+  id: number;
+  t: number;
+  type: string;
+  conf?: string;
+  orig: string;
+  sugg: string;
+  hl?: [string, string];
+  note?: string;
+  global?: boolean;
+}
+
+export interface ReviewResponse {
+  items: ReviewItem[];
+  decisions: Record<string, ReviewDecision>;
+}
+
 export class RecordingError extends Error {
   status: number;
   code: string;
+  /** 응답 본문에 함께 실을 필드 (예: conflict 의 현재 mtime). */
+  extra?: Record<string, unknown>;
   constructor(status: number, code: string, message: string) {
     super(message);
     this.name = "RecordingError";
@@ -167,6 +228,10 @@ export interface RecordingsDeps {
   proCheck?: () => { ok: boolean; reason?: string };
   /** jobRunner detached spawn → pid. */
   spawnJob?: (args: SpawnJobArgs) => { pid: number };
+  /** 삭제 대상 폴더 (기본 `~/.Trash/goodsoob-녹음`). ⚠️ 테스트는 반드시 주입. */
+  trashDir?: string;
+  /** 휴지통 폴더 이름의 시각 (테스트 주입). */
+  now?: () => Date;
 }
 
 export interface SpawnJobArgs {
@@ -368,6 +433,8 @@ export function createRecordings(deps: RecordingsDeps) {
   const procStart = deps.procStart ?? defaultProcStart;
   const proCheck = deps.proCheck ?? defaultProCheck;
   const spawnJob = deps.spawnJob ?? defaultSpawnJob;
+  const trashDir = deps.trashDir ?? join(homedir(), ".Trash", "goodsoob-녹음");
+  const now = deps.now ?? (() => new Date());
 
   // 메모 경로 기준 mutex — 같은 메모 사이드카 read-modify-write 직렬화 (link·unlink, PR3 apply).
   const withMemoLock = keyedMutex();
@@ -561,13 +628,14 @@ export function createRecordings(deps: RecordingsDeps) {
     const sttDir = `${STT_DIR}/${base}`;
     const sttExists = has(sttDir) && statSync(abs(sttDir)).isDirectory();
     const marker = (f: string) => sttExists && has(sttRel(base, f));
+    const anchored = marker("anchored.json");
     const stt: RecordingSttMarkers = {
       done: marker("done"),
-      archived: marker("archived"),
       moved: marker("moved.json"),
       rawPromoted: marker("raw-promoted"),
-      anchored: marker("anchored.json"),
+      anchored,
       diarized: marker("화자분리.txt"),
+      reviewLeft: anchored ? await reviewLeftFor(base) : 0,
     };
     let dur: { durationSec: number | null; creationTime: string | null; syncPending: boolean } = {
       durationSec: null,
@@ -586,7 +654,23 @@ export function createRecordings(deps: RecordingsDeps) {
       durationSec: dur.durationSec,
       creationTime: dur.creationTime,
       syncPending: dur.syncPending,
+      firstLine: firstLineFor(base),
     };
+  }
+
+  /** 작업 파일 첫 ~2KB 에서 첫 발화. 화자분리 → 교정본 → 초벌 순. */
+  function firstLineFor(base: string): string | null {
+    for (const rel of [sttRel(base, "화자분리.txt"), txtRel(base), sttRel(base, "tr.txt")]) {
+      const head = readHead(abs(rel), 2048);
+      if (head === null) continue;
+      return extractFirstLine(head);
+    }
+    return null;
+  }
+
+  async function reviewLeftFor(base: string): Promise<number> {
+    const { items, decisions } = await readReview(base);
+    return items.filter((it) => !(String(it.id) in decisions)).length;
   }
 
   // ── 오디오 ────────────────────────────────────────────────────────────────
@@ -631,20 +715,32 @@ export function createRecordings(deps: RecordingsDeps) {
   }
 
   /**
-   * 이사할 전사본 원천. `_audio/<base>.txt` 우선, 없으면 초벌(`tr.txt` + done) 승격.
+   * 이사할 전사본 원천 = 교정본 `_audio/<base>.txt` 만 (D-R1 — 초벌 `tr.txt` 승격 경로 없음).
    * 이미 다른 메모로 이사됨(moved.json, txt 없음)이면 409 — 연결 해제 먼저.
+   * 파이프라인이 "교정본"이 아니면(txt 없음 · 옛 raw-promoted · 화자분리 작업 중) 409 notCorrected.
    */
-  async function sourceText(base: string): Promise<{ text: string; raw: boolean; promote: boolean }> {
-    if (has(txtRel(base))) {
-      return { text: await vault.read(txtRel(base)), raw: has(sttRel(base, "raw-promoted")), promote: false };
-    }
-    if (has(sttRel(base, "moved.json"))) {
+  async function sourceText(base: string): Promise<string> {
+    if (!has(txtRel(base)) && has(sttRel(base, "moved.json"))) {
       throw new RecordingError(409, "alreadyMoved", "이 녹음의 전사본은 이미 다른 메모로 옮겨졌습니다. 먼저 연결을 해제하세요.");
     }
-    if (has(sttRel(base, "done")) && has(sttRel(base, "tr.txt"))) {
-      return { text: await vault.read(sttRel(base, "tr.txt")), raw: true, promote: true };
+    assertCorrected(base);
+    return vault.read(txtRel(base));
+  }
+
+  /** 파이프라인 "교정본" 게이트 — status.ts computePipeline 과 같은 판정. */
+  function assertCorrected(base: string): void {
+    const corrected =
+      has(txtRel(base)) &&
+      !has(sttRel(base, "raw-promoted")) &&
+      !has(sttRel(base, "화자분리.txt")) &&
+      !has(sttRel(base, "anchored.json"));
+    if (!corrected) {
+      throw new RecordingError(
+        409,
+        "notCorrected",
+        "아직 교정이 끝나지 않아 연결할 수 없습니다. 화자분리 후 교정을 완료한 뒤 다시 시도하세요.",
+      );
     }
-    throw new RecordingError(409, "noTranscript", "아직 전사본이 없습니다. 전사가 끝난 뒤 다시 시도하세요.");
   }
 
   /** link 의 ①~④ (메모 lock 안에서 호출). */
@@ -656,15 +752,13 @@ export function createRecordings(deps: RecordingsDeps) {
 
     // ① 사이드카에 섹션 (이미 헤딩 있으면 skip — 멱등)
     let insertedSection = false;
-    let raw = has(sttRel(base, "raw-promoted"));
+    const raw = has(sttRel(base, "raw-promoted"));
     let nextText = tText;
     if (!findSection(tText, base, known)) {
-      const src = await sourceText(base);
-      raw = src.raw;
-      if (src.promote) await vault.write(sttRel(base, "raw-promoted"), "");
+      const body = await sourceText(base);
       nextText = insertSection(
         tText,
-        { base, timeLabel: baseTimeLabel(base), body: src.text, sortKey: baseSortKey(base) },
+        { base, timeLabel: baseTimeLabel(base), body, sortKey: baseSortKey(base) },
         known,
       );
       await vault.write(tRel, nextText);
@@ -701,6 +795,7 @@ export function createRecordings(deps: RecordingsDeps) {
       throw new RecordingError(404, "noRecording", "녹음을 찾을 수 없습니다.");
     }
     return withBase(base, async () => {
+      await assertNoRunningJob(base);
       if (body.newMemo) {
         const title = (body.newMemo.title ?? "").trim() || parseBase(base).label;
         let folder: string;
@@ -718,7 +813,7 @@ export function createRecordings(deps: RecordingsDeps) {
         return withMemoLock(target, async () => {
           if (has(target)) throw new TitleConflictError(slug, target);
           // 전사본 원천이 없으면 메모를 만들기 전에 실패 (빈 메모 잔재 방지).
-          if (!has(txtRel(base))) await sourceText(base);
+          await sourceText(base);
           const p = parseBase(base);
           const created = await createMeeting(adapter, {
             title,
@@ -773,31 +868,6 @@ export function createRecordings(deps: RecordingsDeps) {
     );
   }
 
-  /** POST /api/recordings/:base/archive — 초벌만 있으면 tr.txt 를 `_audio/<base>.txt` 로 승격. */
-  async function archive(baseParam: string): Promise<{ ok: true; raw: boolean }> {
-    const base = assertValidBase(baseParam);
-    if (!has(m4aRel(base)) && !has(txtRel(base))) throw new RecordingError(404, "noRecording", "녹음을 찾을 수 없습니다.");
-    return withBase(base, async () => {
-      let raw = has(sttRel(base, "raw-promoted"));
-      if (!has(txtRel(base)) && !has(sttRel(base, "moved.json")) && has(sttRel(base, "done")) && has(sttRel(base, "tr.txt"))) {
-        await vault.write(txtRel(base), await vault.read(sttRel(base, "tr.txt")));
-        await vault.write(sttRel(base, "raw-promoted"), "");
-        raw = true;
-      }
-      await vault.write(sttRel(base, "archived"), "");
-      return { ok: true as const, raw };
-    });
-  }
-
-  /** POST /api/recordings/:base/unarchive — archived 마커만 삭제 (`_audio/<base>.txt` 유지). */
-  async function unarchive(baseParam: string): Promise<{ ok: true }> {
-    const base = assertValidBase(baseParam);
-    return withBase(base, async () => {
-      if (has(sttRel(base, "archived"))) await vault.delete(sttRel(base, "archived"));
-      return { ok: true as const };
-    });
-  }
-
   // ── job (PR2: 화자분리 · 교정 후보) ──────────────────────────────────────
 
   function assertPro(): void {
@@ -835,6 +905,8 @@ export function createRecordings(deps: RecordingsDeps) {
       ...extra,
     };
     await vault.write(sttRel(base, "job.json"), JSON.stringify(job, null, 2) + "\n");
+    // 새 화자분리·전체 교정 후보 = anchored.json 이 새로 생기므로 이전 리뷰 결정은 낡음.
+    if (kind !== "corrections-retry" && has(sttRel(base, "review.json"))) await vault.delete(sttRel(base, "review.json"));
     return { job: toRecordingJob(job, true) };
   }
 
@@ -891,10 +963,278 @@ export function createRecordings(deps: RecordingsDeps) {
     });
   }
 
-  return { list, audio, link, unlink, archive, unarchive, diarize, corrections };
+
+  // ── 삭제 (D-R4) ───────────────────────────────────────────────────────────
+
+  /** node:fs rename, 볼륨이 다르면(EXDEV) 복사 후 삭제. */
+  function moveOut(src: string, dst: string): void {
+    mkdirSync(join(dst, ".."), { recursive: true });
+    try {
+      renameSync(src, dst);
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "EXDEV") throw e;
+      cpSync(src, dst, { recursive: true, preserveTimestamps: true });
+      rmSync(src, { recursive: true, force: true });
+    }
+  }
+
+  function trashFolderFor(base: string): string {
+    const d = now();
+    const p2 = (n: number) => String(n).padStart(2, "0");
+    const stamp = `${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}`;
+    let dir = join(trashDir, `${base}-${stamp}`);
+    for (let i = 2; existsSync(dir); i++) dir = join(trashDir, `${base}-${stamp}-${i}`);
+    return dir;
+  }
+
+  /**
+   * 한 녹음을 휴지통으로: m4a(+ iCloud placeholder) → txt → .stt/<base>/ 순서.
+   * m4a 를 먼저 옮겨야 중간 실패 때 auto_stt 가 `.stt` 없는 m4a 를 재전사하지 않는다.
+   * 연결된 녹음은 txt 가 이미 없으므로 오디오·.stt 만 옮겨지고 메모 전사는 그대로.
+   * 메모 파일·`.stt/imported-voicememos.txt` 는 건드리지 않는다.
+   */
+  async function deleteOne(base: string): Promise<void> {
+    await withBase(base, async () => {
+      await assertNoRunningJob(base);
+      const parts: Array<[string, string]> = [
+        [m4aRel(base), `${base}.m4a`],
+        [`${AUDIO_DIR}/.${base}.m4a.icloud`, `.${base}.m4a.icloud`],
+        [txtRel(base), `${base}.txt`],
+        [`${STT_DIR}/${base}`, "stt"],
+      ];
+      const present = parts.filter(([rel]) => has(rel));
+      if (present.length === 0) throw new RecordingError(404, "noRecording", "녹음을 찾을 수 없습니다.");
+      const dir = trashFolderFor(base);
+      mkdirSync(dir, { recursive: true });
+      for (const [rel, name] of present) moveOut(abs(rel), join(dir, name));
+    });
+  }
+
+  /** POST /api/recordings/delete `{bases}` — 항목별 결과 (일부 실패해도 나머지는 진행). */
+  async function remove(body: Partial<DeleteRequest>): Promise<DeleteResponse> {
+    if (!Array.isArray(body.bases) || body.bases.length === 0 || body.bases.some((b) => typeof b !== "string")) {
+      throw new RecordingError(400, "badBases", "삭제할 녹음 목록(bases)이 비었거나 잘못됐습니다.");
+    }
+    const out: DeleteResponse = { deleted: [], failed: [] };
+    for (const raw of [...new Set(body.bases)]) {
+      try {
+        const base = assertValidBase(raw);
+        await deleteOne(base);
+        out.deleted.push(base);
+      } catch (e) {
+        const err = e instanceof RecordingError ? e : new RecordingError(500, "internal", (e as Error).message);
+        out.failed.push({ base: raw, code: err.code, error: err.message });
+      }
+    }
+    return out;
+  }
+
+  // ── 작업 파일 (턴 화면 편집) ─────────────────────────────────────────────
+
+  function isLinked(base: string): boolean {
+    return has(sttRel(base, "moved.json")) && !has(txtRel(base));
+  }
+
+  function workingSource(base: string): { rel: string; source: TranscriptSource } | null {
+    if (has(sttRel(base, "화자분리.txt"))) return { rel: sttRel(base, "화자분리.txt"), source: "diarized" };
+    if (has(txtRel(base))) return { rel: txtRel(base), source: "corrected" };
+    if (has(sttRel(base, "tr.txt"))) return { rel: sttRel(base, "tr.txt"), source: "raw" };
+    return null;
+  }
+
+  /** GET /api/recordings/:base/transcript */
+  async function getTranscript(baseParam: string): Promise<TranscriptResponse> {
+    const base = assertValidBase(baseParam);
+    const src = workingSource(base);
+    if (!src) throw new RecordingError(404, "noTranscript", "아직 전사본이 없습니다. 전사가 끝난 뒤 다시 시도하세요.");
+    const text = await vault.read(src.rel);
+    return { text, source: src.source, mtime: statSync(abs(src.rel)).mtimeMs };
+  }
+
+  /** PUT /api/recordings/:base/transcript `{text, mtime}` — 현재 작업 파일을 덮어쓴다(atomic). */
+  async function putTranscript(baseParam: string, body: Partial<TranscriptPutRequest>): Promise<TranscriptResponse> {
+    const base = assertValidBase(baseParam);
+    if (typeof body.text !== "string" || typeof body.mtime !== "number" || !Number.isFinite(body.mtime)) {
+      throw new RecordingError(400, "badBody", "text(문자열)와 mtime(숫자)이 필요합니다.");
+    }
+    const { text, mtime } = body as TranscriptPutRequest;
+    return withBase(base, async () => {
+      if (isLinked(base)) {
+        throw new RecordingError(409, "linked", "메모에 연결된 녹음입니다. 전사는 메모의 음성 기록 탭에서 고치세요.");
+      }
+      await assertNoRunningJob(base);
+      const src = workingSource(base);
+      if (!src) throw new RecordingError(404, "noTranscript", "아직 전사본이 없습니다. 전사가 끝난 뒤 다시 시도하세요.");
+      if (src.source === "raw") {
+        throw new RecordingError(409, "rawReadonly", "초벌 전사는 고칠 수 없습니다. 화자분리를 먼저 실행하세요.");
+      }
+      const cur = statSync(abs(src.rel)).mtimeMs;
+      if (cur !== mtime) {
+        const err = new RecordingError(409, "conflict", "다른 곳에서 전사본이 바뀌었습니다. 새로 불러온 뒤 다시 고치세요.");
+        err.extra = { mtime: cur };
+        throw err;
+      }
+      const meta = await vault.write(src.rel, text);
+      return { text, source: src.source, mtime: meta.mtime };
+    });
+  }
+
+  // ── 교정 완료 ─────────────────────────────────────────────────────────────
+
+  const COMPLETE_CLEANUP = [
+    "diar.tsv",
+    "corrections.json",
+    "corrections.partial.json",
+    "anchored.json",
+    "normalize.log",
+    "review.json",
+    "화자분리.txt", // 마지막 — 중간 실패 시 작업 파일이 남아 재시도 가능
+  ];
+
+  /** POST /api/recordings/:base/complete — 화자분리.txt → _audio/<base>.txt, 중간물 정리. tr.json·done·meta.json 유지. */
+  async function complete(baseParam: string): Promise<TranscriptResponse> {
+    const base = assertValidBase(baseParam);
+    return withBase(base, async () => {
+      if (isLinked(base)) {
+        throw new RecordingError(409, "linked", "이미 메모에 연결된 녹음입니다.");
+      }
+      await assertNoRunningJob(base);
+      if (!has(sttRel(base, "화자분리.txt"))) {
+        throw new RecordingError(409, "notDiarized", "화자분리가 아직 없습니다. 화자분리를 먼저 실행하세요.");
+      }
+      const text = await vault.read(sttRel(base, "화자분리.txt"));
+      const meta = await vault.write(txtRel(base), text);
+      // 옛 초벌 승격 마커가 남아 있으면 지워야 파이프라인이 교정본이 된다.
+      if (has(sttRel(base, "raw-promoted"))) await vault.delete(sttRel(base, "raw-promoted"));
+      for (const f of COMPLETE_CLEANUP) {
+        if (has(sttRel(base, f))) await vault.delete(sttRel(base, f));
+      }
+      return { text, source: "corrected" as const, mtime: meta.mtime };
+    });
+  }
+
+  // ── 교정 후보 리뷰 상태 (D-R7) ───────────────────────────────────────────
+
+  const DECISIONS: readonly ReviewDecision[] = ["accepted", "kept", "edited"];
+
+  function toReviewItem(x: unknown): ReviewItem | null {
+    if (!x || typeof x !== "object") return null;
+    const o = x as Record<string, unknown>;
+    if (typeof o.id !== "number") return null;
+    const it: ReviewItem = {
+      id: o.id,
+      t: typeof o.t === "number" ? o.t : 0,
+      type: typeof o.type === "string" ? o.type : "A",
+      orig: typeof o.orig === "string" ? o.orig : "",
+      sugg: typeof o.sugg === "string" ? o.sugg : "",
+    };
+    if (typeof o.conf === "string") it.conf = o.conf;
+    if (Array.isArray(o.hl) && o.hl.length >= 2 && o.hl.every((h) => typeof h === "string")) {
+      it.hl = [o.hl[0] as string, o.hl[1] as string];
+    }
+    if (typeof o.note === "string") it.note = o.note;
+    if (o.global === true) it.global = true;
+    return it;
+  }
+
+  async function readReview(base: string): Promise<ReviewResponse> {
+    const raw = await readJson<unknown>(sttRel(base, "anchored.json"));
+    const items = Array.isArray(raw) ? raw.map(toReviewItem).filter((x): x is ReviewItem => x !== null) : [];
+    const ids = new Set(items.map((it) => String(it.id)));
+    const stored = await readJson<{ decisions?: Record<string, unknown> }>(sttRel(base, "review.json"));
+    const decisions: Record<string, ReviewDecision> = {};
+    for (const [k, v] of Object.entries(stored?.decisions ?? {})) {
+      if (ids.has(k) && DECISIONS.includes(v as ReviewDecision)) decisions[k] = v as ReviewDecision;
+    }
+    return { items, decisions };
+  }
+
+  /** GET /api/recordings/:base/review */
+  async function getReview(baseParam: string): Promise<ReviewResponse> {
+    return readReview(assertValidBase(baseParam));
+  }
+
+  /** POST /api/recordings/:base/review `{id, decision}` — 결정 1건 기록 (텍스트 치환은 클라가 PUT transcript 로). */
+  async function postReview(baseParam: string, body: { id?: unknown; decision?: unknown }): Promise<ReviewResponse> {
+    const base = assertValidBase(baseParam);
+    const id = typeof body.id === "number" ? body.id : typeof body.id === "string" ? Number(body.id) : NaN;
+    if (!Number.isInteger(id)) throw new RecordingError(400, "badId", "후보 id 가 잘못됐습니다.");
+    if (!DECISIONS.includes(body.decision as ReviewDecision)) {
+      throw new RecordingError(400, "badDecision", "decision 은 accepted·kept·edited 중 하나여야 합니다.");
+    }
+    return withBase(base, async () => {
+      const cur = await readReview(base);
+      if (!cur.items.some((it) => it.id === id)) {
+        throw new RecordingError(404, "noItem", "해당 교정 후보가 없습니다. 목록을 새로 불러오세요.");
+      }
+      const decisions = { ...cur.decisions, [String(id)]: body.decision as ReviewDecision };
+      await vault.write(sttRel(base, "review.json"), JSON.stringify({ decisions }, null, 2) + "\n");
+      return { items: cur.items, decisions };
+    });
+  }
+
+  return {
+    list,
+    audio,
+    link,
+    unlink,
+    diarize,
+    corrections,
+    remove,
+    getTranscript,
+    putTranscript,
+    complete,
+    getReview,
+    postReview,
+  };
 }
 
 export type Recordings = ReturnType<typeof createRecordings>;
+
+// ── firstLine (순수) ─────────────────────────────────────────────────────────
+
+function readHead(absPath: string, bytes: number): string | null {
+  let fd: number;
+  try {
+    fd = openSync(absPath, "r");
+  } catch {
+    return null;
+  }
+  try {
+    const buf = Buffer.alloc(bytes);
+    const n = readSync(fd, buf, 0, bytes, 0);
+    // 잘린 멀티바이트 끝은 U+FFFD 로 디코드됨 — 첫 발화만 쓰므로 무해.
+    return buf.subarray(0, n).toString("utf8");
+  } catch {
+    return null;
+  } finally {
+    closeSync(fd);
+  }
+}
+
+const TS = String.raw`\d{1,2}:\d{2}(?::\d{2})?`;
+// 화자분리 형식 `[mm:ss] 이름: 발화`
+const DIAR_PREFIX = new RegExp(String.raw`^\[${TS}\]\s*(?:[^:\n]{1,40}:\s*)?`);
+// 옛 사이드카 형식 헤더 줄 `mm:ss 이름` (발화는 다음 줄) — 이름 1~3 단어, 콜론 없음
+const OLD_HEADER = new RegExp(String.raw`^${TS}\s+[^\s:]+(?:\s+[^\s:]+){0,2}\s*$`);
+// 같은 줄 `mm:ss 이름: 발화`
+const INLINE_PREFIX = new RegExp(String.raw`^${TS}\s+[^:\n]{1,40}:\s*`);
+
+export const FIRST_LINE_MAX = 60;
+
+/** 작업 파일 앞부분 → 첫 발화 한 줄 (타임스탬프·화자 접두 제거, ≈60자). 없으면 null. */
+export function extractFirstLine(head: string): string | null {
+  for (const rawLine of head.split(/\r?\n/)) {
+    let line = rawLine.trim();
+    if (line === "" || line.startsWith("#") || line === "---") continue;
+    if (OLD_HEADER.test(line)) continue;
+    line = line.replace(DIAR_PREFIX, "").replace(INLINE_PREFIX, "").replace(/\uFFFD+$/, "").trim();
+    if (line === "") continue;
+    const chars = Array.from(line);
+    return chars.length > FIRST_LINE_MAX ? chars.slice(0, FIRST_LINE_MAX).join("").trimEnd() + "…" : line;
+  }
+  return null;
+}
 
 // ── HTTP 라우팅 (server/index.ts 가 위임) ────────────────────────────────────
 
@@ -903,6 +1243,18 @@ function jsonRes(data: unknown, status = 200): Response {
     status,
     headers: { "content-type": "application/json; charset=utf-8" },
   });
+}
+
+/** 빈 본문 = {} (corrections·complete 는 옵션 없이 호출 가능). 객체가 아니면 400. */
+async function readBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const text = await req.text();
+    const body = (text.trim() === "" ? {} : JSON.parse(text)) as unknown;
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("not an object");
+    return body as Record<string, unknown>;
+  } catch {
+    throw new RecordingError(400, "badBody", "잘못된 요청 본문(JSON 파싱 실패)");
+  }
 }
 
 /** `/api/recordings*` · `/api/audio` 면 Response, 아니면 null. */
@@ -916,34 +1268,42 @@ export async function handleRecordingsApi(req: Request, url: URL, rec: Recording
       const known = new Set((url.searchParams.get("known") ?? "").split(",").map((s) => s.trim()).filter(Boolean));
       return jsonRes(await rec.list(known));
     }
-    const m = /^\/api\/recordings\/([^/]+)\/(link|unlink|archive|unarchive|diarize|corrections)$/.exec(pathname);
-    if (m && req.method === "POST") {
-      let base: string;
-      try {
-        base = decodeURIComponent(m[1]);
-      } catch {
-        throw new RecordingError(400, "badBase", "잘못된 녹음 이름입니다.");
+    if (pathname === "/api/recordings/delete" && req.method === "POST") {
+      return jsonRes(await rec.remove((await readBody(req)) as Partial<DeleteRequest>));
+    }
+    const m = /^\/api\/recordings\/([^/]+)\/(link|unlink|diarize|corrections|transcript|complete|review)$/.exec(pathname);
+    if (!m) return null;
+    let base: string;
+    try {
+      base = decodeURIComponent(m[1]);
+    } catch {
+      throw new RecordingError(400, "badBase", "잘못된 녹음 이름입니다.");
+    }
+    const action = m[2];
+    if (req.method === "GET") {
+      if (action === "transcript") return jsonRes(await rec.getTranscript(base));
+      if (action === "review") return jsonRes(await rec.getReview(base));
+      return null;
+    }
+    if (req.method === "PUT") {
+      if (action === "transcript") {
+        return jsonRes(await rec.putTranscript(base, (await readBody(req)) as Partial<TranscriptPutRequest>));
       }
-      const action = m[2];
-      if (action === "archive") return jsonRes(await rec.archive(base));
-      if (action === "unarchive") return jsonRes(await rec.unarchive(base));
-      let body: Record<string, unknown> = {};
-      try {
-        // 빈 본문 = {} (corrections 는 옵션 없이 호출 가능).
-        const text = await req.text();
-        body = (text.trim() === "" ? {} : JSON.parse(text)) as Record<string, unknown>;
-        if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("not an object");
-      } catch {
-        throw new RecordingError(400, "badBody", "잘못된 요청 본문(JSON 파싱 실패)");
-      }
+      return null;
+    }
+    if (req.method === "POST") {
+      if (action === "transcript") return null;
+      const body = await readBody(req);
       if (action === "link") return jsonRes(await rec.link(base, body as LinkRequest));
       if (action === "diarize") return jsonRes(await rec.diarize(base, body as Partial<DiarizeRequest>), 202);
       if (action === "corrections") return jsonRes(await rec.corrections(base, body as CorrectionsRequest), 202);
+      if (action === "complete") return jsonRes(await rec.complete(base));
+      if (action === "review") return jsonRes(await rec.postReview(base, body));
       return jsonRes(await rec.unlink(base, body as { memo?: string }));
     }
     return null;
   } catch (e) {
-    if (e instanceof RecordingError) return jsonRes({ error: e.message, code: e.code }, e.status);
+    if (e instanceof RecordingError) return jsonRes({ ...e.extra, error: e.message, code: e.code }, e.status);
     if (e instanceof TitleConflictError) {
       return jsonRes({ error: "같은 제목의 메모가 이미 있습니다. 다른 제목을 입력하세요.", code: "titleConflict", path: e.path }, 409);
     }

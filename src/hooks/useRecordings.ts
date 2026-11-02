@@ -1,13 +1,11 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
-  archiveRecording,
   correctionsRecording,
   diarizeRecording,
   linkRecording,
   listRecordings,
   readRecordingTranscript,
-  unarchiveRecording,
   unlinkRecording,
   type LinkResponse,
   type RecordingEntry,
@@ -205,18 +203,4 @@ export function useCorrectionsRecording() {
   });
 }
 
-export function useArchiveRecording() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (base: string) => archiveRecording(base),
-    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
-  });
-}
 
-export function useUnarchiveRecording() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (base: string) => unarchiveRecording(base),
-    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
-  });
-}

@@ -89,17 +89,16 @@ export function anyProcessing(entries: readonly RecordingEntry[] | undefined): b
 
 // ── 사이드바 그룹 (행선지 축) ────────────────────────────────────────────────
 
-export type GroupId = "undecided" | "linked" | "trash" | "archived" | "transcriptMissing";
+export type GroupId = "undecided" | "linked" | "trash" | "transcriptMissing";
 
 export const GROUP_LABELS: Record<GroupId, string> = {
   undecided: "미정",
   linked: "연결됨",
   trash: "휴지통",
-  archived: "보관됨",
   transcriptMissing: "전사본 없음",
 };
 
-const GROUP_ORDER: GroupId[] = ["undecided", "linked", "trash", "archived", "transcriptMissing"];
+const GROUP_ORDER: GroupId[] = ["undecided", "linked", "trash", "transcriptMissing"];
 
 export function destinationGroup(d: Destination): GroupId {
   return d === "moveIncomplete" ? "linked" : d;

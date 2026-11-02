@@ -10,18 +10,25 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, utimesSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { VaultCore } from "./vaultCore.ts";
 import { coreAdapter } from "./coreAdapter.ts";
-import { createRecordings, handleRecordingsApi, type Recordings, type RecordingsDeps } from "./recordings.ts";
+import {
+  createRecordings,
+  extractFirstLine,
+  handleRecordingsApi,
+  type Recordings,
+  type RecordingsDeps,
+} from "./recordings.ts";
 import { updateMeeting } from "../src/api/meetings.ts";
 import { parseVaultFile } from "../src/lib/vault/parser.ts";
 
 let root: string;
+let trash: string; // ⚠️ 실제 ~/.Trash 금지 — 매 테스트 tmp 주입
 let vault: VaultCore;
 let rec: Recordings;
 let probeCalls: string[];
@@ -54,18 +61,22 @@ function make(extra: Partial<RecordingsDeps> = {}) {
     spawnJob: () => {
       throw new Error("spawnJob not stubbed");
     },
+    trashDir: trash,
+    now: () => new Date(2026, 10, 2, 9, 5, 7),
     ...extra,
   });
 }
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), "recordings-test-"));
+  trash = mkdtempSync(join(tmpdir(), "recordings-trash-"));
   vault = new VaultCore({ root, git: false });
   probeCalls = [];
   rec = make();
 });
 afterEach(() => {
   rmSync(root, { recursive: true, force: true });
+  rmSync(trash, { recursive: true, force: true });
 });
 
 const B1 = "20261028-1300";
@@ -155,25 +166,69 @@ describe("link — 이사 ①~④", () => {
     await expect(rec.link(B1, { memo: "work/다른.md" })).rejects.toMatchObject({ status: 409, code: "alreadyMoved" });
   });
 
-  it("초벌 전사에서 바로 연결 — tr.txt 승격 + raw-promoted + moved.raw", async () => {
+  it("D-R1 초벌만(tr.txt + done) → 409 notCorrected, 승격·마커·메모 무변경", async () => {
     seedMemo();
     w(`_audio/${B1}.m4a`, "x");
     w(`_audio/.stt/${B1}/done`);
     w(`_audio/.stt/${B1}/tr.txt`, "whisper 초벌");
+    const before = r(MEMO);
+    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ status: 409, code: "notCorrected" });
+    expect(r(MEMO)).toBe(before);
+    expect(ex("work/회의.transcript.md")).toBe(false);
+    expect(ex(`_audio/.stt/${B1}/raw-promoted`)).toBe(false);
+    expect(ex(`_audio/${B1}.txt`)).toBe(false);
+    expect(ex(`_audio/.stt/${B1}/moved.json`)).toBe(false);
+  });
+
+  it("D-R1 newMemo 도 초벌이면 409 — 메모를 만들지 않음", async () => {
+    w(`_audio/${B1}.m4a`, "x");
+    w(`_audio/.stt/${B1}/done`);
+    w(`_audio/.stt/${B1}/tr.txt`, "whisper 초벌");
+    await expect(rec.link(B1, { newMemo: { title: "새 회의", folder: "work" } })).rejects.toMatchObject({
+      status: 409,
+      code: "notCorrected",
+    });
+    expect(ex("work/새 회의.md")).toBe(false);
+  });
+
+  it("D-R1 화자분리 작업 중(txt 있어도 화자분리.txt 있음) · 옛 raw-promoted txt → 409 notCorrected", async () => {
+    seedMemo();
+    w(`_audio/${B1}.txt`, "옛 교정본");
+    w(`_audio/.stt/${B1}/화자분리.txt`, "[00:00] 화자1: 작업 중");
+    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ code: "notCorrected" });
+    rmSync(join(root, `_audio/.stt/${B1}/화자분리.txt`));
+    w(`_audio/.stt/${B1}/raw-promoted`);
+    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ code: "notCorrected" });
+  });
+
+  it("D-R1 교정 완료(complete) 후 연결 — 교정본이 메모로, raw=false", async () => {
+    seedMemo();
+    w(`_audio/${B1}.m4a`, "x");
+    w(`_audio/.stt/${B1}/done`);
+    w(`_audio/.stt/${B1}/tr.txt`, "초벌");
+    w(`_audio/.stt/${B1}/화자분리.txt`, "[00:00] 함창수: 고친 문장\n");
+    await rec.complete(B1);
     const res = await rec.link(B1, { memo: MEMO });
-    expect(res.raw).toBe(true);
-    expect(r("work/회의.transcript.md")).toContain("whisper 초벌");
-    expect(ex(`_audio/.stt/${B1}/raw-promoted`)).toBe(true);
-    expect(JSON.parse(r(`_audio/.stt/${B1}/moved.json`)).raw).toBe(true);
+    expect(res.raw).toBe(false);
+    expect(r("work/회의.transcript.md")).toContain("[00:00] 함창수: 고친 문장");
+    expect(JSON.parse(r(`_audio/.stt/${B1}/moved.json`)).raw).toBe(false);
     expect(ex(`_audio/${B1}.txt`)).toBe(false);
   });
 
-  it("전사본 원천 없음(done 없음) → 409, 메모 무변경", async () => {
+  it("처리 중 job 이 있으면 link 409 jobRunning", async () => {
+    rec = make({ pidAlive: () => true, procStart: () => "L" });
+    seedMemo();
+    w(`_audio/${B1}.txt`, "교정본");
+    w(`_audio/.stt/${B1}/job.json`, JSON.stringify({ state: "running", pid: 5, lstart: "L" }));
+    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ status: 409, code: "jobRunning" });
+  });
+
+  it("전사본 원천 없음(done 없음) → 409 notCorrected, 메모 무변경", async () => {
     seedMemo();
     w(`_audio/${B1}.m4a`, "x");
     w(`_audio/.stt/${B1}/tr.json`, "{}"); // 실패 잔재
     const before = r(MEMO);
-    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ status: 409, code: "noTranscript" });
+    await expect(rec.link(B1, { memo: MEMO })).rejects.toMatchObject({ status: 409, code: "notCorrected" });
     expect(r(MEMO)).toBe(before);
     expect(ex("work/회의.transcript.md")).toBe(false);
   });
@@ -303,28 +358,17 @@ describe("unlink — 되돌리기", () => {
   });
 });
 
-describe("archive / unarchive", () => {
-  it("보관 = archived 마커, 초벌만 있으면 tr.txt → _audio/<base>.txt + raw-promoted", async () => {
-    w(`_audio/${B1}.m4a`, "x");
-    w(`_audio/.stt/${B1}/done`);
-    w(`_audio/.stt/${B1}/tr.txt`, "초벌");
-    const res = await rec.archive(B1);
-    expect(res.raw).toBe(true);
-    expect(ex(`_audio/.stt/${B1}/archived`)).toBe(true);
-    expect(r(`_audio/${B1}.txt`)).toBe("초벌");
-    expect(ex(`_audio/.stt/${B1}/raw-promoted`)).toBe(true);
-    await rec.unarchive(B1);
-    expect(ex(`_audio/.stt/${B1}/archived`)).toBe(false);
-    expect(ex(`_audio/${B1}.txt`)).toBe(true);
-  });
-
-  it("교정본(txt) 있으면 txt 무변경", async () => {
+describe("archive 제거 (D-R3)", () => {
+  it("archive·unarchive 라우트 없음 (null = 다른 핸들러로), archived 마커는 무시", async () => {
     w(`_audio/${B1}.txt`, "교정본");
-    w(`_audio/.stt/${B1}/tr.txt`, "초벌");
-    w(`_audio/.stt/${B1}/done`);
-    const res = await rec.archive(B1);
-    expect(res.raw).toBe(false);
-    expect(r(`_audio/${B1}.txt`)).toBe("교정본");
+    w(`_audio/.stt/${B1}/archived`);
+    for (const action of ["archive", "unarchive"]) {
+      const req = new Request(`http://x/api/recordings/${B1}/${action}`, { method: "POST" });
+      expect(await handleRecordingsApi(req, new URL(req.url), rec)).toBeNull();
+    }
+    expect("archive" in rec).toBe(false);
+    const { recordings } = await rec.list();
+    expect("archived" in recordings[0].stt).toBe(false);
   });
 });
 
@@ -337,7 +381,7 @@ describe("GET /api/recordings — 목록", () => {
     w(`_audio/.DS_Store`, "");
     w(`_audio/.stt/imported-voicememos.txt`, "x"); // 파일 — 무시
     w(`_audio/.stt/${B1}/done`);
-    w(`_audio/.stt/${B1}/archived`);
+    w(`_audio/.stt/${B1}/archived`); // 옛 마커 — 무시
     w(`_audio/.stt/${B1}/화자분리.txt`, "x");
     w(`_audio/.stt/${B1}/job.json`, JSON.stringify({ state: "running", pid: 999999, step: "diarize" }));
     w(`_audio/.stt/orphan-dir-only/done`); // .stt 디렉터리만 있는 잔재 — 목록 대상 아님
@@ -347,7 +391,7 @@ describe("GET /api/recordings — 목록", () => {
     const e1 = recordings[0];
     expect(e1.hasM4a).toBe(true);
     expect(e1.hasTxt).toBe(false);
-    expect(e1.stt).toEqual({ done: true, archived: true, moved: false, rawPromoted: false, anchored: false, diarized: true });
+    expect(e1.stt).toEqual({ done: true, moved: false, rawPromoted: false, anchored: false, diarized: true, reviewLeft: 0 });
     // running 인데 pid 사망 → 목록 조회가 interrupted 로 갱신 (PR2)
     expect(e1.job).toEqual({ state: "error", pidAlive: false, step: "diarize", error: "interrupted" });
     expect(e1.durationSec).toBe(61.5);
@@ -690,6 +734,289 @@ describe("job 생존 판정 (목록 조회 시)", () => {
     const { recordings } = await rec.list();
     expect(recordings[0].job).toEqual({ state: "done", pidAlive: false, step: "done", error: undefined, kind: "corrections", anchorMisses: 3 });
     expect(checked).toBe(0);
+  });
+});
+
+// ── 개편: 삭제 · firstLine · 작업 파일 · 교정 완료 · 리뷰 ──────────────────
+
+const S1 = (f: string) => `_audio/.stt/${B1}/${f}`;
+const STAMP = "20261102-090507";
+
+async function api(method: string, path: string, body?: unknown, rr: Recordings = rec) {
+  const req = new Request(`http://x${path}`, {
+    method,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const res = (await handleRecordingsApi(req, new URL(req.url), rr))!;
+  return { status: res.status, body: (await res.json()) as Record<string, unknown> & { code?: string } };
+}
+
+describe("POST /api/recordings/delete (D-R4)", () => {
+  it("미연결 — m4a·txt·.stt/<base>/ 를 휴지통 <base>-<stamp>/ 로, imported-voicememos.txt 무변경", async () => {
+    w(`_audio/${B1}.m4a`, "audio");
+    w(`_audio/${B1}.txt`, "교정본");
+    w(S1("done"));
+    w(S1("tr.txt"), "초벌");
+    w(`_audio/.stt/imported-voicememos.txt`, "목록");
+    w(`_audio/${B2}.m4a`, "다른 녹음");
+
+    const res = await api("POST", "/api/recordings/delete", { bases: [B1] });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ deleted: [B1], failed: [] });
+
+    const dir = join(trash, `${B1}-${STAMP}`);
+    expect(readdirSync(dir).sort()).toEqual([`${B1}.m4a`, `${B1}.txt`, "stt"].sort());
+    expect(readFileSync(join(dir, `${B1}.m4a`), "utf8")).toBe("audio");
+    expect(readFileSync(join(dir, "stt/tr.txt"), "utf8")).toBe("초벌");
+    expect(ex(`_audio/${B1}.m4a`)).toBe(false);
+    expect(ex(`_audio/${B1}.txt`)).toBe(false);
+    expect(ex(`_audio/.stt/${B1}`)).toBe(false);
+    expect(r(`_audio/.stt/imported-voicememos.txt`)).toBe("목록");
+    expect(ex(`_audio/${B2}.m4a`)).toBe(true);
+  });
+
+  it("연결됨 — 오디오·.stt 만 옮기고 메모·사이드카 전사는 그대로", async () => {
+    seedMemo();
+    w(`_audio/${B1}.m4a`, "audio");
+    w(`_audio/${B1}.txt`, "교정본");
+    await rec.link(B1, { memo: MEMO });
+    const memoBefore = r(MEMO);
+    const sideBefore = r("work/회의.transcript.md");
+
+    const res = await rec.remove({ bases: [B1] });
+    expect(res.deleted).toEqual([B1]);
+    const dir = join(trash, `${B1}-${STAMP}`);
+    expect(readdirSync(dir).sort()).toEqual([`${B1}.m4a`, "stt"].sort());
+    expect(existsSync(join(dir, "stt/moved.json"))).toBe(true);
+    expect(r(MEMO)).toBe(memoBefore);
+    expect(r("work/회의.transcript.md")).toBe(sideBefore);
+  });
+
+  it("txt 만 있는 옛 결과(m4a 없음)도 삭제, 같은 초에 두 번이면 -2 접미사", async () => {
+    w(`_audio/${B1}.txt`, "옛 전사본");
+    await rec.remove({ bases: [B1] });
+    w(`_audio/${B1}.txt`, "다시 생김");
+    await rec.remove({ bases: [B1] });
+    expect(readFileSync(join(trash, `${B1}-${STAMP}`, `${B1}.txt`), "utf8")).toBe("옛 전사본");
+    expect(readFileSync(join(trash, `${B1}-${STAMP}-2`, `${B1}.txt`), "utf8")).toBe("다시 생김");
+  });
+
+  it("처리 중 job → 그 항목만 409 jobRunning 으로 실패, 나머지는 삭제 · 없는 녹음 · 잘못된 이름", async () => {
+    rec = make({ pidAlive: (pid) => pid === 9, procStart: () => "L9" });
+    w(`_audio/${B1}.m4a`, "a");
+    w(S1("job.json"), JSON.stringify({ state: "running", pid: 9, lstart: "L9" }));
+    w(`_audio/${B2}.m4a`, "b");
+    const res = await rec.remove({ bases: [B1, B2, "없음", "../x"] });
+    expect(res.deleted).toEqual([B2]);
+    expect(res.failed.map((f) => [f.base, f.code])).toEqual([
+      [B1, "jobRunning"],
+      ["없음", "noRecording"],
+      ["../x", "badBase"],
+    ]);
+    expect(ex(`_audio/${B1}.m4a`)).toBe(true);
+    expect(ex(`_audio/${B2}.m4a`)).toBe(false);
+  });
+
+  it("bases 누락·빈 배열 → 400", async () => {
+    expect((await api("POST", "/api/recordings/delete", {})).status).toBe(400);
+    expect((await api("POST", "/api/recordings/delete", { bases: [] })).status).toBe(400);
+  });
+});
+
+describe("firstLine", () => {
+  it.each([
+    ["화자분리 형식", "[00:00] 함창수: 안녕하세요 시작합니다\n\n[00:05] 정진용: 네\n", "안녕하세요 시작합니다"],
+    ["옛 사이드카 형식 (헤더 줄 다음 발화)", "00:04 정진용교수님\n진짜 이제 AI 해야 될 것 같은데\n", "진짜 이제 AI 해야 될 것 같은데"],
+    ["mm:ss 이름: 발화 같은 줄", "01:02:03 함창수: 길게 말함\n", "길게 말함"],
+    ["평문 초벌", "\n잘 들려요? 면접을\n둘째 줄\n", "잘 들려요? 면접을"],
+    ["빈 발화 턴은 건너뜀", "[00:28] \n[00:30] 화자1: 다음\n", "다음"],
+    ["빈 파일", "\n\n", null],
+  ])("%s", (_n, head, want) => {
+    expect(extractFirstLine(head)).toBe(want);
+  });
+
+  it("60자 초과는 자르고 …", () => {
+    const long = "가".repeat(100);
+    expect(extractFirstLine(`[00:00] A: ${long}`)).toBe("가".repeat(60) + "…");
+  });
+
+  it("목록: 화자분리.txt > _audio/<base>.txt > tr.txt 우선, 없으면 null", async () => {
+    const B3 = "20261027-1004";
+    w(`_audio/${B1}.m4a`, "a");
+    w(S1("tr.txt"), "초벌 문장");
+    w(`_audio/${B1}.txt`, "00:01 함창수\n교정본 문장\n");
+    w(S1("화자분리.txt"), "[00:00] 화자1: 화자분리 문장\n");
+    w(`_audio/${B2}.m4a`, "a");
+    w(`_audio/.stt/${B2}/tr.txt`, "초벌만 있음");
+    w(`_audio/${B3}.m4a`, "a");
+    let by = Object.fromEntries((await rec.list()).recordings.map((e) => [e.base, e.firstLine]));
+    expect(by).toEqual({ [B1]: "화자분리 문장", [B2]: "초벌만 있음", [B3]: null });
+    rmSync(join(root, S1("화자분리.txt")));
+    by = Object.fromEntries((await rec.list()).recordings.map((e) => [e.base, e.firstLine]));
+    expect(by[B1]).toBe("교정본 문장");
+  });
+});
+
+describe("GET/PUT /api/recordings/:base/transcript", () => {
+  const T = `/api/recordings/${B1}/transcript`;
+
+  it("source 판정: raw → corrected → diarized, mtime 포함", async () => {
+    expect((await api("GET", T)).status).toBe(404);
+    w(S1("tr.txt"), "초벌");
+    expect((await api("GET", T)).body).toMatchObject({ text: "초벌", source: "raw" });
+    w(`_audio/${B1}.txt`, "교정본");
+    expect((await api("GET", T)).body).toMatchObject({ text: "교정본", source: "corrected" });
+    w(S1("화자분리.txt"), "[00:00] A: 화자분리");
+    const g = await api("GET", T);
+    expect(g.body).toMatchObject({ text: "[00:00] A: 화자분리", source: "diarized" });
+    expect(typeof g.body.mtime).toBe("number");
+  });
+
+  it("PUT 성공 — 현재 작업 파일(화자분리.txt)에 저장, 새 mtime 반환", async () => {
+    w(S1("tr.txt"), "초벌");
+    w(S1("화자분리.txt"), "[00:00] A: 오타");
+    const g = await api("GET", T);
+    const p = await api("PUT", T, { text: "[00:00] A: 고침", mtime: g.body.mtime });
+    expect(p.status).toBe(200);
+    expect(p.body).toMatchObject({ text: "[00:00] A: 고침", source: "diarized" });
+    expect(r(S1("화자분리.txt"))).toBe("[00:00] A: 고침");
+    expect(r(S1("tr.txt"))).toBe("초벌");
+    // 받은 mtime 으로 이어서 저장 가능
+    const p2 = await api("PUT", T, { text: "[00:00] A: 또 고침", mtime: p.body.mtime });
+    expect(p2.status).toBe(200);
+  });
+
+  it("교정본(_audio/<base>.txt)도 편집 가능", async () => {
+    w(`_audio/${B1}.txt`, "옛 교정본");
+    const g = await api("GET", T);
+    const p = await api("PUT", T, { text: "고친 교정본", mtime: g.body.mtime });
+    expect(p.body.source).toBe("corrected");
+    expect(r(`_audio/${B1}.txt`)).toBe("고친 교정본");
+  });
+
+  it("mtime 불일치 → 409 conflict + 현재 mtime, 파일 무변경", async () => {
+    w(S1("화자분리.txt"), "원본");
+    const g = await api("GET", T);
+    utimesSync(join(root, S1("화자분리.txt")), new Date(), new Date(Date.now() + 5000)); // 다른 곳에서 바뀜
+    const p = await api("PUT", T, { text: "덮어쓰기", mtime: g.body.mtime });
+    expect([p.status, p.body.code]).toEqual([409, "conflict"]);
+    expect(typeof p.body.mtime).toBe("number");
+    expect(p.body.mtime).not.toBe(g.body.mtime);
+    expect(r(S1("화자분리.txt"))).toBe("원본");
+  });
+
+  it("초벌만 → 409 rawReadonly", async () => {
+    w(S1("tr.txt"), "초벌");
+    const g = await api("GET", T);
+    const p = await api("PUT", T, { text: "x", mtime: g.body.mtime });
+    expect([p.status, p.body.code]).toEqual([409, "rawReadonly"]);
+    expect(r(S1("tr.txt"))).toBe("초벌");
+  });
+
+  it("연결됨 → 409 linked", async () => {
+    seedMemo();
+    w(`_audio/${B1}.txt`, "교정본");
+    w(S1("tr.txt"), "초벌");
+    await rec.link(B1, { memo: MEMO });
+    const p = await api("PUT", T, { text: "x", mtime: 0 });
+    expect([p.status, p.body.code]).toEqual([409, "linked"]);
+  });
+
+  it("본문 검증 400 · 처리 중 409 jobRunning", async () => {
+    w(S1("화자분리.txt"), "x");
+    expect((await api("PUT", T, { text: "x" })).status).toBe(400);
+    expect((await api("PUT", T, { mtime: 1 })).status).toBe(400);
+    const rr = make({ pidAlive: () => true, procStart: () => "L" });
+    w(S1("job.json"), JSON.stringify({ state: "running", pid: 3, lstart: "L" }));
+    const g = await api("GET", T, undefined, rr);
+    const p = await api("PUT", T, { text: "y", mtime: g.body.mtime }, rr);
+    expect([p.status, p.body.code]).toEqual([409, "jobRunning"]);
+  });
+});
+
+describe("POST /api/recordings/:base/complete", () => {
+  const C = `/api/recordings/${B1}/complete`;
+
+  it("화자분리.txt → _audio/<base>.txt, 중간물 정리, tr.json·done·meta.json 유지, 파이프라인 교정본", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    for (const f of ["tr.json", "done", "meta.json", "tr.txt", "diar.tsv", "corrections.json", "corrections.partial.json", "anchored.json", "normalize.log", "review.json"]) {
+      w(S1(f), f === "anchored.json" ? "[]" : f === "meta.json" ? JSON.stringify({ size: 1, durationSec: 1, codec: "aac", creationTime: null }) : "x");
+    }
+    w(S1("raw-promoted")); // 옛 마커도 정리
+    w(S1("화자분리.txt"), "[00:00] A: 최종본\n");
+    const res = await api("POST", C);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ text: "[00:00] A: 최종본\n", source: "corrected" });
+    expect(r(`_audio/${B1}.txt`)).toBe("[00:00] A: 최종본\n");
+    for (const f of ["diar.tsv", "corrections.json", "corrections.partial.json", "anchored.json", "normalize.log", "화자분리.txt", "review.json", "raw-promoted"]) {
+      expect(ex(S1(f)), f).toBe(false);
+    }
+    for (const f of ["tr.json", "done", "meta.json"]) expect(ex(S1(f)), f).toBe(true);
+    const e = (await rec.list()).recordings[0];
+    expect(e.stt).toMatchObject({ diarized: false, anchored: false, rawPromoted: false });
+    expect(e.hasTxt).toBe(true);
+    expect(e.firstLine).toBe("최종본");
+  });
+
+  it("화자분리 없음 → 409 notDiarized · 처리 중 → 409 jobRunning", async () => {
+    w(`_audio/${B1}.txt`, "교정본");
+    expect((await api("POST", C)).body.code).toBe("notDiarized");
+    w(S1("화자분리.txt"), "x");
+    const rr = make({ pidAlive: () => true, procStart: () => "L" });
+    w(S1("job.json"), JSON.stringify({ state: "running", pid: 3, lstart: "L" }));
+    expect((await api("POST", C, undefined, rr)).body.code).toBe("jobRunning");
+    expect(r(`_audio/${B1}.txt`)).toBe("교정본");
+  });
+});
+
+describe("GET/POST /api/recordings/:base/review", () => {
+  const R = `/api/recordings/${B1}/review`;
+  const anchored = [
+    { id: 1, t: 28, type: "A", conf: "높음", orig: "생막보다 잘 썼네", sugg: "생각보다 잘 썼네", hl: ["생막보다", "생각보다"] },
+    { id: 2, t: 148, type: "B", orig: "스리핀팅", sugg: "3D 프린팅", note: "확인", global: true, extra: "버림" },
+  ];
+
+  it("후보 없으면 빈 상태", async () => {
+    expect((await api("GET", R)).body).toEqual({ items: [], decisions: {} });
+  });
+
+  it("anchored 항목 + 결정 기록, review.json 저장, 목록 reviewLeft·파이프라인 연동", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S1("화자분리.txt"), "[00:00] A: x");
+    w(S1("anchored.json"), JSON.stringify(anchored));
+    const g = await api("GET", R);
+    expect(g.body.items).toEqual([
+      anchored[0],
+      { id: 2, t: 148, type: "B", orig: "스리핀팅", sugg: "3D 프린팅", note: "확인", global: true },
+    ]);
+    expect((await rec.list()).recordings[0].stt.reviewLeft).toBe(2);
+
+    const p = await api("POST", R, { id: 1, decision: "accepted" });
+    expect(p.body.decisions).toEqual({ "1": "accepted" });
+    expect(JSON.parse(r(S1("review.json")))).toEqual({ decisions: { "1": "accepted" } });
+    expect((await rec.list()).recordings[0].stt.reviewLeft).toBe(1);
+
+    await api("POST", R, { id: 2, decision: "kept" });
+    await api("POST", R, { id: 1, decision: "edited" }); // 결정 변경
+    expect((await api("GET", R)).body.decisions).toEqual({ "1": "edited", "2": "kept" });
+    expect((await rec.list()).recordings[0].stt.reviewLeft).toBe(0);
+  });
+
+  it("검증 — 잘못된 decision 400, 없는 id 404", async () => {
+    w(S1("anchored.json"), JSON.stringify(anchored));
+    expect((await api("POST", R, { id: 1, decision: "maybe" })).status).toBe(400);
+    expect((await api("POST", R, { id: "x", decision: "kept" })).status).toBe(400);
+    expect((await api("POST", R, { id: 99, decision: "kept" })).body.code).toBe("noItem");
+  });
+
+  it("새 화자분리 job 시작 시 이전 review.json 삭제", async () => {
+    w(`_audio/${B1}.m4a`, "a");
+    w(S1("tr.json"), "{}");
+    w(S1("done"));
+    w(S1("review.json"), JSON.stringify({ decisions: { "1": "kept" } }));
+    const rr = make({ spawnJob: () => ({ pid: 1 }) });
+    expect((await api("POST", `/api/recordings/${B1}/diarize`, { speakers: 2 }, rr)).status).toBe(202);
+    expect(ex(S1("review.json"))).toBe(false);
   });
 });
 

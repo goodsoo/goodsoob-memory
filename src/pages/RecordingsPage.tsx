@@ -17,12 +17,10 @@ import {
 } from "../components/recordings/recordingLabels";
 import { useMeetings, useRestoreMeeting } from "../hooks/useMeetings";
 import {
-  useArchiveRecording,
   useLinkRecording,
   useMoveRecording,
   useRecordings,
   useRecordingTranscript,
-  useUnarchiveRecording,
   useUnlinkRecording,
 } from "../hooks/useRecordings";
 import { formatDisplayDate } from "../lib/dates";
@@ -215,23 +213,19 @@ function DestinationPanel({
   const link = useLinkRecording();
   const unlink = useUnlinkRecording();
   const move = useMoveRecording();
-  const archive = useArchiveRecording();
-  const unarchive = useUnarchiveRecording();
   const restore = useRestoreMeeting();
   const [moving, setMoving] = useState(false);
   const busy =
-    link.isPending || unlink.isPending || move.isPending || archive.isPending || unarchive.isPending || restore.isPending;
+    link.isPending || unlink.isPending || move.isPending || restore.isPending;
 
   const fail = (err: unknown) => toast.show(recordingErrorMessage(err), { variant: "down" });
 
-  // 전사본이 아직 없으면 연결·보관 불가 (서버 409 noTranscript).
-  const hasTranscript = entry.hasTxt || entry.stt.moved || entry.stt.done;
+  // 교정 완료(파이프라인 교정본) 전엔 연결 불가 (D-R1, 서버 409 notCorrected).
+  const canLink = status.pipeline === "corrected" || (status.pipeline === "textOnly" && entry.hasTxt);
 
   async function linkTo(memoUid: string) {
     try {
       await link.link({ base: entry.base, memoUid });
-      // 보관됨에서 연결하면 archived 마커를 지워 두 값이 겹치지 않게 (해제 시 미정으로 돌아감).
-      if (entry.stt.archived) await unarchive.mutateAsync(entry.base).catch(() => undefined);
       const title = meetingsQ.data?.find((m) => m.uid === memoUid)?.title?.trim();
       toast.show(title ? `'${title}' 메모에 연결했습니다.` : "메모에 연결했습니다.", { variant: "ok" });
     } catch (err) {
@@ -242,17 +236,7 @@ function DestinationPanel({
   async function createMemo(title: string, folder: string) {
     try {
       const r = await link.link({ base: entry.base, newMemo: { title, folder } });
-      if (entry.stt.archived) await unarchive.mutateAsync(entry.base).catch(() => undefined);
       onOpenMeeting(r.meeting.uid);
-    } catch (err) {
-      fail(err);
-    }
-  }
-
-  async function doArchive() {
-    try {
-      await archive.mutateAsync(entry.base);
-      toast.show("전사본을 보관했습니다.", { variant: "ok" });
     } catch (err) {
       fail(err);
     }
@@ -366,43 +350,6 @@ function DestinationPanel({
     );
   }
 
-  // ── 보관됨 ──
-  if (status.destination === "archived") {
-    return (
-      <PanelSection title="행선지">
-        <Text variant="caption" color="muted" as="div">
-          전사본만 보관 중입니다.
-        </Text>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={busy}
-            onClick={() =>
-              unarchive.mutate(entry.base, {
-                onSuccess: () => toast.show("보관을 취소했습니다.", { variant: "ok" }),
-                onError: fail,
-              })
-            }
-          >
-            보관 취소
-          </Button>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setMoving((v) => !v)}>
-            메모에 연결
-          </Button>
-        </div>
-        {moving ? (
-          <MemoChooser
-            item={item}
-            memos={meetingsQ.data ?? []}
-            actionLabel="연결"
-            busy={busy}
-            onChoose={(uid) => void linkTo(uid)}
-          />
-        ) : null}
-      </PanelSection>
-    );
-  }
-
   // ── 미정 ──
   const orphanPath = typeof entry.orphan === "string" ? entry.orphan : null;
   return (
@@ -429,9 +376,9 @@ function DestinationPanel({
           <span className="break-all">{orphanPath}</span> 의 음성 기록에 이 녹음 섹션이 있습니다.
         </Alert>
       ) : null}
-      {!hasTranscript ? (
+      {!canLink ? (
         <Text variant="caption" color="muted" as="div">
-          전사가 끝나면 행선지를 정할 수 있습니다.
+          교정을 완료하면 메모에 연결할 수 있습니다.
         </Text>
       ) : (
         <UndecidedChooser
@@ -440,14 +387,13 @@ function DestinationPanel({
           busy={busy}
           onLink={(uid) => void linkTo(uid)}
           onCreate={(t, f) => void createMemo(t, f)}
-          onArchive={() => void doArchive()}
         />
       )}
     </PanelSection>
   );
 }
 
-type Mode = "existing" | "new" | "archive";
+type Mode = "existing" | "new";
 
 function UndecidedChooser({
   item,
@@ -455,14 +401,12 @@ function UndecidedChooser({
   busy,
   onLink,
   onCreate,
-  onArchive,
 }: {
   item: RecordingItem;
   memos: MemoRef[];
   busy: boolean;
   onLink: (uid: string) => void;
   onCreate: (title: string, folder: string) => void;
-  onArchive: () => void;
 }) {
   const [mode, setMode] = useState<Mode>("existing");
   const [title, setTitle] = useState("");
@@ -476,12 +420,11 @@ function UndecidedChooser({
         options={[
           { value: "existing", label: "기존 메모에 연결" },
           { value: "new", label: "새 메모로 만들기" },
-          { value: "archive", label: "전사만 보관" },
         ]}
       />
       {mode === "existing" ? (
         <MemoChooser item={item} memos={memos} actionLabel="연결" busy={busy} onChoose={onLink} />
-      ) : mode === "new" ? (
+      ) : (
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -503,15 +446,6 @@ function UndecidedChooser({
             만들기
           </Button>
         </form>
-      ) : (
-        <div className="space-y-3">
-          <Text variant="caption" color="muted" as="div">
-            메모 없이 전사본만 녹음 폴더에 남깁니다. 나중에 메모에 연결할 수 있습니다.
-          </Text>
-          <Button variant="primary" size="sm" disabled={busy} onClick={onArchive}>
-            보관
-          </Button>
-        </div>
       )}
     </div>
   );

@@ -17,7 +17,6 @@ function facts(over: Partial<Omit<RecordingFacts, "stt">> & { stt?: Partial<Reco
     trashed: false,
     stt: {
       done: false,
-      archived: false,
       moved: false,
       rawPromoted: false,
       anchored: false,
@@ -35,8 +34,6 @@ describe("행선지 축", () => {
     ["이사 미완료: moved.json 없음", facts({ linked: true }), "moveIncomplete"],
     ["휴지통", facts({ trashed: true, stt: { moved: true } }), "trash"],
     ["연결됨이 휴지통보다 우선", facts({ linked: true, trashed: true, stt: { moved: true } }), "linked"],
-    ["보관됨", facts({ hasTxt: true, stt: { archived: true } }), "archived"],
-    ["연결됨이 보관됨보다 우선", facts({ linked: true, stt: { archived: true, moved: true } }), "linked"],
     ["미정", facts({ stt: { done: true } }), "undecided"],
     ["미정: txt 만 있음", facts({ hasTxt: true }), "undecided"],
     ["moved.json 있고 고아 섹션 발견 -> 미정(복구 버튼)", facts({ stt: { moved: true }, orphanSectionFound: true }), "undecided"],
@@ -54,6 +51,8 @@ describe("파이프라인 축 (위에서부터 첫 일치)", () => {
     ["2 오류 (state=error)", facts({ job: { state: "error", pidAlive: false } }), "error"],
     ["2 오류 (pid 사망 감지)", facts({ job: { state: "running", pidAlive: false } }), "error"],
     ["3 리뷰 대기", facts({ stt: { anchored: true, diarized: true, done: true } }), "review"],
+    ["3 리뷰 대기 (남은 후보 2)", facts({ stt: { anchored: true, diarized: true, reviewLeft: 2 } }), "review"],
+    ["4 후보 전부 결정 → 교정 대기", facts({ stt: { anchored: true, diarized: true, reviewLeft: 0 } }), "correction"],
     ["4 교정 대기", facts({ stt: { diarized: true, done: true } }), "correction"],
     ["5 교정본 (txt)", facts({ hasTxt: true, stt: { done: true } }), "corrected"],
     ["5 교정본 (moved.json)", facts({ linked: true, stt: { moved: true, done: true } }), "corrected"],
@@ -73,7 +72,7 @@ describe("파이프라인 축 (위에서부터 첫 일치)", () => {
 });
 
 describe("countsTowardToday (오늘 블록 N)", () => {
-  const dests = ["linked", "moveIncomplete", "trash", "archived", "undecided", "transcriptMissing"] as const;
+  const dests = ["linked", "moveIncomplete", "trash", "undecided", "transcriptMissing"] as const;
   const pipes = ["textOnly", "processing", "error", "review", "correction", "corrected", "raw", "waiting"] as const;
 
   it("전 조합 표", () => {
@@ -99,6 +98,6 @@ describe("countsTowardToday (오늘 블록 N)", () => {
     expect(countsTowardToday(computeStatus(facts({ stt: { done: true } })))).toBe(true); // 미정+초벌
     expect(countsTowardToday(computeStatus(facts()))).toBe(false); // 미정+전사 대기
     expect(countsTowardToday(computeStatus(facts({ linked: true, stt: { moved: true, diarized: true } })))).toBe(true);
-    expect(countsTowardToday(computeStatus(facts({ stt: { archived: true, done: true } })))).toBe(false);
+    expect(countsTowardToday(computeStatus(facts({ linked: true, stt: { moved: true, done: true } })))).toBe(false); // 연결됨 교정본
   });
 });

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Mic } from "lucide-react";
+import { recordingHash } from "../../lib/recordings/hash";
 
 // 음성 기록 탭 옆 녹음 배지 — audio: 가 있을 때만. 1개면 바로 #recording-{base},
 // 2개 이상이면 작은 목록 popover.
 export function RecordingBadge({ audio }: { audio: readonly string[] }) {
   const [open, setOpen] = useState(false);
   if (audio.length === 0) return null;
-  const href = (b: string) => `#recording-${encodeURIComponent(b)}`;
+  const href = recordingHash;
   const btnStyle = {
     border: "1px solid var(--line)",
     color: "var(--ink)",

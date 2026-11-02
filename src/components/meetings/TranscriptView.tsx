@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Play, X } from "lucide-react";
 
 import { Text } from "../common/Text";
+import { recordingHash } from "../../lib/recordings/hash";
 
 // 음성 기록 보기 모드 — 읽기 전용 평문(pre-wrap, 마크다운 렌더 X) + 참석자별 색상 칩
 // + mm:ss 타임스탬프(회색 박스) 하이라이트. textarea 안에선 inline 색을 못 넣어 div 로
@@ -270,7 +271,7 @@ export function TranscriptView({
             <span className="font-semibold">
               {c.text}
               <a
-                href={`#recording-${encodeURIComponent(base)}`}
+                href={recordingHash(base)}
                 style={{ color: "var(--accent)", textDecoration: "underline" }}
                 title="녹음 탭에서 열기"
               >

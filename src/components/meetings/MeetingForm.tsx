@@ -42,7 +42,7 @@ import {
   type DocSnapshot,
   type MetaDoc,
 } from "./docPatch";
-import { docHistoryKey, registerDocReset } from "./docReset";
+import { docHistoryKey, registerDocFlush, registerDocReset } from "./docReset";
 import { createSaveRetryStore, isSaveErrorVisible, runSave } from "./saveRetry";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
@@ -254,6 +254,13 @@ export function MeetingForm({
       resetDoc(snap);
     });
   }, [uid, resetDoc]);
+
+  // 녹음 link·unlink 직전 호출 측이 flushMeetingDoc(uid) 로 pending 편집을 동기 commit.
+  const flushDoc = docHistory.flush;
+  useEffect(() => {
+    if (!uid) return;
+    return registerDocFlush(uid, () => flushDoc());
+  }, [uid, flushDoc]);
 
   const doc = docHistory.value;
   const body = doc.body;

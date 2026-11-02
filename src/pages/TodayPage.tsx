@@ -7,7 +7,10 @@ import {
   Plus,
   BookOpen,
   CornerUpLeft,
+  Mic,
+  ChevronRight,
 } from "lucide-react";
+import { useTodayRecordingCount } from "../hooks/useRecordings";
 import { Input } from "@goodsoob/ds";
 import { Button } from "../components/common/Button";
 import { Text } from "../components/common/Text";
@@ -41,6 +44,8 @@ type Props = {
   onOpenTask: (id: string) => void;
   // 새 노트 생성 + 자동 선택. App 이 root 폴더에 만들고 메모장 탭으로 이동.
   onCreateNote: () => void;
+  // "처리할 녹음 N개" 줄 클릭 → 녹음 탭.
+  onOpenRecordings: () => void;
 };
 
 // "이어서 쓸 노트" 표시 개수 (오늘 모드 전용).
@@ -57,8 +62,10 @@ export function TodayPage({
   onOpenMeeting,
   onOpenTask,
   onCreateNote,
+  onOpenRecordings,
 }: Props) {
   const today = todayIso();
+  const recordingCount = useTodayRecordingCount();
   const day = selectedDay;
   const isTodayView = day === today;
 
@@ -159,6 +166,16 @@ export function TodayPage({
         <div className="mx-auto w-full max-w-2xl px-5 py-6">
           {/* 제목(날짜)은 헤더가 표시 — 다른 날이면 헤더의 날짜가 곧 '오늘로' 복귀 버튼. */}
           <div className="space-y-7">
+            {/* 처리할 녹음 — 오늘 보기에서만, 0 이면 숨김 (countsTowardToday). */}
+            {isTodayView && recordingCount > 0 ? (
+              <Row onClick={onOpenRecordings}>
+                <Mic className="h-4 w-4 shrink-0" style={{ color: "var(--faint)" }} aria-hidden />
+                <Text variant="body" as="span" className="min-w-0 flex-1">
+                  처리할 녹음 <span className="tabular-nums">{recordingCount}</span>개
+                </Text>
+                <ChevronRight className="h-4 w-4 shrink-0" style={{ color: "var(--faint)" }} aria-hidden />
+              </Row>
+            ) : null}
             {/* 할 일 | 일정 */}
             <div className="grid grid-cols-1 gap-x-6 gap-y-7 sm:grid-cols-2">
               <Section

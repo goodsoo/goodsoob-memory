@@ -1021,7 +1021,7 @@ function SectionChildren({ children }: { children: ReactNode }) {
 
 // 캘린더 day panel 의 섹션 헤더 — 메모장 폴더 패턴 (chevron + 13px secondary 라벨) 차용.
 // 클릭 시 collapse. count 가 있으면 라벨 옆에 mono 숫자.
-function SidePanelSectionHeader({
+export function SidePanelSectionHeader({
   label,
   collapsed,
   onToggle,

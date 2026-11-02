@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 
-import { TranscriptView, matchHeadingBase } from "./TranscriptView";
+import { TranscriptView } from "./TranscriptView";
+import { matchHeadingBase } from "../../lib/recordings/turns";
 
 afterEach(() => {
   cleanup();

@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import { Play, X } from "lucide-react";
-import { Button } from "@goodsoob/ds";
+import { useMemo, useState } from "react";
 
 import { Text } from "../common/Text";
-import { recordingHash } from "../../lib/recordings/hash";
+import { matchHeadingBase } from "../../lib/recordings/turns";
+import { AudioSlot, SectionHeadingLabel } from "./SectionAudio";
 
 // 음성 기록 보기 모드 — 읽기 전용 평문(pre-wrap, 마크다운 렌더 X) + 참석자별 색상 칩
 // + mm:ss 타임스탬프(회색 박스) 하이라이트. textarea 안에선 inline 색을 못 넣어 div 로
@@ -19,25 +18,6 @@ interface Chunk {
   base?: string;
 }
 
-const SEP = " · ";
-
-// 헤딩 줄이면 일치하는 base (긴 것 우선), 아니면 null. 정규식 안 씀.
-export function matchHeadingBase(line: string, audio: readonly string[]): string | null {
-  if (!line.startsWith("## ")) return null;
-  let best: string | null = null;
-  for (const b of audio) {
-    if (!b) continue;
-    const tail = SEP + b;
-    if (
-      line.endsWith(tail) &&
-      line.length >= 3 + tail.length &&
-      (best === null || b.length > best.length)
-    ) {
-      best = b;
-    }
-  }
-  return best;
-}
 
 function splitChunks(transcript: string, audio: readonly string[]): Chunk[] {
   if (audio.length === 0) return [{ kind: "text", text: transcript }];
@@ -67,72 +47,6 @@ function splitChunks(transcript: string, audio: readonly string[]): Chunk[] {
   }
   if (buf) out.push({ kind: "text", text: buf });
   return out;
-}
-
-type AudioState = "loading" | "ok" | "missing" | "syncPending" | "error";
-
-export function audioUrl(base: string): string {
-  return `/api/audio?base=${encodeURIComponent(base)}`;
-}
-
-function AudioSlot({ base, onClose }: { base: string; onClose: () => void }) {
-  const [state, setState] = useState<AudioState>("loading");
-
-  // 재생 가능 여부를 Range 0-0 요청으로 먼저 확인 (404 / 503 syncPending 구분).
-  useEffect(() => {
-    let alive = true;
-    fetch(audioUrl(base), { headers: { Range: "bytes=0-0" } })
-      .then((res) => {
-        if (!alive) return;
-        if (res.status === 404) setState("missing");
-        else if (res.status === 503) setState("syncPending");
-        else if (res.ok) setState("ok");
-        else setState("error");
-      })
-      .catch(() => alive && setState("error"));
-    return () => {
-      alive = false;
-    };
-  }, [base]);
-
-  const msg =
-    state === "missing"
-      ? "녹음 파일 없음"
-      : state === "syncPending"
-        ? "동기화 대기 중입니다. 잠시 후 다시 시도하세요."
-        : state === "error"
-          ? "녹음을 불러오지 못했습니다. 다시 시도하세요."
-          : null;
-
-  return (
-    <div
-      className="flex items-center gap-2 my-1"
-      style={{ whiteSpace: "normal" }}
-      data-testid="section-audio"
-    >
-      {state === "ok" ? (
-        <audio controls autoPlay preload="metadata" src={audioUrl(base)} className="h-8 flex-1" />
-      ) : msg ? (
-        <Text variant="caption" color="muted">
-          {msg}
-        </Text>
-      ) : (
-        <Text variant="caption" color="muted">
-          불러오는 중
-        </Text>
-      )}
-      <Button
-        variant="ghost"
-        size="sm"
-        iconOnly
-        aria-label="플레이어 닫기"
-        title="닫기"
-        onClick={onClose}
-      >
-        <X size={14} />
-      </Button>
-    </div>
-  );
 }
 
 export function TranscriptView({
@@ -269,28 +183,12 @@ export function TranscriptView({
         const open = openBase === base;
         return (
           <span key={`h${ci}`}>
-            <span className="font-semibold">
-              {c.text}
-              <a
-                href={recordingHash(base)}
-                style={{ color: "var(--accent)", textDecoration: "underline" }}
-                title="녹음 탭에서 열기"
-              >
-                {base}
-              </a>
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              iconOnly
-              pressed={open}
-              aria-label={`${base} 녹음 재생`}
-              title="이 구간 녹음 재생"
-              onClick={() => setOpenBase(open ? null : base)}
-              className="ml-2 align-middle"
-            >
-              <Play size={12} />
-            </Button>
+            <SectionHeadingLabel
+              prefix={c.text}
+              base={base}
+              open={open}
+              onToggle={() => setOpenBase(open ? null : base)}
+            />
             {open ? <AudioSlot base={base} onClose={() => setOpenBase(null)} /> : null}
           </span>
         );

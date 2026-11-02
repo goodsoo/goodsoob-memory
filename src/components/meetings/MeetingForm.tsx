@@ -61,6 +61,7 @@ import { useVault } from "../../lib/vault/useVault";
 import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
 import { TranscriptView } from "./TranscriptView";
+import { TranscriptTurns } from "./TranscriptTurns";
 import { RecordingBadge } from "./RecordingBadge";
 import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
@@ -263,6 +264,9 @@ export function MeetingForm({
   }, [uid, flushDoc]);
 
   const doc = docHistory.value;
+  // 턴 화면 parse memo 의존성 — 매 렌더 새 배열이면 재파싱하므로 참조 고정.
+  const audioField = data?.audio;
+  const transcriptAudio = useMemo(() => audioField ?? [], [audioField]);
   const body = doc.body;
   const transcript = doc.transcript;
   const summary = doc.summary;
@@ -1451,10 +1455,21 @@ export function MeetingForm({
                 />
               ) : (
                 <div data-find-content>
-                  <TranscriptView
-                    transcript={transcript}
-                    attendees={meta.attendees}
-                    audio={data?.audio ?? []}
+                  {/* 보기 모드 = 화자별 턴 화면 (제자리 편집 가능, D-R6). 편집 모드 = 원문
+                      textarea (파워유저 raw 편집·업로드). 턴이 없는 평문은 기존 TranscriptView.
+                      턴 수정·화자 이름 변경은 discrete 편집 → immediate commit 1개 history entry. */}
+                  <TranscriptTurns
+                    key={`${meetingId}:turns`}
+                    text={transcript}
+                    audioBases={transcriptAudio}
+                    onChange={(v) => setDoc("transcript", { ...doc, transcript: v }, true)}
+                    renderPlain={() => (
+                      <TranscriptView
+                        transcript={transcript}
+                        attendees={meta.attendees}
+                        audio={transcriptAudio}
+                      />
+                    )}
                   />
                 </div>
               )}

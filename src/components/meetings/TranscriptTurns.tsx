@@ -464,9 +464,19 @@ export function TranscriptTurns({
               </Fragment>
             );
           }
+          // `# …` 한 단계 줄 = /transcribe 가 남긴 설명 줄(제목·화자·주의) → 회색 작은 글씨.
+          // `## …` 이상 = 녹음 아닌 섹션 제목. 둘 다 `#` 기호는 떼고 보여준다 (원문은 그대로).
+          const label = b.raw.replace(/^#{1,6} /, "");
+          if (/^# /.test(b.raw)) {
+            return (
+              <Text key={`h${bi}`} variant="caption" color="muted" as="div" style={{ userSelect: "text" }}>
+                {label}
+              </Text>
+            );
+          }
           return (
             <Text key={`h${bi}`} variant="h4" as="div" style={{ userSelect: "text" }}>
-              {b.raw}
+              {label}
             </Text>
           );
         }

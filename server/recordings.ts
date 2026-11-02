@@ -966,13 +966,17 @@ export function createRecordings(deps: RecordingsDeps) {
 
   // ── 삭제 (D-R4) ───────────────────────────────────────────────────────────
 
-  /** node:fs rename, 볼륨이 다르면(EXDEV) 복사 후 삭제. */
+  /**
+   * node:fs rename, 안 되면 복사 후 삭제. 볼륨이 다르면 EXDEV, iCloud Drive 안 **폴더**를
+   * 밖(~/.Trash)으로 rename 하면 EDEADLK 가 난다(파일은 통과 — 2026-11-02 실측, `.stt/<base>/`).
+   */
   function moveOut(src: string, dst: string): void {
     mkdirSync(join(dst, ".."), { recursive: true });
     try {
       renameSync(src, dst);
     } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== "EXDEV") throw e;
+      const code = (e as NodeJS.ErrnoException).code;
+      if (code !== "EXDEV" && code !== "EDEADLK") throw e;
       cpSync(src, dst, { recursive: true, preserveTimestamps: true });
       rmSync(src, { recursive: true, force: true });
     }
@@ -1022,7 +1026,12 @@ export function createRecordings(deps: RecordingsDeps) {
         await deleteOne(base);
         out.deleted.push(base);
       } catch (e) {
-        const err = e instanceof RecordingError ? e : new RecordingError(500, "internal", (e as Error).message);
+        // 원시 fs 에러(전체 경로 포함)는 토스트에 그대로 내지 않고 로그로 — 화면엔 원인+해결 문장.
+        if (!(e instanceof RecordingError)) console.error(`[recordings] delete ${raw}:`, e);
+        const err =
+          e instanceof RecordingError
+            ? e
+            : new RecordingError(500, "internal", "휴지통으로 옮기지 못했습니다. 잠시 뒤 다시 시도하세요.");
         out.failed.push({ base: raw, code: err.code, error: err.message });
       }
     }

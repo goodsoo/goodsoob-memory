@@ -18,9 +18,10 @@ const GROUPS: Group[] = [
     items: [
       { keys: ["⌘", "1"], label: "오늘" },
       { keys: ["⌘", "2"], label: "메모장" },
-      { keys: ["⌘", "3"], label: "할 일" },
-      { keys: ["⌘", "4"], label: "루틴" },
-      { keys: ["⌘", "5"], label: "포트폴리오" },
+      { keys: ["⌘", "3"], label: "녹음" },
+      { keys: ["⌘", "4"], label: "포트폴리오" },
+      { keys: ["⌘", "5"], label: "할 일" },
+      { keys: ["⌘", "6"], label: "루틴" },
     ],
   },
   {

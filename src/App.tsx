@@ -368,7 +368,7 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // 페이지 단축키 (web·PWA 공통): Cmd+1/2/3/4 (TABS index), Cmd+\ (사이드바 토글),
+  // 페이지 단축키 (web·PWA 공통): Cmd+1~6 (TABS index), Cmd+\ (사이드바 토글),
   // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
   // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
   //    standalone PWA(홈 화면 설치)에선 앱이 받는다.

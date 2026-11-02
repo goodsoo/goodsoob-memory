@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Mic } from "lucide-react";
+import { Button } from "@goodsoob/ds";
 import { recordingHash } from "../../lib/recordings/hash";
 
 // 음성 기록 탭 옆 녹음 배지 — audio: 가 있을 때만. 1개면 바로 #recording-{base},
@@ -29,18 +30,17 @@ export function RecordingBadge({ audio }: { audio: readonly string[] }) {
   }
   return (
     <span className="relative inline-flex">
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
         title="연결된 녹음"
         aria-label={`녹음 ${audio.length}개`}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1 rounded-full px-2 text-xs"
-        style={btnStyle}
+        leftIcon={<Mic size={12} />}
       >
-        <Mic size={12} />
         {audio.length}
-      </button>
+      </Button>
       {open ? (
         <div
           className="absolute left-0 top-full z-20 mt-1 flex flex-col rounded p-1 text-sm"

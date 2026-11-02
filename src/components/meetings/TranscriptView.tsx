@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Play, X } from "lucide-react";
+import { Button } from "@goodsoob/ds";
 
 import { Text } from "../common/Text";
 import { recordingHash } from "../../lib/recordings/hash";
@@ -120,16 +121,16 @@ function AudioSlot({ base, onClose }: { base: string; onClose: () => void }) {
           불러오는 중
         </Text>
       )}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
+        iconOnly
         aria-label="플레이어 닫기"
         title="닫기"
         onClick={onClose}
-        className="inline-flex items-center justify-center rounded p-1"
-        style={{ color: "var(--ink-muted, var(--ink))" }}
       >
         <X size={14} />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -278,23 +279,18 @@ export function TranscriptView({
                 {base}
               </a>
             </span>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
+              iconOnly
+              pressed={open}
               aria-label={`${base} 녹음 재생`}
-              aria-pressed={open}
               title="이 구간 녹음 재생"
               onClick={() => setOpenBase(open ? null : base)}
-              className="ml-2 inline-flex items-center justify-center rounded align-middle"
-              style={{
-                width: "1.5rem",
-                height: "1.5rem",
-                backgroundColor: open ? "var(--surface-2)" : "transparent",
-                color: "var(--ink)",
-                border: "1px solid var(--line)",
-              }}
+              className="ml-2 align-middle"
             >
               <Play size={12} />
-            </button>
+            </Button>
             {open ? <AudioSlot base={base} onClose={() => setOpenBase(null)} /> : null}
           </span>
         );

@@ -10,10 +10,10 @@ export type Tab = "today" | "meetings" | "todos" | "recordings" | "routines" | "
 export const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
   { id: "today", label: "오늘", icon: Sun },
   { id: "meetings", label: "메모장", icon: FileText },
-  { id: "todos", label: "할 일", icon: CheckSquare },
-  // 녹음·루틴·포트폴리오는 "가끔" 쓰는 2군 — 매일 쓰는 오늘/메모장/할 일 뒤에 둠.
-  // 녹음 = 처리할 녹음 인박스 (docs/designs/recording-tab.md), Cmd+4.
+  // 녹음 = 처리할 녹음 인박스 (docs/designs/recording-tab.md), Cmd+3.
+  // 할 일/루틴은 추후 제거 예정 — 앞 4개(오늘/메모장/녹음/포트폴리오) 단축키가 고정되도록 뒤로.
   { id: "recordings", label: "녹음", icon: Mic },
-  { id: "routines", label: "루틴", icon: Repeat },
   { id: "portfolio", label: "포트폴리오", icon: LayoutGrid },
+  { id: "todos", label: "할 일", icon: CheckSquare },
+  { id: "routines", label: "루틴", icon: Repeat },
 ];

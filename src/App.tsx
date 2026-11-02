@@ -549,13 +549,22 @@ function AppContent() {
     window.history.pushState({ meetingId: id }, "", `#meeting-${id}`);
   }
 
-  function openRecording(base: string) {
+  function openRecording(base: string, opts?: { replace?: boolean }) {
     drawer.close();
     setTab("recordings");
     setSelectedRecording(base);
     const target = recordingHash(base);
     if (window.location.hash !== target) {
-      window.history.pushState({ tab: "recordings" }, "", target);
+      if (opts?.replace) window.history.replaceState({ tab: "recordings" }, "", target);
+      else window.history.pushState({ tab: "recordings" }, "", target);
+    }
+  }
+
+  // 처리할 것이 비어 다음 녹음이 없을 때 — 선택 해제 후 빈 상태 화면.
+  function clearRecording() {
+    setSelectedRecording(null);
+    if (window.location.hash !== "#recordings") {
+      window.history.replaceState({ tab: "recordings" }, "", "#recordings");
     }
   }
 
@@ -711,7 +720,7 @@ function AppContent() {
         onSelectProject={setSelectedProject}
       />
     ) : tab === "recordings" ? (
-      <RecordingsSidePanel selectedBase={selectedRecording} onSelect={openRecording} />
+      <RecordingsSidePanel selectedBase={selectedRecording} onSelect={openRecording} onClear={clearRecording} />
     ) : tab === "routines" ? (
       <RoutinesSidePanel
         selectedRoutineName={selectedRoutineName}
@@ -773,6 +782,7 @@ function AppContent() {
         <RecordingsPage
           selectedBase={selectedRecording}
           onSelect={openRecording}
+          onClear={clearRecording}
           onOpenMeeting={openMeeting}
         />
       ) : tab === "meetings" ? (

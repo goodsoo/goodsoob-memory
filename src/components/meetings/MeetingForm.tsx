@@ -61,6 +61,7 @@ import { useVault } from "../../lib/vault/useVault";
 import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
 import { TranscriptView } from "./TranscriptView";
+import { TranscriptTurns } from "./TranscriptTurns";
 import { RecordingBadge } from "./RecordingBadge";
 import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
@@ -140,7 +141,7 @@ export function MeetingForm({
   const moveMutation = useMoveMeeting();
   const [moveOpen, setMoveOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [viewMode, setViewMode] = useViewMode();
+  const [globalViewMode, setGlobalViewMode] = useViewMode();
   const { adapter } = useVault();
   const toast = useToast();
 
@@ -263,6 +264,9 @@ export function MeetingForm({
   }, [uid, flushDoc]);
 
   const doc = docHistory.value;
+  // 턴 화면 parse memo 의존성 — 매 렌더 새 배열이면 재파싱하므로 참조 고정.
+  const audioField = data?.audio;
+  const transcriptAudio = useMemo(() => audioField ?? [], [audioField]);
   const body = doc.body;
   const transcript = doc.transcript;
   const summary = doc.summary;
@@ -372,6 +376,23 @@ export function MeetingForm({
     activeTabGlobal = t;
     setActiveTabState(t);
   }
+
+  // 음성 기록 탭은 공유 편집/보기와 따로 간다 — 턴 화면이 곧 편집이라 항상 턴 화면으로
+  // 열고, 원문 textarea 는 그 메모에서 명시로 켰을 때만 (다른 메모로 가면 다시 턴 화면).
+  const [transcriptRawFor, setTranscriptRawFor] = useState<string | null>(null);
+  const viewMode: "edit" | "view" =
+    activeTab === "transcript"
+      ? transcriptRawFor === meetingId
+        ? "edit"
+        : "view"
+      : globalViewMode;
+  const setViewMode = useCallback(
+    (v: "edit" | "view") => {
+      if (activeTab === "transcript") setTranscriptRawFor(v === "edit" ? meetingId : null);
+      else setGlobalViewMode(v);
+    },
+    [activeTab, meetingId, setGlobalViewMode],
+  );
 
   // ── 탭 내 찾기 (Cmd+F) ──────────────────────────────────────────────
   // 현재 탭(본문/음성기록/요약)에서 검색. 편집 모드는 textarea 선택(inactive 하이라이트),
@@ -759,7 +780,8 @@ export function MeetingForm({
         setActiveTab(order[(idx + dir + order.length) % order.length]);
         return;
       }
-      // Cmd+Shift+E — 모든 탭에서 편집/보기 토글 (Segment 과 동일, viewMode 공유).
+      // Cmd+Shift+E — 모든 탭에서 편집/보기 토글 (Segment 과 동일). 음성 기록 탭은
+      // 공유 viewMode 대신 그 메모의 원문/화자별만 바꾼다 (setViewMode 가 분기).
       // SourceBodyEditor 의 Cmd+E (inline-code wrap) 충돌 회피로 Shift 동반.
       // 음성 기록 보기 모드 = 읽기 전용 + 참석자 하이라이트 (마크다운 렌더 X).
       if (cmd && e.shiftKey && !e.altKey && e.code === "KeyE") {
@@ -1265,21 +1287,21 @@ export function MeetingForm({
                 options={[
                   {
                     value: "edit",
-                    ariaLabel: "편집 모드",
+                    ariaLabel: activeTab === "transcript" ? "원문 편집" : "편집 모드",
                     label: (
                       <span className="inline-flex items-center gap-1">
                         <Pencil className="h-3 w-3" />
-                        편집
+                        {activeTab === "transcript" ? "원문" : "편집"}
                       </span>
                     ),
                   },
                   {
                     value: "view",
-                    ariaLabel: "보기 모드",
+                    ariaLabel: activeTab === "transcript" ? "화자별 화면" : "보기 모드",
                     label: (
                       <span className="inline-flex items-center gap-1">
                         <Eye className="h-3 w-3" />
-                        보기
+                        {activeTab === "transcript" ? "화자별" : "보기"}
                       </span>
                     ),
                   },
@@ -1451,10 +1473,21 @@ export function MeetingForm({
                 />
               ) : (
                 <div data-find-content>
-                  <TranscriptView
-                    transcript={transcript}
-                    attendees={meta.attendees}
-                    audio={data?.audio ?? []}
+                  {/* 보기 모드 = 화자별 턴 화면 (제자리 편집 가능, D-R6). 편집 모드 = 원문
+                      textarea (파워유저 raw 편집·업로드). 턴이 없는 평문은 기존 TranscriptView.
+                      턴 수정·화자 이름 변경은 discrete 편집 → immediate commit 1개 history entry. */}
+                  <TranscriptTurns
+                    key={`${meetingId}:turns`}
+                    text={transcript}
+                    audioBases={transcriptAudio}
+                    onChange={(v) => setDoc("transcript", { ...doc, transcript: v }, true)}
+                    renderPlain={() => (
+                      <TranscriptView
+                        transcript={transcript}
+                        attendees={meta.attendees}
+                        audio={transcriptAudio}
+                      />
+                    )}
                   />
                 </div>
               )}

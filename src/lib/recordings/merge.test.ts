@@ -5,7 +5,6 @@ import {
   anyProcessing,
   collectKnownBases,
   countTodayRecordings,
-  groupRecordings,
   mergeRecordings,
   needsMoveRepair,
   rankLinkCandidates,
@@ -14,7 +13,7 @@ import {
 } from "./merge";
 import { parseRecordingHash, recordingHash } from "./hash";
 
-const NO_STT = { done: false, archived: false, moved: false, rawPromoted: false, anchored: false, diarized: false };
+const NO_STT = { done: false, moved: false, rawPromoted: false, anchored: false, diarized: false, reviewLeft: 0 };
 
 function entry(base: string, over: Partial<RecordingEntry> = {}): RecordingEntry {
   return {
@@ -27,6 +26,7 @@ function entry(base: string, over: Partial<RecordingEntry> = {}): RecordingEntry
     durationSec: 1800,
     creationTime: null,
     syncPending: false,
+    firstLine: null,
     ...over,
     ...(over.stt ? { stt: { ...NO_STT, ...over.stt } } : {}),
   };
@@ -107,7 +107,6 @@ describe("countTodayRecordings", () => {
         entry("20261028-1100"), // 전사 대기 → X
         entry("20261028-1200", { hasM4a: false, hasTxt: true }), // 텍스트만 → X
         entry("20261028-1300", { job: { state: "running", pidAlive: true } }), // 처리 중 → X
-        entry("20261028-1400", { stt: { ...NO_STT, done: true, archived: true } }), // 보관됨 초벌 → X
         entry("20261028-1500", { stt: { ...NO_STT, moved: true, done: true, diarized: true } }), // 연결됨 교정 대기 → O
         entry("20261028-1600", { job: { state: "running", pidAlive: false } }), // 죽은 job = 오류 → O
       ],
@@ -123,29 +122,6 @@ describe("anyProcessing", () => {
     expect(anyProcessing(undefined)).toBe(false);
     expect(anyProcessing([entry("a", { job: { state: "running", pidAlive: false } })])).toBe(false);
     expect(anyProcessing([entry("a"), entry("b", { job: { state: "running", pidAlive: true } })])).toBe(true);
-  });
-});
-
-describe("groupRecordings", () => {
-  it("행선지 순서대로, 이사 미완료는 연결됨에, 텍스트만은 토글로", () => {
-    const items = mergeRecordings(
-      [
-        entry("20261028-0900", { stt: { ...NO_STT, done: true } }),
-        entry("20261028-1000", { hasTxt: true }),
-        entry("20261027-1000", { hasM4a: false, hasTxt: true }),
-        entry("20261026-1000", { stt: { ...NO_STT, archived: true, done: true } }),
-      ],
-      [memo("m", { audio: ["20261028-1000"] })],
-      [],
-    );
-    const hidden = groupRecordings(items, false);
-    expect(hidden.map((g) => [g.id, g.items.map((i) => i.entry.base)])).toEqual([
-      ["undecided", ["20261028-0900"]],
-      ["linked", ["20261028-1000"]],
-      ["archived", ["20261026-1000"]],
-    ]);
-    const shown = groupRecordings(items, true);
-    expect(shown[0].items.map((i) => i.entry.base)).toEqual(["20261028-0900", "20261027-1000"]);
   });
 });
 

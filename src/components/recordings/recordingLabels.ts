@@ -1,25 +1,4 @@
-import type { ChipVariant } from "@goodsoob/ds";
 import type { RecordingEntry } from "../../api/recordings";
-import type { Pipeline } from "../../lib/recordings/status";
-
-export const PIPELINE_LABELS: Record<Pipeline, string> = {
-  textOnly: "텍스트만",
-  processing: "처리 중",
-  error: "오류",
-  review: "리뷰 대기",
-  correction: "교정 대기",
-  corrected: "교정본",
-  raw: "초벌 전사",
-  waiting: "전사 대기",
-};
-
-// 색은 주의가 필요한 상태에만 (오류 = down, 처리 중 = accent). 나머지는 중립.
-export function pipelineChipVariant(p: Pipeline): ChipVariant {
-  if (p === "error") return "down";
-  if (p === "processing") return "accent";
-  if (p === "review" || p === "correction") return "warn";
-  return "neutral";
-}
 
 /** "오전·오후 h:mm" (voice & tone 시간 형식). */
 export function formatClock(time: string): string {

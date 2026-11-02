@@ -3,7 +3,6 @@ import type { RecordingEntry } from "../../api/recordings";
 import {
   computeStatus,
   countsTowardToday,
-  type Destination,
   type RecordingFacts,
   type RecordingStatus,
 } from "./status";
@@ -85,43 +84,6 @@ export function countTodayRecordings(items: readonly RecordingItem[]): number {
 /** 처리 중인 job 이 하나라도 있으면 true (refetchInterval 트리거). 행선지 무관. */
 export function anyProcessing(entries: readonly RecordingEntry[] | undefined): boolean {
   return !!entries?.some((e) => e.job?.state === "running" && e.job.pidAlive);
-}
-
-// ── 사이드바 그룹 (행선지 축) ────────────────────────────────────────────────
-
-export type GroupId = "undecided" | "linked" | "trash" | "archived" | "transcriptMissing";
-
-export const GROUP_LABELS: Record<GroupId, string> = {
-  undecided: "미정",
-  linked: "연결됨",
-  trash: "휴지통",
-  archived: "보관됨",
-  transcriptMissing: "전사본 없음",
-};
-
-const GROUP_ORDER: GroupId[] = ["undecided", "linked", "trash", "archived", "transcriptMissing"];
-
-export function destinationGroup(d: Destination): GroupId {
-  return d === "moveIncomplete" ? "linked" : d;
-}
-
-/**
- * 행선지 그룹별로 묶는다 (서버가 이미 날짜 desc 정렬). 텍스트만 항목은 `showTextOnly`
- * 일 때만. 빈 그룹은 생략.
- */
-export function groupRecordings(
-  items: readonly RecordingItem[],
-  showTextOnly: boolean,
-): Array<{ id: GroupId; items: RecordingItem[] }> {
-  const by = new Map<GroupId, RecordingItem[]>();
-  for (const it of items) {
-    if (!showTextOnly && it.status.pipeline === "textOnly") continue;
-    const g = destinationGroup(it.status.destination);
-    const arr = by.get(g);
-    if (arr) arr.push(it);
-    else by.set(g, [it]);
-  }
-  return GROUP_ORDER.filter((g) => by.has(g)).map((g) => ({ id: g, items: by.get(g)! }));
 }
 
 // ── 기존 메모 연결 후보 ──────────────────────────────────────────────────────

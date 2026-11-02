@@ -1,18 +1,23 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
+  completeRecording,
   correctionsRecording,
+  deleteRecordings,
   diarizeRecording,
+  getRecordingReview,
+  getRecordingTranscript,
   linkRecording,
   listRecordings,
-  readRecordingTranscript,
+  postRecordingReview,
   unlinkRecording,
   type LinkResponse,
   type RecordingEntry,
+  type RecordingReview,
+  type ReviewDecision,
 } from "../api/recordings";
 import type { Meeting } from "../api/meetings";
 import { flushMeetingDoc, resetMeetingDoc } from "../components/meetings/docReset";
-import { useVault } from "../lib/vault/useVault";
 import {
   anyProcessing,
   collectKnownBases,
@@ -67,20 +72,29 @@ export function useTodayRecordingCount(): number {
   return items ? countTodayRecordings(items) : 0;
 }
 
-/** 연결 전 전사본 미리보기 (읽기 전용). 연결됨이면 메모 쪽에서 본다. */
-export function useRecordingTranscript(entry: RecordingEntry | undefined, enabled: boolean) {
-  const { adapter, isReady } = useVault();
+export const transcriptKey = (base: string) => ["recordingTranscript", base] as const;
+export const reviewKey = (base: string) => ["recordingReview", base] as const;
+
+/**
+ * 녹음 탭 작업 파일 (화자분리 → 교정본 → 초벌 순, 서버가 고른다). `version` 은 작업 파일이
+ * 바뀌는 사건(화자분리 끝·교정 완료)을 키에 넣어 다시 읽게 하는 값.
+ */
+export function useRecordingTranscript(base: string, version: string, enabled: boolean) {
   return useQuery({
-    queryKey: [
-      ...recordingsKey,
-      "transcript",
-      entry?.base ?? "",
-      entry?.hasTxt ?? false,
-      entry?.stt.done ?? false,
-      entry?.stt.moved ?? false,
-    ],
-    queryFn: () => (entry ? readRecordingTranscript(adapter, entry) : null),
-    enabled: !!entry && enabled && isReady,
+    queryKey: [...transcriptKey(base), version],
+    queryFn: () => getRecordingTranscript(base),
+    enabled,
+    retry: false,
+    staleTime: Infinity,
+  });
+}
+
+export function useRecordingReview(base: string, version: string, enabled: boolean) {
+  return useQuery({
+    queryKey: [...reviewKey(base), version],
+    queryFn: () => getRecordingReview(base),
+    enabled,
+    staleTime: Infinity,
   });
 }
 
@@ -182,6 +196,45 @@ export function useMoveRecording() {
       return { unlink: u, link: l };
     },
   };
+}
+
+/** 휴지통으로 이동 (항목별 결과). */
+export function useDeleteRecordings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bases: readonly string[]) => deleteRecordings(bases),
+    // 지운 항목은 바로 목록에서 뺀다 — 다음 녹음 자동 선택이 다시 읽기 전 목록을 보지 않게.
+    onSuccess: (r) => {
+      const gone = new Set(r.deleted);
+      qc.setQueriesData<RecordingEntry[]>({ queryKey: recordingsKey }, (prev) =>
+        prev ? prev.filter((e) => !gone.has(e.base)) : prev,
+      );
+    },
+    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
+  });
+}
+
+/** 교정 완료 — 작업 파일이 교정본이 된다. */
+export function useCompleteRecording() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (base: string) => completeRecording(base),
+    onSettled: (_r, _e, base) => {
+      void qc.invalidateQueries({ queryKey: recordingsKey });
+      void qc.invalidateQueries({ queryKey: transcriptKey(base) });
+      void qc.invalidateQueries({ queryKey: reviewKey(base) });
+    },
+  });
+}
+
+/** 후보 결정 1건. 응답(전체 결정)으로 캐시를 바로 갈아끼우고, 목록(reviewLeft)은 다시 읽는다. */
+export function useDecideReview(base: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; decision: ReviewDecision }) => postRecordingReview(base, v.id, v.decision),
+    onSuccess: (r: RecordingReview) => qc.setQueriesData({ queryKey: reviewKey(base) }, r),
+    onSettled: () => void qc.invalidateQueries({ queryKey: recordingsKey }),
+  });
 }
 
 // 서버 job 시작. 성공하면 목록을 다시 읽어 job.running 을 반영한다 (3초 polling 이 켜진다).

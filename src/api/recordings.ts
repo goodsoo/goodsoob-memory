@@ -2,7 +2,6 @@
 // 여기 다시 선언한다 — server/ 는 node:fs 등을 import 해 클라 tsconfig 로 끌어오지 않는다.
 import type { Meeting } from "./meetings";
 import type { ParsedBase } from "../lib/recordings/base";
-import type { VaultAdapter } from "../lib/vault/adapter";
 
 export interface RecordingSttMarkers {
   done: boolean;
@@ -193,22 +192,4 @@ export function correctionsRecording(
 
 export function audioUrl(base: string): string {
   return `/api/audio?base=${enc(base)}`;
-}
-
-/**
- * 연결 전 전사본 미리보기 (읽기 전용). `_audio/<base>.txt` 우선, 없으면 whisper 초벌
- * `.stt/<base>/tr.txt`(done 이 있을 때만). 둘 다 없으면 null.
- */
-export async function readRecordingTranscript(
-  adapter: VaultAdapter,
-  entry: Pick<RecordingEntry, "base" | "hasTxt" | "stt">,
-): Promise<{ text: string; raw: boolean } | null> {
-  if (entry.hasTxt) {
-    return { text: await adapter.read(`_audio/${entry.base}.txt`), raw: entry.stt.rawPromoted };
-  }
-  if (entry.stt.done && !entry.stt.moved) {
-    const p = `_audio/.stt/${entry.base}/tr.txt`;
-    if (await adapter.exists(p)) return { text: await adapter.read(p), raw: true };
-  }
-  return null;
 }

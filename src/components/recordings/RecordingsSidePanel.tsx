@@ -1,19 +1,16 @@
-import { useState } from "react";
-import { CloudDownload } from "lucide-react";
-import { Chip, NavItem } from "@goodsoob/ds";
+import { useMemo, useState } from "react";
+import { Checkbox, NavItem } from "@goodsoob/ds";
+import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SidePanelSectionHeader } from "../nav/SidePanel";
 import { useRecordings } from "../../hooks/useRecordings";
-import { GROUP_LABELS, groupRecordings, type GroupId, type RecordingItem } from "../../lib/recordings/merge";
-import {
-  PIPELINE_LABELS,
-  formatDuration,
-  pipelineChipVariant,
-  recordingWhen,
-} from "./recordingLabels";
+import { groupInbox, nextAfterRemoval, nextStepLabel, shortRecordingBases } from "../../lib/recordings/inbox";
+import type { RecordingItem } from "../../lib/recordings/merge";
+import type { SelectRecording } from "../../pages/RecordingsPage";
+import { formatDuration, recordingWhen } from "./recordingLabels";
+import { useRecordingDelete } from "./useRecordingDelete";
 
-const SHOW_TEXT_ONLY_KEY = "goodsoob:recordingsShowTextOnly";
-const COLLAPSED_KEY = "goodsoob:recordingsCollapsed";
+const DONE_OPEN_KEY = "goodsoob:recordingsDoneOpen";
 
 function readLS(key: string): string | null {
   try {
@@ -32,32 +29,49 @@ function writeLS(key: string, v: string): void {
 
 type Props = {
   selectedBase: string | null;
-  onSelect: (base: string) => void;
+  onSelect: SelectRecording;
+  onClear: () => void;
 };
 
-// 녹음 탭 사이드바 — 행선지 축으로 그룹(미정 / 연결됨 / 휴지통 / 보관됨 / 전사본 없음),
-// 각 그룹 안은 서버 정렬(날짜 desc). 행 = 녹음 시각 · 길이 · 파이프라인 칩 · 연결된 메모 제목.
-export function RecordingsSidePanel({ selectedBase, onSelect }: Props) {
+// 녹음 탭 사이드바 = 인박스. 처리할 것(미정, 날짜 desc) / 끝난 것(연결됨, 기본 접힘).
+// 행 = 시각 · 길이 / 전사 첫 문장 / 다음 할 일(회색 작은 글자). 상태는 칩 없이 타이포로만.
+// 체크박스로 골라 하단 바에서 한꺼번에 삭제.
+export function RecordingsSidePanel({ selectedBase, onSelect, onClear }: Props) {
   const { items, isLoading, isError } = useRecordings();
-  const [showTextOnly, setShowTextOnly] = useState(() => readLS(SHOW_TEXT_ONLY_KEY) === "1");
-  const [collapsed, setCollapsed] = useState<Set<GroupId>>(() => {
-    const raw = readLS(COLLAPSED_KEY);
-    // 기본 = 전부 펼침. 접은 그룹만 localStorage 에 기억.
-    return new Set((raw ? raw.split(",") : []) as GroupId[]);
+  const [doneOpen, setDoneOpen] = useState(() => readLS(DONE_OPEN_KEY) === "1");
+  const [todoOpen, setTodoOpen] = useState(true);
+  const [checked, setChecked] = useState<Set<string>>(() => new Set());
+  const groups = useMemo(() => (items ? groupInbox(items) : { todo: [], done: [] }), [items]);
+  const todoOrder = useMemo(() => groups.todo.map((i) => i.entry.base), [groups]);
+  const shortBases = useMemo(() => shortRecordingBases(groups.todo), [groups]);
+
+  // 목록에서 사라진 base 는 선택에서도 뺀다.
+  const live = useMemo(() => new Set(items?.map((i) => i.entry.base) ?? []), [items]);
+  const selection = useMemo(() => [...checked].filter((b) => live.has(b)), [checked, live]);
+
+  const del = useRecordingDelete((deleted) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      for (const b of deleted) next.delete(b);
+      return next;
+    });
+    if (selectedBase && deleted.includes(selectedBase)) {
+      const next = nextAfterRemoval(todoOrder, deleted, selectedBase);
+      if (next) onSelect(next);
+      else onClear();
+    }
   });
 
-  const textOnlyCount = items?.filter((i) => i.status.pipeline === "textOnly").length ?? 0;
-  const groups = items ? groupRecordings(items, showTextOnly) : [];
-
-  function toggleGroup(id: GroupId) {
-    setCollapsed((prev) => {
+  function toggle(base: string) {
+    setChecked((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      writeLS(COLLAPSED_KEY, [...next].join(","));
+      if (next.has(base)) next.delete(base);
+      else next.add(base);
       return next;
     });
   }
+
+  const selecting = selection.length > 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -68,20 +82,15 @@ export function RecordingsSidePanel({ selectedBase, onSelect }: Props) {
         <h2 className="font-serif text-sm font-medium" style={{ color: "var(--ink)" }}>
           녹음
         </h2>
-        {textOnlyCount > 0 ? (
-          <Chip
+        {shortBases.length > 0 ? (
+          <Button
+            variant="ghost"
             size="sm"
-            selectable
-            selected={showTextOnly}
-            onClick={() => {
-              const next = !showTextOnly;
-              setShowTextOnly(next);
-              writeLS(SHOW_TEXT_ONLY_KEY, next ? "1" : "0");
-            }}
-            title="녹음 파일 없이 전사본만 있는 항목"
+            title="처리할 것 중 30초 미만 녹음을 모두 고릅니다"
+            onClick={() => setChecked(new Set(shortBases))}
           >
-            텍스트만 {textOnlyCount}
-          </Chip>
+            30초 미만 선택
+          </Button>
         ) : null}
       </div>
       <nav className="flex min-h-0 flex-1 flex-col" aria-label="녹음">
@@ -90,36 +99,84 @@ export function RecordingsSidePanel({ selectedBase, onSelect }: Props) {
             <Text variant="caption" color="danger" as="div" className="px-4 py-2">
               녹음 목록을 불러오지 못했습니다. 앱 서버가 켜져 있는지 확인하세요.
             </Text>
-          ) : groups.length === 0 ? (
-            <Text variant="caption" color="muted" as="div" className="px-4 py-2">
-              녹음이 없습니다
-            </Text>
           ) : (
-            groups.map((g) => (
-              <div key={g.id}>
-                <SidePanelSectionHeader
-                  label={GROUP_LABELS[g.id]}
-                  collapsed={collapsed.has(g.id)}
-                  onToggle={() => toggleGroup(g.id)}
-                  count={g.items.length}
-                />
-                {!collapsed.has(g.id) ? (
-                  <div className="px-1 pb-2">
-                    {g.items.map((it) => (
-                      <RecordingRow
-                        key={it.entry.base}
-                        item={it}
-                        active={it.entry.base === selectedBase}
-                        onSelect={() => onSelect(it.entry.base)}
-                      />
-                    ))}
-                  </div>
-                ) : null}
+            <>
+              <SidePanelSectionHeader
+                label="처리할 것"
+                collapsed={!todoOpen}
+                onToggle={() => setTodoOpen((v) => !v)}
+                count={groups.todo.length}
+              />
+              <div className="px-1 pb-2" hidden={!todoOpen}>
+                {groups.todo.length === 0 ? (
+                  <Text variant="caption" color="muted" as="div" className="px-3 py-1.5">
+                    처리할 녹음이 없습니다
+                  </Text>
+                ) : (
+                  groups.todo.map((it) => (
+                    <RecordingRow
+                      key={it.entry.base}
+                      item={it}
+                      active={it.entry.base === selectedBase}
+                      checked={checked.has(it.entry.base)}
+                      selecting={selecting}
+                      onToggle={() => toggle(it.entry.base)}
+                      onSelect={() => onSelect(it.entry.base)}
+                    />
+                  ))
+                )}
               </div>
-            ))
+              {groups.done.length > 0 ? (
+                <>
+                  <SidePanelSectionHeader
+                    label="끝난 것"
+                    collapsed={!doneOpen}
+                    onToggle={() => {
+                      const next = !doneOpen;
+                      setDoneOpen(next);
+                      writeLS(DONE_OPEN_KEY, next ? "1" : "0");
+                    }}
+                    count={groups.done.length}
+                  />
+                  {doneOpen ? (
+                    <div className="px-1 pb-2">
+                      {groups.done.map((it) => (
+                        <RecordingRow
+                          key={it.entry.base}
+                          item={it}
+                          active={it.entry.base === selectedBase}
+                          checked={checked.has(it.entry.base)}
+                          selecting={selecting}
+                          onToggle={() => toggle(it.entry.base)}
+                          onSelect={() => onSelect(it.entry.base)}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </>
           )}
         </div>
+        {selecting ? (
+          <div
+            className="flex shrink-0 items-center gap-2 px-3 py-2"
+            style={{ borderTop: "1px solid var(--line)" }}
+            data-testid="recordings-selection-bar"
+          >
+            <Text variant="caption" color="secondary" className="min-w-0 flex-1 tabular-nums">
+              {selection.length}개 선택
+            </Text>
+            <Button variant="ghost" size="sm" onClick={() => setChecked(new Set())}>
+              선택 해제
+            </Button>
+            <Button variant="danger" size="sm" disabled={del.isPending} onClick={() => del.request(selection)}>
+              {selection.length}개 삭제
+            </Button>
+          </div>
+        ) : null}
       </nav>
+      {del.dialog}
     </div>
   );
 }
@@ -127,55 +184,56 @@ export function RecordingsSidePanel({ selectedBase, onSelect }: Props) {
 function RecordingRow({
   item,
   active,
+  checked,
+  selecting,
+  onToggle,
   onSelect,
 }: {
   item: RecordingItem;
   active: boolean;
+  checked: boolean;
+  selecting: boolean;
+  onToggle: () => void;
   onSelect: () => void;
 }) {
   const { entry, status } = item;
-  const memoTitle =
-    item.memos[0]?.title?.trim() || item.trashedMemos[0]?.title?.trim() || null;
   const duration = formatDuration(entry.durationSec);
+  const muted = status.destination === "trash";
+  const step = nextStepLabel(item);
+  const attention = status.pipeline === "error" && status.destination === "undecided";
+  // 체크박스는 hover·포커스·선택 중일 때만 (터치 기기는 항상) — 행 42개에 상시 박스는 소음.
+  const boxVisibility = selecting || checked ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100";
   return (
-    <NavItem active={active} onClick={onSelect} aria-current={active ? "true" : undefined}>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink)" }}>
-            {recordingWhen(entry)}
-          </span>
-          {duration ? (
-            <span className="shrink-0 text-2xs tabular-nums whitespace-nowrap" style={{ color: "var(--faint)" }}>
-              {duration}
-            </span>
-          ) : null}
-        </span>
-        <span className="flex min-w-0 items-center gap-1.5">
-          <Chip size="sm" variant={pipelineChipVariant(status.pipeline)}>
-            {PIPELINE_LABELS[status.pipeline]}
-          </Chip>
-          {entry.syncPending ? (
-            <span
-              className="inline-flex shrink-0 items-center gap-1 text-2xs whitespace-nowrap"
-              style={{ color: "var(--faint)" }}
-              title="녹음 파일이 아직 이 맥으로 동기화되지 않았습니다"
-            >
-              <CloudDownload className="h-3 w-3" aria-hidden />
-              동기화 대기
-            </span>
-          ) : null}
-          {status.destination === "moveIncomplete" ? (
-            <span className="shrink-0 text-2xs whitespace-nowrap" style={{ color: "var(--warn-ink)" }}>
-              이사 미완료
-            </span>
-          ) : null}
-          {memoTitle ? (
-            <span className="min-w-0 flex-1 truncate text-xs" style={{ color: "var(--sub)" }}>
-              {memoTitle}
-            </span>
-          ) : null}
-        </span>
+    <div className="group flex items-start gap-1" data-testid="recording-row" data-base={entry.base}>
+      <span className={`shrink-0 pt-2 pl-1 ${boxVisibility}`}>
+        <Checkbox checked={checked} onChange={onToggle} aria-label={`${recordingWhen(entry)} 녹음 선택`} />
       </span>
-    </NavItem>
+      <NavItem active={active} onClick={onSelect} aria-current={active ? "true" : undefined} className="min-w-0 flex-1">
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5" style={{ opacity: muted ? 0.6 : undefined }}>
+          <span className="flex min-w-0 items-baseline gap-2">
+            <span className="min-w-0 flex-1 truncate" style={{ color: "var(--ink)" }}>
+              {recordingWhen(entry)}
+            </span>
+            {duration ? (
+              <span className="shrink-0 text-2xs tabular-nums whitespace-nowrap" style={{ color: "var(--faint)" }}>
+                {duration}
+              </span>
+            ) : null}
+          </span>
+          {entry.firstLine ? (
+            <span className="block min-w-0 truncate text-xs" style={{ color: "var(--sub)" }}>
+              {entry.firstLine}
+            </span>
+          ) : null}
+          <span
+            className={`block truncate text-2xs ${attention ? "font-semibold" : ""}`}
+            style={{ color: attention ? "var(--ink)" : "var(--faint)" }}
+          >
+            {step}
+            {entry.syncPending ? " · 동기화 대기" : ""}
+          </span>
+        </span>
+      </NavItem>
+    </div>
   );
 }

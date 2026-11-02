@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button, CommittedInput, Textarea } from "@goodsoob/ds";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Button, CommittedInput, Popover, Textarea } from "@goodsoob/ds";
 
 import { Text } from "../common/Text";
 import {
@@ -51,6 +51,15 @@ export interface TranscriptTurnsProps {
   onHighlightClick?: (id: string) => void;
   /** plain(턴 없음) 일 때 대신 그릴 것 — 메모 보기 모드는 기존 TranscriptView. */
   renderPlain?: () => ReactNode;
+  /**
+   * 하이라이트 상세 팝오버 내용. 주면 하이라이트 클릭이 그 자리에 팝오버를 연다
+   * (열림은 activeHighlightId 로 호출측이 제어, 닫힘 = onHighlightClose).
+   */
+  renderHighlightDetail?: (id: string) => ReactNode;
+  activeHighlightId?: string | null;
+  onHighlightClose?: () => void;
+  /** 이 턴 발화를 편집 상태로 연다 (nonce 가 바뀔 때마다 한 번). */
+  editRequest?: { turnIndex: number; nonce: number } | null;
 }
 
 function initialOf(name: string): string {
@@ -139,6 +148,11 @@ function TurnText({
   highlights,
   onHighlightClick,
   onCommit,
+  renderHighlightDetail,
+  activeHighlightId,
+  onHighlightClose,
+  startEditing,
+  onEditStarted,
 }: {
   turn: TurnBlock;
   turnIndex: number;
@@ -146,9 +160,20 @@ function TurnText({
   highlights: readonly TranscriptHighlight[];
   onHighlightClick?: (id: string) => void;
   onCommit: (index: number, next: string) => void;
+  renderHighlightDetail?: (id: string) => ReactNode;
+  activeHighlightId?: string | null;
+  onHighlightClose?: () => void;
+  startEditing?: boolean;
+  onEditStarted?: () => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const cancelRef = useRef(false);
+
+  useEffect(() => {
+    if (!startEditing || !editable) return;
+    onEditStarted?.();
+    setDraft(turn.text);
+  }, [startEditing, editable, onEditStarted, turn.text]);
 
   if (draft !== null) {
     const finish = () => {
@@ -198,20 +223,44 @@ function TurnText({
     const e = Math.min(h.end, turn.text.length);
     if (e <= s) continue;
     if (s > pos) segs.push(turn.text.slice(pos, s));
-    segs.push(
-      <mark
-        key={h.id}
-        data-highlight-id={h.id}
-        data-kind={h.kind}
-        style={highlightStyle(h.kind)}
-        onClick={(ev) => {
-          ev.stopPropagation();
-          onHighlightClick?.(h.id);
-        }}
-      >
-        {turn.text.slice(s, e)}
-      </mark>,
-    );
+    if (renderHighlightDetail) {
+      // 팝오버 내용은 portal 이지만 React 이벤트는 트리를 따라 올라오므로, 바깥 span 에서
+      // 막아야 발화 편집(클릭·Enter)이 같이 열리지 않는다.
+      segs.push(
+        <span
+          key={h.id}
+          onClick={(ev) => ev.stopPropagation()}
+          onKeyDown={(ev) => ev.stopPropagation()}
+        >
+          <Popover
+            open={activeHighlightId === h.id}
+            onOpenChange={(open) => (open ? onHighlightClick?.(h.id) : onHighlightClose?.())}
+            width={320}
+            trigger={
+              <mark data-highlight-id={h.id} data-kind={h.kind} style={highlightStyle(h.kind)}>
+                {turn.text.slice(s, e)}
+              </mark>
+            }
+            content={renderHighlightDetail(h.id)}
+          />
+        </span>,
+      );
+    } else {
+      segs.push(
+        <mark
+          key={h.id}
+          data-highlight-id={h.id}
+          data-kind={h.kind}
+          style={highlightStyle(h.kind)}
+          onClick={(ev) => {
+            ev.stopPropagation();
+            onHighlightClick?.(h.id);
+          }}
+        >
+          {turn.text.slice(s, e)}
+        </mark>,
+      );
+    }
     pos = e;
   }
   if (pos < turn.text.length) segs.push(turn.text.slice(pos));
@@ -258,6 +307,10 @@ export function TranscriptTurns({
   highlights = NO_HIGHLIGHTS,
   onHighlightClick,
   renderPlain,
+  renderHighlightDetail,
+  activeHighlightId = null,
+  onHighlightClose,
+  editRequest = null,
 }: TranscriptTurnsProps) {
   const editable = !!onChange && !readOnly;
   const parsed = useMemo(() => parseTranscript(text, audioBases), [text, audioBases]);
@@ -294,6 +347,13 @@ export function TranscriptTurns({
   const [renaming, setRenaming] = useState<string | null>(null);
   const [openBase, setOpenBase] = useState<string | null>(null);
   const [seek, setSeek] = useState<SeekRequest | null>(null);
+  // editRequest 는 nonce 당 한 번만 — 확정 후 턴이 remount 돼도 다시 열리지 않게.
+  const [consumedEdit, setConsumedEdit] = useState<number | null>(null);
+  const pendingEdit = editRequest && editRequest.nonce !== consumedEdit ? editRequest : null;
+  const markEditConsumed = useMemo(
+    () => (pendingEdit ? () => setConsumedEdit(pendingEdit.nonce) : undefined),
+    [pendingEdit],
+  );
 
   if (parsed.format === "plain") {
     if (renderPlain) return <>{renderPlain()}</>;
@@ -369,26 +429,39 @@ export function TranscriptTurns({
           if (b.base && layout[bi].isAudioHeading) {
             const base = b.base;
             const open = openBase === base;
+            // 플레이어는 헤딩 밖 형제 블록 + sticky — 아래 턴의 시각을 눌러도 화면 위에 남는다.
             return (
-              <div
-                key={`h${bi}`}
-                className="pt-3"
-                style={{ borderTop: "1px solid var(--line)", color: "var(--ink)" }}
-                data-section-base={base}
-              >
-                <SectionHeadingLabel
-                  prefix={b.raw.slice(0, b.raw.length - base.length)}
-                  base={base}
-                  open={open}
-                  onToggle={() => {
-                    setSeek(null);
-                    setOpenBase(open ? null : base);
-                  }}
-                />
+              <Fragment key={`h${bi}`}>
+                <div
+                  className="pt-3"
+                  style={{ borderTop: "1px solid var(--line)", color: "var(--ink)" }}
+                  data-section-base={base}
+                >
+                  <SectionHeadingLabel
+                    prefix={b.raw.slice(0, b.raw.length - base.length)}
+                    base={base}
+                    open={open}
+                    onToggle={() => {
+                      setSeek(null);
+                      setOpenBase(open ? null : base);
+                    }}
+                  />
+                </div>
                 {open ? (
-                  <AudioSlot base={base} seek={seek} onClose={() => setOpenBase(null)} />
+                  <div
+                    className="backdrop-blur"
+                    data-testid="section-audio-sticky"
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: "var(--z-sticky)",
+                      backgroundColor: "var(--surface-frost)",
+                    }}
+                  >
+                    <AudioSlot base={base} seek={seek} onClose={() => setOpenBase(null)} />
+                  </div>
                 ) : null}
-              </div>
+              </Fragment>
             );
           }
           return (
@@ -450,6 +523,11 @@ export function TranscriptTurns({
                 highlights={hlByTurn.get(ti) ?? []}
                 onHighlightClick={onHighlightClick}
                 onCommit={commitTurn}
+                renderHighlightDetail={renderHighlightDetail}
+                activeHighlightId={activeHighlightId}
+                onHighlightClose={onHighlightClose}
+                startEditing={pendingEdit?.turnIndex === ti}
+                onEditStarted={pendingEdit?.turnIndex === ti ? markEditConsumed : undefined}
               />
             </div>
           </div>

@@ -5,7 +5,6 @@ import {
   anyProcessing,
   collectKnownBases,
   countTodayRecordings,
-  groupRecordings,
   mergeRecordings,
   needsMoveRepair,
   rankLinkCandidates,
@@ -123,27 +122,6 @@ describe("anyProcessing", () => {
     expect(anyProcessing(undefined)).toBe(false);
     expect(anyProcessing([entry("a", { job: { state: "running", pidAlive: false } })])).toBe(false);
     expect(anyProcessing([entry("a"), entry("b", { job: { state: "running", pidAlive: true } })])).toBe(true);
-  });
-});
-
-describe("groupRecordings", () => {
-  it("행선지 순서대로, 이사 미완료는 연결됨에, 텍스트만은 토글로", () => {
-    const items = mergeRecordings(
-      [
-        entry("20261028-0900", { stt: { ...NO_STT, done: true } }),
-        entry("20261028-1000", { hasTxt: true }),
-        entry("20261027-1000", { hasM4a: false, hasTxt: true }),
-      ],
-      [memo("m", { audio: ["20261028-1000"] })],
-      [],
-    );
-    const hidden = groupRecordings(items, false);
-    expect(hidden.map((g) => [g.id, g.items.map((i) => i.entry.base)])).toEqual([
-      ["undecided", ["20261028-0900"]],
-      ["linked", ["20261028-1000"]],
-    ]);
-    const shown = groupRecordings(items, true);
-    expect(shown[0].items.map((i) => i.entry.base)).toEqual(["20261028-0900", "20261027-1000"]);
   });
 });
 

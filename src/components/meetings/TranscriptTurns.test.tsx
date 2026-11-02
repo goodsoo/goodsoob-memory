@@ -111,4 +111,33 @@ describe("TranscriptTurns", () => {
     fireEvent.click(screen.getByRole("button", { name: "00:18 부터 듣기" }));
     await waitFor(() => expect(container.querySelector("audio")).not.toBeNull());
   });
+
+  it("섹션 플레이어는 헤딩 밖 sticky 블록 — 아래 턴 시각을 눌러도 위에 남는다", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 206 })));
+    const B = "20261029-1346";
+    const { container } = render(<TranscriptTurns text={`## 오후 1:46 · ${B}\n\n${T}`} audioBases={[B]} />);
+    fireEvent.click(screen.getByRole("button", { name: "00:28 부터 듣기" }));
+    const sticky = await waitFor(() => {
+      const el = container.querySelector('[data-testid="section-audio-sticky"]') as HTMLElement | null;
+      expect(el).not.toBeNull();
+      return el!;
+    });
+    expect(sticky.style.position).toBe("sticky");
+    expect(sticky.closest("[data-section-base]")).toBeNull();
+  });
+
+  it("editRequest — 그 턴을 편집 상태로 한 번 연다", () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <TranscriptTurns text={T} onChange={onChange} editRequest={{ turnIndex: 2, nonce: 1 }} />,
+    );
+    const ta = screen.getByLabelText("화자1 00:28 발화 편집");
+    fireEvent.change(ta, { target: { value: "계십니까?" } });
+    fireEvent.blur(ta);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const next = onChange.mock.calls[0][0] as string;
+    rerender(<TranscriptTurns text={next} onChange={onChange} editRequest={{ turnIndex: 2, nonce: 1 }} />);
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByText("계십니까?")).toBeTruthy();
+  });
 });

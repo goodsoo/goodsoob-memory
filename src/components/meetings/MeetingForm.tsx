@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   Ban,
   Copy,
@@ -31,12 +39,11 @@ import {
   diffDocPatch,
   fieldsPatch,
   meetingToDocSnapshot,
-  patchFields,
-  type DocField,
   type DocSnapshot,
   type MetaDoc,
 } from "./docPatch";
 import { docHistoryKey, registerDocReset } from "./docReset";
+import { createSaveRetryStore, isSaveErrorVisible, runSave } from "./saveRetry";
 import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { SaveIndicator } from "../common/SaveIndicator";
@@ -99,9 +106,12 @@ function docsEqual(a: DocSnapshot, b: DocSnapshot): boolean {
   );
 }
 
-// 저장 실패한 칸 (uid → DocField). diff 는 commit 시점에 baseline 을 넘기므로 실패한
-// 칸은 다음 diff 에서 빠진다 — 여기 남겨 다음 저장/재시도에 강제로 포함.
-const SAVE_RETRY_FIELDS = new Map<string, Set<DocField>>();
+// 저장 실패한 칸 (uid → DocField) + 에러 표시 source (saveRetry.ts). diff 는 commit
+// 시점에 baseline 을 넘기므로 실패한 칸은 다음 diff 에서 빠진다 — 여기 남겨 다음
+// 저장/재시도에 강제로 포함. 모듈 레벨 = unmount/remount 후에도 에러 표시 유지.
+const SAVE_RETRY = createSaveRetryStore();
+// 마지막 commit 된 doc (uid →). 복구 send 가 "지금" 값을 보내도록 (unmount 후 포함).
+const COMMITTED_DOC = new Map<string, DocSnapshot>();
 
 
 type ActiveTab = "body" | "transcript" | "summary";
@@ -204,23 +214,30 @@ export function MeetingForm({
     // 디스크 사이드카가 폼 로드 뒤 바뀌었어도 본문 저장이 덮어쓰지 않는다.
     onCommit: (d, prev) => {
       if (!uid) return;
-      savePatch(uid, diffDocPatch(prev, d, SAVE_RETRY_FIELDS.get(uid) ?? []));
+      COMMITTED_DOC.set(uid, d);
+      savePatch(uid, diffDocPatch(prev, d, SAVE_RETRY.get(uid).fields));
     },
   });
 
-  // 빈 patch 는 skip. 실패하면 그 칸을 SAVE_RETRY_FIELDS 에 남김. mutateAsync 의
-  // promise 는 call 단위라 연속 mutate 에서도 각 실패를 놓치지 않음 (mutate 의 per-call
-  // onError 는 마지막 call 만 받음).
+  // 빈 patch 는 skip. 실패 칸은 SAVE_RETRY 에 남고, 이후 성공 시 남은 칸을 현재 committed
+  // 값으로 1회 자동 복구 (runSave). mutateAsync 의 promise 는 call 단위라 연속 mutate
+  // 에서도 각 실패를 놓치지 않음 (mutate 의 per-call onError 는 마지막 call 만 받음).
   function savePatch(targetUid: string, patch: MeetingUpdate) {
-    const fields = patchFields(patch);
-    if (fields.length === 0 && patch.title === undefined) return;
-    SAVE_RETRY_FIELDS.delete(targetUid);
-    updateMutation.mutateAsync(patch).catch(() => {
-      const set = SAVE_RETRY_FIELDS.get(targetUid) ?? new Set<DocField>();
-      for (const f of fields) set.add(f);
-      SAVE_RETRY_FIELDS.set(targetUid, set);
-    });
+    void runSave(SAVE_RETRY, targetUid, patch, updateMutation.mutateAsync, () =>
+      COMMITTED_DOC.get(targetUid),
+    );
   }
+
+  // 에러 표시는 useMutation.isError 가 아니라 남은 실패 칸 기준 — 마지막 call 성공이나
+  // remount(새 mutation 인스턴스) 로 에러가 조용히 사라지지 않게.
+  const retryEntry = useSyncExternalStore(SAVE_RETRY.subscribe, () =>
+    SAVE_RETRY.get(uid ?? ""),
+  );
+  // updateMutation.isError 는 칸 없는 실패(제목 rename 등) 표시용으로만 OR.
+  const saveErrorVisible = (!!uid && isSaveErrorVisible(retryEntry)) || updateMutation.isError;
+  const saveErrorBanner =
+    (!!uid && retryEntry.fields.size > 0 && !retryEntry.dismissed) || updateMutation.isError;
+  const saveError = retryEntry.error ?? updateMutation.error;
 
   // 외부 변경 신호 (docReset.ts 의 resetMeetingDoc) — 디스크 fresh 값으로 doc history
   // 재시작. 녹음 link·unlink·apply 성공 후 호출 측에서 resetMeetingDoc(uid, fresh).
@@ -228,9 +245,11 @@ export function MeetingForm({
   useEffect(() => {
     if (!uid) return;
     return registerDocReset(uid, (fresh: Meeting) => {
-      SAVE_RETRY_FIELDS.delete(uid);
+      SAVE_RETRY.clear(uid);
+      const snap = meetingToDocSnapshot(fresh);
+      COMMITTED_DOC.set(uid, snap);
       lastSourceRef.current = null;
-      resetDoc(meetingToDocSnapshot(fresh));
+      resetDoc(snap);
     });
   }, [uid, resetDoc]);
 
@@ -781,7 +800,7 @@ export function MeetingForm({
     // 실패한 칸만 다시 보냄 — 전체 doc 을 보내면 안 바뀐 transcript 가 디스크를 덮는다 (D5).
     savePatch(uid, {
       title: titleDraft.trim() || initialTitle || "untitled",
-      ...fieldsPatch(doc, SAVE_RETRY_FIELDS.get(uid) ?? []),
+      ...fieldsPatch(COMMITTED_DOC.get(uid) ?? doc, SAVE_RETRY.get(uid).fields),
     });
   }
 
@@ -971,7 +990,7 @@ export function MeetingForm({
             </div>
             <SaveIndicator
               isPending={updateMutation.isPending || hasUnsavedChange}
-              isError={updateMutation.isError}
+              isError={saveErrorVisible}
               onRetry={retrySave}
             />
           </>
@@ -1028,7 +1047,7 @@ export function MeetingForm({
       />
 
       {/* Error toasts — fixed bottom-right, 본문 레이아웃에 영향 없음 */}
-      {updateMutation.isError || actionError ? (
+      {saveErrorBanner || actionError ? (
         <div
           className="fixed z-50 flex max-w-sm flex-col gap-2"
           style={{
@@ -1036,7 +1055,7 @@ export function MeetingForm({
             right: "1rem",
           }}
         >
-          {updateMutation.isError ? (
+          {saveErrorBanner ? (
             <div
               className="animate-page-in flex flex-col gap-2 rounded-2xl p-3 text-sm backdrop-blur-xl backdrop-saturate-150"
               style={{
@@ -1056,7 +1075,10 @@ export function MeetingForm({
                 </span>
                 <Button
                   variant="icon"
-                  onClick={() => updateMutation.reset()}
+                  onClick={() => {
+                    updateMutation.reset();
+                    if (uid) SAVE_RETRY.dismiss(uid);
+                  }}
                   title="닫기"
                   aria-label="닫기"
                   className="shrink-0 p-0.5"
@@ -1065,14 +1087,14 @@ export function MeetingForm({
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              {updateMutation.error ? (
+              {saveError ? (
                 <Text
                   variant="caption"
                   color="secondary"
                   as="div"
                   className="break-all wrap-anywhere"
                 >
-                  {formatError(updateMutation.error)}
+                  {formatError(saveError)}
                 </Text>
               ) : null}
               <div className="flex justify-end gap-1.5">
@@ -1080,7 +1102,7 @@ export function MeetingForm({
                   variant="ghost"
                   onClick={() =>
                     copyToastMessage(
-                      updateMutation.error ? formatError(updateMutation.error) : "자동 저장 실패",
+                      saveError ? formatError(saveError) : "자동 저장 실패",
                       "update",
                     )
                   }

@@ -285,7 +285,7 @@ function DiarizeForm({
   const { entry } = item;
   const toast = useToast();
   const diarize = useDiarizeRecording();
-  const [speakersRaw, setSpeakersRaw] = useState("2");
+  const [speakersRaw, setSpeakersRaw] = useState(""); // 빈 값 = 자동
   const [nameInputs, setNameInputs] = useState<string[]>([]);
   const check = validateSpeakers(speakersRaw);
   const estimate = diarizeEstimate(entry.durationSec);
@@ -320,7 +320,7 @@ function DiarizeForm({
         if (!diarize.isPending) submit();
       }}
     >
-      <Field label="인원 수" required hint={`${MIN_SPEAKERS}~${MAX_SPEAKERS}명`}>
+      <Field label="인원 수" hint={`비우면 자동, ${MIN_SPEAKERS}~${MAX_SPEAKERS}명`}>
         <Input
           type="number"
           inputMode="numeric"
@@ -353,7 +353,10 @@ function DiarizeForm({
         </div>
       ) : null}
       <Text variant="caption" color="muted" as="div">
-        이름은 앞 화자부터 차례로 입력합니다. 화자분리는 이 맥에서 실행됩니다.
+        {check.ok && check.speakers === 0
+          ? "인원 수를 비우면 목소리로 사람 수를 판단합니다. 이름은 나눈 뒤 화자 이름을 눌러 바꿉니다. 10명 이상 모임은 인원 수를 입력하세요."
+          : "이름은 앞 화자부터 차례로 입력합니다."}{" "}
+        화자분리는 이 맥에서 실행됩니다.
         {estimate ? ` ${estimate}` : ""}
       </Text>
       <Actions>

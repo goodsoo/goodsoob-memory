@@ -22,10 +22,11 @@ describe("stepLabel / stepProgress", () => {
 });
 
 describe("diarizeEstimate", () => {
-  it("quarter of length", () => {
-    expect(diarizeEstimate(3600)).toBe("1시간 녹음은 약 15분 걸립니다.");
-    expect(diarizeEstimate(1800)).toBe("30분 녹음은 약 8분 걸립니다.");
-    expect(diarizeEstimate(14400)).toBe("4시간 녹음은 약 1시간 걸립니다.");
+  it("1/15 of length", () => {
+    expect(diarizeEstimate(3600)).toBe("1시간 녹음은 약 4분 걸립니다.");
+    expect(diarizeEstimate(1800)).toBe("30분 녹음은 약 2분 걸립니다.");
+    expect(diarizeEstimate(14400)).toBe("4시간 녹음은 약 16분 걸립니다.");
+    expect(diarizeEstimate(300)).toBe("5분 녹음은 약 1분 걸립니다.");
   });
   it("null for unknown", () => {
     expect(diarizeEstimate(null)).toBeNull();
@@ -38,8 +39,12 @@ describe("validateSpeakers", () => {
     expect(validateSpeakers("3")).toEqual({ ok: true, speakers: 3 });
     expect(validateSpeakers(" 10 ")).toEqual({ ok: true, speakers: 10 });
   });
+  it("empty = 0 (auto)", () => {
+    expect(validateSpeakers("")).toEqual({ ok: true, speakers: 0 });
+    expect(validateSpeakers("  ")).toEqual({ ok: true, speakers: 0 });
+  });
   it("rejects others", () => {
-    for (const v of ["", "0", "11", "2.5", "-1", "a"]) expect(validateSpeakers(v).ok).toBe(false);
+    for (const v of ["0", "11", "2.5", "-1", "a"]) expect(validateSpeakers(v).ok).toBe(false);
   });
 });
 

@@ -247,7 +247,7 @@ describe("runJob diarize (단계 1~3)", () => {
   });
 
   it("화자 수 범위 밖이면 실행 전에 error", async () => {
-    const r = await runJob(opts({ speakers: 0 }));
+    const r = await runJob(opts({ speakers: 11 }));
     expect(r.state).toBe("error");
     expect(calls).toEqual([]);
   });

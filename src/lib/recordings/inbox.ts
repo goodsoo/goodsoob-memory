@@ -37,7 +37,7 @@ export function nextStepLabel(it: RecordingItem): string {
     case "waiting":
       return "전사 대기";
     case "raw":
-      return "인원 입력";
+      return "화자 나누기";
     case "processing":
       return it.entry.job?.kind === "diarize" ? "화자 나누는 중" : "고칠 곳 찾는 중";
     case "error":

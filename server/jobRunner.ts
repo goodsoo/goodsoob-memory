@@ -347,7 +347,8 @@ export async function runJob(opts: RunJobOptions): Promise<RunJobResult> {
   // ── 단계 1~3 ────────────────────────────────────────────────────────────
   async function runDiarize(): Promise<void> {
     const speakers = opts.speakers;
-    if (!Number.isInteger(speakers) || (speakers as number) < 1 || (speakers as number) > 10) {
+    // 0 = 자동 (diarize.py 가 화자 수 추정)
+    if (!Number.isInteger(speakers) || (speakers as number) < 0 || (speakers as number) > 10) {
       throw new Error(`화자 수가 잘못되었습니다: ${String(speakers)}`);
     }
     const names = opts.names ?? [];

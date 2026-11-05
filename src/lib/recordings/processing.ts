@@ -37,11 +37,11 @@ function hoursLabel(min: number): string {
   return `${h}시간`;
 }
 
-/** 화자분리는 로컬에서 녹음 길이의 약 1/4 이 걸린다. null = 길이를 모르면 안내 생략. */
+/** 화자분리(pyannote, MPS)는 로컬에서 녹음 길이의 약 1/15 이 걸린다. null = 길이를 모르면 안내 생략. */
 export function diarizeEstimate(durationSec: number | null): string | null {
   if (durationSec === null || !Number.isFinite(durationSec) || durationSec <= 0) return null;
   const lenMin = durationSec / 60;
-  const takeMin = Math.max(1, Math.round(lenMin / 4));
+  const takeMin = Math.max(1, Math.round(lenMin / 15));
   const lenLabel = lenMin >= 60 ? hoursLabel(lenMin) : `${Math.max(1, Math.round(lenMin))}분`;
   const takeLabel = takeMin >= 60 ? hoursLabel(takeMin) : `${takeMin}분`;
   return `${lenLabel} 녹음은 약 ${takeLabel} 걸립니다.`;
@@ -49,12 +49,13 @@ export function diarizeEstimate(durationSec: number | null): string | null {
 
 export type SpeakersCheck = { ok: true; speakers: number } | { ok: false; message: string };
 
-/** 화자 수 입력 문자열 검증 (1~10 정수). */
+/** 화자 수 입력 문자열 검증. 빈 값 = 0(자동), 그 외 1~10 정수. */
 export function validateSpeakers(raw: string): SpeakersCheck {
   const t = raw.trim();
-  if (!/^\d+$/.test(t)) return { ok: false, message: "화자 수를 1~10 사이 정수로 입력하세요." };
+  if (t === "") return { ok: true, speakers: 0 };
+  if (!/^\d+$/.test(t)) return { ok: false, message: "화자 수를 1~10 사이 정수로 입력하거나 비워두세요." };
   const n = Number(t);
-  if (n < MIN_SPEAKERS || n > MAX_SPEAKERS) return { ok: false, message: "화자 수는 1~10 사이로 입력하세요." };
+  if (n < MIN_SPEAKERS || n > MAX_SPEAKERS) return { ok: false, message: "화자 수는 1~10 사이로 입력하거나 비워두세요." };
   return { ok: true, speakers: n };
 }
 
@@ -83,7 +84,7 @@ export function processingErrorMessage(err: unknown): string {
   const e = err as { code?: string; message?: string };
   switch (e?.code) {
     case "badSpeakers":
-      return "화자 수가 올바르지 않습니다. 1~10 사이 정수로 입력하세요.";
+      return "화자 수가 올바르지 않습니다. 1~10 사이 정수로 입력하거나 비워두세요.";
     case "badNames":
       return "화자 이름이 올바르지 않습니다. 한 줄 40자 이내로, 화자 수보다 많지 않게 입력하세요.";
     case "notPro":

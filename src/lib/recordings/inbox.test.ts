@@ -34,7 +34,7 @@ function one(e: RecordingEntry, memos: MemoRef[] = [], trashed: MemoRef[] = []) 
 describe("nextStepLabel", () => {
   const cases: Array<[string, RecordingEntry, string]> = [
     ["전사 대기", entry("a"), "전사 대기"],
-    ["초벌", entry("a", { stt: { ...NO_STT, done: true } }), "인원 입력"],
+    ["초벌", entry("a", { stt: { ...NO_STT, done: true } }), "화자 나누기"],
     [
       "화자분리 중",
       entry("a", { stt: { ...NO_STT, done: true }, job: { state: "running", pidAlive: true, kind: "diarize" } }),

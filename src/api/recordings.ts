@@ -178,7 +178,7 @@ export function postRecordingReview(base: string, id: number, decision: ReviewDe
 
 export function diarizeRecording(
   base: string,
-  body: { speakers: number; names?: string[] },
+  body: { speakers: number; names?: string[] }, // speakers 0 = 자동
 ): Promise<{ job: RecordingJob }> {
   return post(`/api/recordings/${enc(base)}/diarize`, body);
 }

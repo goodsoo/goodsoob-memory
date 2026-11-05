@@ -94,8 +94,8 @@ export interface RecordingJob {
 }
 
 export interface DiarizeRequest {
-  speakers: number; // 1..10 (자동 판정은 과분할 → 필수)
-  names?: string[]; // 화자 index 순 이름 (없으면 화자N), 최대 speakers 개
+  speakers?: number; // 1..10 고정, 생략·0 = 자동 (diarize.py 가 화자 수 추정)
+  names?: string[]; // 화자 index(첫 등장) 순 이름 (없으면 화자N), 최대 speakers 개(자동이면 10)
 }
 
 export interface CorrectionsRequest {
@@ -910,12 +910,12 @@ export function createRecordings(deps: RecordingsDeps) {
     return { job: toRecordingJob(job, true) };
   }
 
-  /** POST /api/recordings/:base/diarize `{speakers, names?}` — 단계 1~3 (로컬 전용). */
+  /** POST /api/recordings/:base/diarize `{speakers?, names?}` — 단계 1~3 (로컬 전용). speakers 생략·0 = 자동. */
   async function diarize(baseParam: string, body: Partial<DiarizeRequest>): Promise<JobStartResponse> {
     const base = assertValidBase(baseParam);
-    const speakers = body.speakers;
-    if (typeof speakers !== "number" || !Number.isInteger(speakers) || speakers < 1 || speakers > 10) {
-      throw new RecordingError(400, "badSpeakers", "화자 수는 1~10 사이 정수로 입력하세요.");
+    const speakers = body.speakers ?? 0;
+    if (typeof speakers !== "number" || !Number.isInteger(speakers) || speakers < 0 || speakers > 10) {
+      throw new RecordingError(400, "badSpeakers", "화자 수는 1~10 사이 정수로 입력하거나 비워두세요.");
     }
     let names: string[] = [];
     if (body.names !== undefined) {
@@ -923,7 +923,7 @@ export function createRecordings(deps: RecordingsDeps) {
         throw new RecordingError(400, "badNames", "화자 이름은 문자열 배열이어야 합니다.");
       }
       names = body.names.map((n) => n.trim());
-      if (names.length > speakers) throw new RecordingError(400, "badNames", "화자 이름이 화자 수보다 많습니다.");
+      if (names.length > (speakers || 10)) throw new RecordingError(400, "badNames", "화자 이름이 화자 수보다 많습니다.");
       // merge.py 는 index 순 매핑 — 빈 이름은 자리 표시가 안 되므로 거부.
       if (names.some((n) => n === "" || /[\t\n\r]/.test(n) || n.length > 40)) {
         throw new RecordingError(400, "badNames", "화자 이름이 비었거나 너무 깁니다. 한 줄 40자 이내로 입력하세요.");

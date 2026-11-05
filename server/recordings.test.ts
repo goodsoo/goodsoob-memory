@@ -580,9 +580,9 @@ describe("POST diarize / corrections — job 시작·전제조건", () => {
     expect(recordings[0].job).toMatchObject({ state: "running", pidAlive: true, kind: "diarize" });
   });
 
-  it("diarize 400 — 화자 수 0·11·소수·문자열·누락, 이름 초과·빈 이름", async () => {
+  it("diarize 400 — 화자 수 음수·11·소수·문자열, 이름 초과·빈 이름", async () => {
     seedTranscribed();
-    for (const speakers of [0, 11, 2.5, "3", undefined]) {
+    for (const speakers of [-1, 11, 2.5, "3"]) {
       const res = await post(rec, "diarize", { speakers });
       expect(res.status).toBe(400);
       expect(res.body.code).toBe("badSpeakers");
@@ -593,6 +593,16 @@ describe("POST diarize / corrections — job 시작·전제조건", () => {
       expect(res.body.code).toBe("badNames");
     }
     expect(spawned).toHaveLength(0);
+  });
+
+  it("diarize 자동 — speakers 누락·0 이면 0 으로 spawn, 이름은 최대 10개", async () => {
+    seedTranscribed();
+    const res = await post(rec, "diarize", { names: ["함창수"] });
+    expect(res.status).toBe(202);
+    expect(spawned[0]).toMatchObject({ kind: "diarize", speakers: 0, names: ["함창수"] });
+    expect(jobJson()).toMatchObject({ speakers: 0 });
+    const many = await post(makeJob(), "diarize", { speakers: 0, names: Array.from({ length: 11 }, (_, i) => `n${i}`) });
+    expect(many.body.code).toBe("badNames");
   });
 
   it("diarize 409 — 초벌 전사 done 없음 / tr.json 단독(실패 잔재) / m4a 없음", async () => {

@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 
 import {
   parseTranscript,
+  nextSpeakerName,
   renameSpeaker,
   serializeTranscript,
+  setTurnSpeaker,
   speakersInOrder,
   turnsOf,
   updateTurnText,
@@ -92,6 +94,36 @@ describe("편집 헬퍼", () => {
   it("renameSpeaker — 빈 이름·콜론·줄바꿈은 무시", () => {
     const p = parseTranscript(BRACKET_SAMPLE);
     for (const bad of ["", "  ", "a: b", "x\ny"]) expect(renameSpeaker(p, "화자1", bad)).toBe(p);
+  });
+
+  it("renameSpeaker — 기존 화자 이름으로 바꾸면 합쳐진다", () => {
+    const p = renameSpeaker(parseTranscript(BRACKET_SAMPLE), "화자1", "화자0");
+    expect(speakersInOrder(p)).toEqual(["화자0"]);
+  });
+
+  it("setTurnSpeaker — 그 턴만 바뀌고 나머지는 그대로", () => {
+    const p = parseTranscript(BRACKET_SAMPLE);
+    const before = turnsOf(p).map((t) => t.speaker);
+    const q = setTurnSpeaker(p, 0, "화자7");
+    const after = turnsOf(q).map((t) => t.speaker);
+    expect(after[0]).toBe("화자7");
+    expect(after.slice(1)).toEqual(before.slice(1));
+    const tl = parseTranscript(TIMELINE_SAMPLE);
+    expect(serializeTranscript(setTurnSpeaker(tl, 0, "창수")).startsWith("00:00 창수\n있는 곳마다")).toBe(true);
+  });
+
+  it("setTurnSpeaker — 같은 화자·범위 밖·잘못된 이름은 원본", () => {
+    const p = parseTranscript(BRACKET_SAMPLE);
+    const cur = turnsOf(p)[0].speaker;
+    expect(setTurnSpeaker(p, 0, cur)).toBe(p);
+    expect(setTurnSpeaker(p, 999, "화자9")).toBe(p);
+    for (const bad of ["", "a: b", "x\ny"]) expect(setTurnSpeaker(p, 0, bad)).toBe(p);
+  });
+
+  it("nextSpeakerName — 안 쓰는 가장 작은 번호", () => {
+    expect(nextSpeakerName([])).toBe("화자0");
+    expect(nextSpeakerName(["화자0", "화자1", "화자2"])).toBe("화자3");
+    expect(nextSpeakerName(["정진용", "화자1"])).toBe("화자0");
   });
 
   it("updateTurnText — 그 턴만, 빈 줄 접고 trim", () => {

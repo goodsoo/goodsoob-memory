@@ -3,6 +3,27 @@ import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/re
 
 import { TranscriptTurns } from "./TranscriptTurns";
 
+// DS Dropdown(Base UI)은 테스트 환경에서 DS 옆폴더의 react 를 불러 훅이 깨진다(앱 번들은 dedupe 로 정상).
+// 항목을 버튼으로 펼쳐 그리는 대역으로 바꿔 화자 변경 흐름만 검증한다.
+vi.mock("@goodsoob/ds", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@goodsoob/ds")>();
+  return {
+    ...mod,
+    Dropdown: ({ trigger, items }: import("@goodsoob/ds").DropdownProps) => (
+      <span>
+        {trigger}
+        {items
+          ?.filter((it) => !it.separator)
+          .map((it) => (
+            <button key={it.key} type="button" data-menu-item onClick={it.onSelect}>
+              {it.label}
+            </button>
+          ))}
+      </span>
+    ),
+  };
+});
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -51,6 +72,24 @@ describe("TranscriptTurns", () => {
     fireEvent.change(input, { target: { value: "정진용" } });
     fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledWith(T.replaceAll("화자1:", "정진용:"));
+  });
+
+  it("발화 화자 메뉴 — 그 발화만 다른 화자로", () => {
+    const onChange = vi.fn();
+    const { container } = render(<TranscriptTurns text={T} onChange={onChange} />);
+    const turn = container.querySelector('[data-turn-index="2"]') as HTMLElement;
+    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "화자0")!;
+    fireEvent.click(item);
+    expect(onChange).toHaveBeenCalledWith(T.replace("[00:28] 화자1:", "[00:28] 화자0:"));
+  });
+
+  it("발화 화자 메뉴 — 새 화자 추가", () => {
+    const onChange = vi.fn();
+    const { container } = render(<TranscriptTurns text={T} onChange={onChange} />);
+    const turn = container.querySelector('[data-turn-index="0"]') as HTMLElement;
+    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "새 화자 (화자2)")!;
+    fireEvent.click(item);
+    expect(onChange).toHaveBeenCalledWith(T.replace("[00:00] 화자1:", "[00:00] 화자2:"));
   });
 
   it("readOnly — 편집 진입 없음", () => {

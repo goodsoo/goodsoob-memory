@@ -265,11 +265,42 @@ export function speakersInOrder(p: ParsedTranscript): string[] {
  */
 export function renameSpeaker(p: ParsedTranscript, from: string, to: string): ParsedTranscript {
   const name = to.trim();
-  if (!name || name === from || /[\n\r:]/.test(name) || name.length > MAX_SPEAKER) return p;
+  if (!name || name === from || !validSpeakerName(name)) return p;
   return {
     ...p,
     blocks: p.blocks.map((b) => (b.kind === "turn" && b.speaker === from ? { ...b, speaker: name } : b)),
   };
+}
+
+function validSpeakerName(name: string): boolean {
+  return !/[\n\r:]/.test(name) && name.length <= MAX_SPEAKER;
+}
+
+/**
+ * 턴 하나의 화자만 바꾼다(화자분리가 잘못 붙인 발화 고치기). index = turn 순번(turnsOf 기준).
+ * 이름 규칙은 renameSpeaker 와 같고, 범위 밖·같은 화자·잘못된 이름이면 원본 반환.
+ */
+export function setTurnSpeaker(p: ParsedTranscript, index: number, speaker: string): ParsedTranscript {
+  const name = speaker.trim();
+  if (!name || !validSpeakerName(name)) return p;
+  let k = -1;
+  let hit = false;
+  const blocks = p.blocks.map((b) => {
+    if (b.kind !== "turn") return b;
+    k++;
+    if (k !== index || b.speaker === name) return b;
+    hit = true;
+    return { ...b, speaker: name };
+  });
+  return hit ? { ...p, blocks } : p;
+}
+
+/** 아직 안 쓰는 가장 작은 `화자N` — 화자분리가 놓친 사람을 새로 추가할 때. */
+export function nextSpeakerName(speakers: readonly string[]): string {
+  const used = new Set(speakers);
+  let n = 0;
+  while (used.has(`화자${n}`)) n++;
+  return `화자${n}`;
 }
 
 /**

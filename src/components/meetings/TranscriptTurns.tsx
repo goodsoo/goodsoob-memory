@@ -1,11 +1,13 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button, CommittedInput, Popover, Textarea } from "@goodsoob/ds";
+import { Button, CommittedInput, Dropdown, Popover, Textarea, type DropdownItem } from "@goodsoob/ds";
 
 import { Text } from "../common/Text";
 import {
+  nextSpeakerName,
   parseTranscript,
   renameSpeaker,
   serializeTranscript,
+  setTurnSpeaker,
   speakersInOrder,
   updateTurnText,
   type TurnBlock,
@@ -16,9 +18,10 @@ import { AudioSlot, SectionHeadingLabel, type SeekRequest } from "./SectionAudio
 // 텍스트(원문) in → 편집 결과도 원문 텍스트 out (parse → 수정 → serialize, 읽은 형식 그대로).
 // 저장·undo 는 호출측 소유 — 이 컴포넌트는 onChange(nextText) 만 부른다.
 //
-// - 참석자 줄: "참석자 N명" + 화자 이름(등장 순 색). 편집 가능하면 이름 클릭 = 그 화자 전체 이름 변경.
+// - 참석자 줄: "참석자 N명" + 화자 이름(등장 순 색). 편집 가능하면 이름 클릭 = 그 화자 전체 이름 변경
+//   (다른 화자 이름으로 바꾸면 두 화자가 합쳐짐 = 화자 수 줄이기).
 // - 턴: 색 원(이니셜) · 이름 · 시각(클릭 = seek) · 발화(클릭 = 인라인 편집, Enter/blur 확정, Esc 취소,
-//   Shift+Enter 줄바꿈).
+//   Shift+Enter 줄바꿈). 편집 가능하면 이름 클릭 = 그 발화만 다른 화자·새 화자로 (화자 수 늘리기).
 // - `## 시각 · base` 녹음 섹션 헤딩 = 구분선 + base 링크 + ▶ (TranscriptView 와 같은 SectionAudio).
 //   onSeek 를 안 주면 시각 클릭은 그 섹션 플레이어를 열어 그 지점부터 재생.
 // - 턴이 2개 미만(plain)이면 renderPlain(있으면) 또는 평문 표시/textarea.
@@ -368,6 +371,21 @@ export function TranscriptTurns({
     const out = serializeTranscript(renameSpeaker(parsed, from, to));
     if (out !== text) onChange?.(out);
   };
+  const commitTurnSpeaker = (index: number, speaker: string) => {
+    const out = serializeTranscript(setTurnSpeaker(parsed, index, speaker));
+    if (out !== text) onChange?.(out);
+  };
+  const newSpeaker = nextSpeakerName(speakers);
+  const speakerItems = (index: number, current: string): DropdownItem[] => [
+    ...speakers.map((s) => ({
+      key: s,
+      label: s,
+      selected: s === current,
+      onSelect: () => commitTurnSpeaker(index, s),
+    })),
+    { key: "__sep", separator: true },
+    { key: "__new", label: `새 화자 (${newSpeaker})`, onSelect: () => commitTurnSpeaker(index, newSpeaker) },
+  ];
   const seekTo = (sec: number, base?: string) => {
     if (onSeek) return onSeek(sec, base);
     if (!base) return;
@@ -396,6 +414,9 @@ export function TranscriptTurns({
                   onBlur={() => setRenaming(null)}
                   style={{ width: "8rem" }}
                 />
+                <Text variant="caption" color="muted" className="whitespace-nowrap">
+                  다른 화자 이름을 입력하면 합쳐집니다.
+                </Text>
               </span>
             );
           }
@@ -412,7 +433,7 @@ export function TranscriptTurns({
               key={s}
               variant="ghost"
               size="sm"
-              title="이 화자 이름 전체 변경"
+              title="이 화자 이름 전체 변경. 다른 화자 이름으로 바꾸면 합쳐집니다"
               aria-label={`${s} 이름 변경`}
               onClick={() => setRenaming(s)}
             >
@@ -505,9 +526,27 @@ export function TranscriptTurns({
             <SpeakerDot name={b.speaker} ci={ci} size="md" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Text variant="label" weight="bold" className="whitespace-nowrap">
-                  {b.speaker}
-                </Text>
+                {editable ? (
+                  <Dropdown
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="이 발화의 화자 변경"
+                        aria-label={`${b.time} 발화 화자 변경`}
+                      >
+                        <Text variant="label" weight="bold" as="span" className="whitespace-nowrap">
+                          {b.speaker}
+                        </Text>
+                      </Button>
+                    }
+                    items={speakerItems(ti, b.speaker)}
+                  />
+                ) : (
+                  <Text variant="label" weight="bold" className="whitespace-nowrap">
+                    {b.speaker}
+                  </Text>
+                )}
                 {seekable ? (
                   <Button
                     variant="ghost"

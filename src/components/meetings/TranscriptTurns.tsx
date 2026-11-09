@@ -76,7 +76,13 @@ function initialOf(name: string): string {
 }
 
 function highlightStyle(kind: string): React.CSSProperties {
-  const base: React.CSSProperties = { color: "inherit", cursor: "pointer", borderRadius: "var(--radius-6)" };
+  // <mark> 의 UA 기본 노란 배경을 지운다 (밑줄 계열은 배경 없음, 찾기 계열만 아래에서 배경을 준다).
+  const base: React.CSSProperties = {
+    color: "inherit",
+    backgroundColor: "transparent",
+    cursor: "pointer",
+    borderRadius: "var(--radius-6)",
+  };
   if (kind === "find" || kind === "find-active") {
     return {
       ...base,

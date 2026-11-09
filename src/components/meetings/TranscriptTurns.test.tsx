@@ -163,7 +163,7 @@ describe("TranscriptTurns", () => {
     expect(el("b").style.textDecorationColor).toBe("var(--sub)");
     expect(el("c").style.textDecorationStyle).toBe("solid");
     expect(el("c").style.textDecorationColor).toBe("var(--down)");
-    expect(el("a").style.backgroundColor).toBe("");
+    expect(el("a").style.backgroundColor).toBe("transparent");
     expect(el("f").style.backgroundColor).toBe("var(--warn-soft)");
     expect(el("f").style.outline).toBe("");
     expect(el("fa").style.backgroundColor).toBe("var(--warn-soft)");

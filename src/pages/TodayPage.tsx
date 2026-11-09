@@ -171,7 +171,7 @@ export function TodayPage({
               <Row onClick={onOpenRecordings}>
                 <Mic className="h-4 w-4 shrink-0" style={{ color: "var(--faint)" }} aria-hidden />
                 <Text variant="body" as="span" className="min-w-0 flex-1">
-                  처리할 녹음 <span className="tabular-nums">{recordingCount}</span>개
+                  새 녹음 <span className="tabular-nums">{recordingCount}</span>개
                 </Text>
                 <ChevronRight className="h-4 w-4 shrink-0" style={{ color: "var(--faint)" }} aria-hidden />
               </Row>

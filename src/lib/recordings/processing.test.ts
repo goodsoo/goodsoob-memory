@@ -12,10 +12,10 @@ import {
 
 describe("stepLabel / stepProgress", () => {
   it("maps known steps", () => {
-    expect(stepLabel("diarize")).toBe("화자 나누는 중");
-    expect(stepLabel("queued")).toBe("대기 중");
-    expect(stepLabel("corrections 2/5")).toBe("교정 후보 만드는 중 (2/5)");
-    expect(stepLabel("anchor")).toBe("교정 위치 찾는 중");
+    expect(stepLabel("diarize")).toBe("말한 사람 나누는 중");
+    expect(stepLabel("queued")).toBe("순서를 기다리는 중");
+    expect(stepLabel("corrections 2/5")).toBe("고칠 곳 찾는 중 (2/5)");
+    expect(stepLabel("anchor")).toBe("고칠 곳 위치 표시 중");
     expect(stepLabel("zzz")).toBe("처리 중");
     expect(stepLabel(undefined)).toBe("처리 중");
   });

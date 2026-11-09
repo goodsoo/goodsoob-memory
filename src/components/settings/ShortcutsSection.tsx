@@ -1,5 +1,6 @@
 import { Text } from "../common/Text";
 import { Kbd } from "../common/Kbd";
+import { RECORDING_SHORTCUTS } from "../../lib/recordings/shortcuts";
 
 type Shortcut = {
   keys: string[];
@@ -40,6 +41,10 @@ const GROUPS: Group[] = [
       { keys: ["⌥", "⇧", "Tab"], label: "이전 sub-tab" },
       { keys: ["⌘", "⇧", "E"], label: "편집/보기 토글", note: "본문 탭일 때만" },
     ],
+  },
+  {
+    title: "녹음 (녹음 탭)",
+    items: RECORDING_SHORTCUTS,
   },
   {
     title: "편집",
@@ -92,7 +97,7 @@ export function ShortcutsSection() {
           <ul className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-x-6">
             {group.items.map((s) => (
               <li
-                key={s.label}
+                key={`${s.label}|${s.keys.join("")}`}
                 className="flex items-center gap-3 py-2"
                 style={{ borderBottom: "1px solid var(--line)" }}
               >

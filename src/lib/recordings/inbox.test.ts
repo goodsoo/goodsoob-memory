@@ -33,33 +33,33 @@ function one(e: RecordingEntry, memos: MemoRef[] = [], trashed: MemoRef[] = []) 
 
 describe("nextStepLabel", () => {
   const cases: Array<[string, RecordingEntry, string]> = [
-    ["전사 대기", entry("a"), "전사 대기"],
-    ["초벌", entry("a", { stt: { ...NO_STT, done: true } }), "화자 나누기"],
+    ["전사 대기", entry("a"), "받아쓰는 중"],
+    ["초벌", entry("a", { stt: { ...NO_STT, done: true } }), "자동 받아쓰기"],
     [
       "화자분리 중",
       entry("a", { stt: { ...NO_STT, done: true }, job: { state: "running", pidAlive: true, kind: "diarize" } }),
-      "화자 나누는 중",
+      "말한 사람 나누는 중",
     ],
     [
       "교정 후보 중",
       entry("a", { stt: { ...NO_STT, diarized: true }, job: { state: "running", pidAlive: true, kind: "corrections" } }),
       "고칠 곳 찾는 중",
     ],
-    ["오류", entry("a", { job: { state: "error", pidAlive: false } }), "오류"],
+    ["오류", entry("a", { job: { state: "error", pidAlive: false } }), "처리 실패"],
     ["리뷰", entry("a", { stt: { ...NO_STT, diarized: true, anchored: true, reviewLeft: 12 } }), "고칠 곳 12개"],
-    ["교정 중", entry("a", { stt: { ...NO_STT, diarized: true } }), "듣고 고치기"],
-    ["교정본", entry("a", { hasTxt: true }), "연결 대기"],
-    ["텍스트만 교정본", entry("a", { hasM4a: false, hasTxt: true }), "연결 대기"],
-    ["텍스트만 초벌", entry("a", { hasM4a: false, hasTxt: true, stt: { ...NO_STT, rawPromoted: true } }), "텍스트만"],
+    ["교정 중", entry("a", { stt: { ...NO_STT, diarized: true } }), "고치는 중"],
+    ["교정본", entry("a", { hasTxt: true }), "보낼 준비 됨"],
+    ["텍스트만 교정본", entry("a", { hasM4a: false, hasTxt: true }), "보낼 준비 됨"],
+    ["텍스트만 초벌", entry("a", { hasM4a: false, hasTxt: true, stt: { ...NO_STT, rawPromoted: true } }), "글만 있음"],
   ];
   for (const [name, e, want] of cases) {
     it(name, () => expect(nextStepLabel(one(e))).toBe(want));
   }
   it("연결됨 · 휴지통 메모", () => {
     const linked = one(entry("a", { stt: { ...NO_STT, moved: true } }), [memo("m", ["a"])]);
-    expect(nextStepLabel(linked)).toBe("연결됨");
+    expect(nextStepLabel(linked)).toBe("메모로 보냄");
     const trashed = one(entry("a", { stt: { ...NO_STT, moved: true } }), [], [memo("t", ["a"])]);
-    expect(nextStepLabel(trashed)).toBe("휴지통 메모에 연결됨");
+    expect(nextStepLabel(trashed)).toBe("메모가 휴지통에 있음");
   });
 });
 

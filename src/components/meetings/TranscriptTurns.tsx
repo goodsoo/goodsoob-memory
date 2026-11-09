@@ -28,6 +28,8 @@ import { AudioSlot, SectionHeadingLabel, type SeekRequest } from "./SectionAudio
 
 const SPEAKER_COLOR_COUNT = 10; // index.css 의 --speaker-0..9 와 일치.
 
+export type HighlightKind = "A" | "B" | "C" | "find" | "find-active" | (string & {});
+
 export interface TranscriptHighlight {
   /** turn 순번 (heading·text 블록 제외, 0부터). */
   turnIndex: number;
@@ -35,8 +37,8 @@ export interface TranscriptHighlight {
   start: number;
   end: number;
   id: string;
-  /** 교정 후보 분류 — "A"(자동 제안) · "B"(확인 필요) · "C"(화자 오귀속) 등. */
-  kind: string;
+  /** 교정 후보 분류 "A"·"B"·"C" 또는 찾기 결과 "find"·"find-active". */
+  kind: HighlightKind;
 }
 
 const NO_HIGHLIGHTS: readonly TranscriptHighlight[] = [];
@@ -63,6 +65,8 @@ export interface TranscriptTurnsProps {
   onHighlightClose?: () => void;
   /** 이 턴 발화를 편집 상태로 연다 (nonce 가 바뀔 때마다 한 번). */
   editRequest?: { turnIndex: number; nonce: number } | null;
+  /** 지금 재생 중인 턴 순번 — 그 행에 배경(--surface)을 준다. */
+  activeTurnIndex?: number | null;
 }
 
 function initialOf(name: string): string {
@@ -72,13 +76,26 @@ function initialOf(name: string): string {
 }
 
 function highlightStyle(kind: string): React.CSSProperties {
-  const tone = kind === "C" ? "down" : kind === "B" ? "accent" : "warn";
+  const base: React.CSSProperties = { color: "inherit", cursor: "pointer", borderRadius: "var(--radius-6)" };
+  if (kind === "find" || kind === "find-active") {
+    return {
+      ...base,
+      backgroundColor: "var(--warn-soft)",
+      outline: kind === "find-active" ? "1px solid var(--warn-line)" : undefined,
+    };
+  }
+  const line =
+    kind === "C"
+      ? { style: "solid", tone: "down" }
+      : kind === "B"
+        ? { style: "dotted", tone: "sub" }
+        : { style: "wavy", tone: "warn" };
   return {
-    backgroundColor: `var(--${tone}-soft)`,
-    borderBottom: `1px solid var(--${tone}-line)`,
-    color: "inherit",
-    cursor: "pointer",
-    borderRadius: "var(--radius-6)",
+    ...base,
+    textDecorationLine: "underline",
+    textDecorationStyle: line.style as React.CSSProperties["textDecorationStyle"],
+    textDecorationColor: `var(--${line.tone})`,
+    textUnderlineOffset: "3px",
   };
 }
 
@@ -275,7 +292,7 @@ function TurnText({
       data-turn-text
       role={editable ? "button" : undefined}
       tabIndex={editable ? 0 : undefined}
-      title={editable ? "클릭해 고치기" : undefined}
+      title={editable ? "눌러서 고칩니다" : undefined}
       onClick={editable ? startEdit : undefined}
       onKeyDown={
         editable
@@ -314,6 +331,7 @@ export function TranscriptTurns({
   activeHighlightId = null,
   onHighlightClose,
   editRequest = null,
+  activeTurnIndex = null,
 }: TranscriptTurnsProps) {
   const editable = !!onChange && !readOnly;
   const parsed = useMemo(() => parseTranscript(text, audioBases), [text, audioBases]);
@@ -384,7 +402,7 @@ export function TranscriptTurns({
       onSelect: () => commitTurnSpeaker(index, s),
     })),
     { key: "__sep", separator: true },
-    { key: "__new", label: `새 화자 (${newSpeaker})`, onSelect: () => commitTurnSpeaker(index, newSpeaker) },
+    { key: "__new", label: `새 사람 (${newSpeaker})`, onSelect: () => commitTurnSpeaker(index, newSpeaker) },
   ];
   const seekTo = (sec: number, base?: string) => {
     if (onSeek) return onSeek(sec, base);
@@ -415,7 +433,7 @@ export function TranscriptTurns({
                   style={{ width: "8rem" }}
                 />
                 <Text variant="caption" color="muted" className="whitespace-nowrap">
-                  다른 화자 이름을 입력하면 합쳐집니다.
+                  다른 사람 이름을 입력하면 한 사람으로 합칩니다.
                 </Text>
               </span>
             );
@@ -433,7 +451,7 @@ export function TranscriptTurns({
               key={s}
               variant="ghost"
               size="sm"
-              title="이 화자 이름 전체 변경. 다른 화자 이름으로 바꾸면 합쳐집니다"
+              title="이 사람 이름을 모두 바꿉니다. 다른 사람 이름으로 바꾸면 합칩니다"
               aria-label={`${s} 이름 변경`}
               onClick={() => setRenaming(s)}
             >
@@ -522,7 +540,17 @@ export function TranscriptTurns({
         const base = layout[bi].sectionBase;
         const seekable = !!onSeek || !!base;
         return (
-          <div key={`t${bi}`} className="flex gap-3" data-turn-index={ti}>
+          <div
+            key={`t${bi}`}
+            className="flex gap-3"
+            data-turn-index={ti}
+            data-active={activeTurnIndex === ti ? "true" : undefined}
+            style={{
+              padding: "var(--space-8) var(--space-12)",
+              borderRadius: "var(--radius-8)",
+              backgroundColor: activeTurnIndex === ti ? "var(--surface)" : undefined,
+            }}
+          >
             <SpeakerDot name={b.speaker} ci={ci} size="md" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -532,7 +560,7 @@ export function TranscriptTurns({
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="이 발화의 화자 변경"
+                        title="이 문단의 말한 사람을 바꿉니다"
                         aria-label={`${b.time} 발화 화자 변경`}
                       >
                         <Text variant="label" weight="bold" as="span" className="whitespace-nowrap">

@@ -86,7 +86,7 @@ export function RecordingsSidePanel({ selectedBase, onSelect, onClear }: Props) 
           <Button
             variant="ghost"
             size="sm"
-            title="처리할 것 중 30초 미만 녹음을 모두 고릅니다"
+            title="새 녹음 중 30초 미만 녹음을 모두 고릅니다"
             onClick={() => setChecked(new Set(shortBases))}
           >
             30초 미만 선택
@@ -102,7 +102,7 @@ export function RecordingsSidePanel({ selectedBase, onSelect, onClear }: Props) 
           ) : (
             <>
               <SidePanelSectionHeader
-                label="처리할 것"
+                label="새 녹음"
                 collapsed={!todoOpen}
                 onToggle={() => setTodoOpen((v) => !v)}
                 count={groups.todo.length}
@@ -110,7 +110,7 @@ export function RecordingsSidePanel({ selectedBase, onSelect, onClear }: Props) 
               <div className="px-1 pb-2" hidden={!todoOpen}>
                 {groups.todo.length === 0 ? (
                   <Text variant="caption" color="muted" as="div" className="px-3 py-1.5">
-                    처리할 녹음이 없습니다
+                    새 녹음이 없습니다
                   </Text>
                 ) : (
                   groups.todo.map((it) => (
@@ -129,7 +129,7 @@ export function RecordingsSidePanel({ selectedBase, onSelect, onClear }: Props) 
               {groups.done.length > 0 ? (
                 <>
                   <SidePanelSectionHeader
-                    label="끝난 것"
+                    label="정리 끝"
                     collapsed={!doneOpen}
                     onToggle={() => {
                       const next = !doneOpen;
@@ -230,7 +230,7 @@ function RecordingRow({
             style={{ color: attention ? "var(--ink)" : "var(--faint)" }}
           >
             {step}
-            {entry.syncPending ? " · 동기화 대기" : ""}
+            {entry.syncPending ? " · iCloud 받는 중" : ""}
           </span>
         </span>
       </NavItem>

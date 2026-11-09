@@ -83,11 +83,11 @@ describe("TranscriptTurns", () => {
     expect(onChange).toHaveBeenCalledWith(T.replace("[00:28] 화자1:", "[00:28] 화자0:"));
   });
 
-  it("발화 화자 메뉴 — 새 화자 추가", () => {
+  it("발화 화자 메뉴 — 새 사람 추가", () => {
     const onChange = vi.fn();
     const { container } = render(<TranscriptTurns text={T} onChange={onChange} />);
     const turn = container.querySelector('[data-turn-index="0"]') as HTMLElement;
-    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "새 화자 (화자2)")!;
+    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "새 사람 (화자2)")!;
     fireEvent.click(item);
     expect(onChange).toHaveBeenCalledWith(T.replace("[00:00] 화자1:", "[00:00] 화자2:"));
   });
@@ -128,6 +128,46 @@ describe("TranscriptTurns", () => {
     fireEvent.click(mark);
     expect(onHl).toHaveBeenCalledWith("h1");
     expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("activeTurnIndex → 그 행에만 data-active", () => {
+    const { container } = render(<TranscriptTurns text={T} activeTurnIndex={1} />);
+    const active = container.querySelectorAll('[data-active="true"]');
+    expect(active).toHaveLength(1);
+    expect(active[0].getAttribute("data-turn-index")).toBe("1");
+    expect((active[0] as HTMLElement).style.backgroundColor).toBe("var(--surface)");
+  });
+
+  it("activeTurnIndex 미지정 → data-active 없음", () => {
+    const { container } = render(<TranscriptTurns text={T} />);
+    expect(container.querySelector("[data-active]")).toBeNull();
+  });
+
+  it("하이라이트 종류별 스타일 — A 물결·B 점선·C 실선, find 배경, find-active 외곽선", () => {
+    const { container } = render(
+      <TranscriptTurns
+        text={T}
+        highlights={[
+          { turnIndex: 0, start: 0, end: 1, id: "a", kind: "A" },
+          { turnIndex: 0, start: 2, end: 3, id: "b", kind: "B" },
+          { turnIndex: 1, start: 0, end: 1, id: "c", kind: "C" },
+          { turnIndex: 1, start: 2, end: 3, id: "f", kind: "find" },
+          { turnIndex: 2, start: 0, end: 1, id: "fa", kind: "find-active" },
+        ]}
+      />,
+    );
+    const el = (id: string) => container.querySelector(`[data-highlight-id="${id}"]`) as HTMLElement;
+    expect(el("a").style.textDecorationStyle).toBe("wavy");
+    expect(el("a").style.textDecorationColor).toBe("var(--warn)");
+    expect(el("b").style.textDecorationStyle).toBe("dotted");
+    expect(el("b").style.textDecorationColor).toBe("var(--sub)");
+    expect(el("c").style.textDecorationStyle).toBe("solid");
+    expect(el("c").style.textDecorationColor).toBe("var(--down)");
+    expect(el("a").style.backgroundColor).toBe("");
+    expect(el("f").style.backgroundColor).toBe("var(--warn-soft)");
+    expect(el("f").style.outline).toBe("");
+    expect(el("fa").style.backgroundColor).toBe("var(--warn-soft)");
+    expect(el("fa").style.outline).toContain("var(--warn-line)");
   });
 
   it("시각 클릭 → onSeek(sec, 섹션 base)", () => {

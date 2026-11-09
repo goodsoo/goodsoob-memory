@@ -53,9 +53,21 @@ export function recordingErrorMessage(err: unknown): string {
     case "busy":
       return "이 녹음은 다른 요청이 처리 중입니다. 잠시 후 다시 시도하세요.";
     case "alreadyMoved":
-      return "전사본이 이미 다른 메모로 옮겨졌습니다. 먼저 그 메모에서 연결을 해제하세요.";
+      return "음성 기록이 이미 다른 메모로 옮겨졌습니다. 그 메모에서 녹음 연결을 먼저 해제하세요.";
     case "noTranscript":
-      return "아직 전사본이 없습니다. 전사가 끝난 뒤 다시 시도하세요.";
+      return "아직 받아쓰기가 끝나지 않았습니다. 끝난 뒤 다시 시도하세요.";
+    case "rawReadonly":
+      return "말한 사람을 나누기 전에는 고칠 수 없습니다. 말한 사람 나누기를 먼저 실행하세요.";
+    case "linked":
+      return "이미 메모로 보낸 녹음입니다. 메모의 음성 기록에서 고치세요.";
+    case "conflict":
+      return "다른 곳에서 내용이 바뀌었습니다. 새로 불러온 뒤 다시 고치세요.";
+    case "notCorrected":
+      return "아직 메모로 보낼 수 없습니다. 말한 사람을 나눈 뒤 다시 시도하세요.";
+    case "syncPending":
+      return "녹음 파일을 아직 iCloud 에서 받는 중입니다. 잠시 후 다시 시도하세요.";
+    case "noAudio":
+      return "녹음 파일이 없습니다. 파일이 옮겨졌거나 삭제됐는지 확인하세요.";
     case "titleConflict":
       return "같은 제목의 메모가 이미 있습니다. 다른 제목을 입력하세요.";
     default:

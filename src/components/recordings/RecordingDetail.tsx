@@ -298,7 +298,7 @@ export function RecordingDetail({ item, onOpenMeeting, onSent, onDeleted }: Prop
 
   // ── 상태 줄 · 버튼 ──
   const view = statusView(item, {
-    remaining: pipeline === "review" ? (mapping ? mapping.highlights.length : null) : null,
+    remaining: pipeline === "review" ? (mapping ? mapping.remaining : null) : null,
     unmatched: mapping?.unmatched.length ?? 0,
   });
   const sendRemaining = mapping?.remaining ?? (pipeline === "review" ? entry.stt.reviewLeft : 0);
@@ -465,6 +465,7 @@ export function RecordingDetail({ item, onOpenMeeting, onSent, onDeleted }: Prop
         <PlaybackBar
           player={player}
           following={follow.following}
+          hasActive={activeTurnIndex >= 0}
           onResumeFollow={follow.resume}
           onOpenHelp={() => setHelpOpen(true)}
         />

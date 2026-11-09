@@ -46,13 +46,14 @@ function fake(over: Partial<RecordingPlayer> = {}): RecordingPlayer {
   };
 }
 
-function setup(player: RecordingPlayer, following = true) {
+function setup(player: RecordingPlayer, following = true, hasActive = true) {
   const onResumeFollow = vi.fn();
   const onOpenHelp = vi.fn();
   render(
     <PlaybackBar
       player={player}
       following={following}
+      hasActive={hasActive}
       onResumeFollow={onResumeFollow}
       onOpenHelp={onOpenHelp}
     />,
@@ -100,6 +101,11 @@ describe("PlaybackBar", () => {
     fireEvent.click(screen.getByRole("button", { name: "현재 위치로" }));
     expect(b.onResumeFollow).toHaveBeenCalledTimes(1);
     expect(a.onResumeFollow).not.toHaveBeenCalled();
+  });
+
+  it("활성 문단이 없으면(재생 전) following=false 여도 '현재 위치로' 숨김", () => {
+    setup(fake(), false, false);
+    expect(screen.queryByRole("button", { name: "현재 위치로" })).toBeNull();
   });
 
   it("syncPending 은 문장 + 다시 시도", () => {

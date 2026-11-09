@@ -117,9 +117,9 @@ describe("statusView — A 표 상태별", () => {
   describe("undecided / review", () => {
     const rev = item(entry({ stt: { ...NO_STT, done: true, diarized: true, anchored: true, reviewLeft: 5 } }));
 
-    it("위치 찾은 N 개만 센다 + primary 보내기 / secondary 다음 고칠 곳", () => {
-      const v = statusView(rev, { remaining: 3, unmatched: 2 });
-      expect(v.text).toBe("고칠 곳 3개 남음. 밑줄을 눌러 바꾸거나 그대로 둡니다.");
+    it("전체 남은 수를 세고 위치 못 찾은 수를 덧붙인다 + primary 보내기 / secondary 다음 고칠 곳", () => {
+      const v = statusView(rev, { remaining: 5, unmatched: 2 });
+      expect(v.text).toBe("고칠 곳 5개 남음 (본문에서 위치를 못 찾은 2개 포함). 밑줄을 눌러 바꾸거나 그대로 둡니다.");
       expect(v.primary).toMatchObject({ action: "send", variant: "primary" });
       expect(v.secondary).toMatchObject({ action: "nextReview", label: "다음 고칠 곳", variant: "secondary" });
       expect(v.secondary?.disabled).toBe(false);
@@ -132,7 +132,8 @@ describe("statusView — A 표 상태별", () => {
     });
 
     it("밑줄 0개 + 위치 못 찾은 것만 남음", () => {
-      const v = statusView(rev, { remaining: 0, unmatched: 2 });
+      const v = statusView(rev, { remaining: 2, unmatched: 2 });
+      expect(v.text).toContain("고칠 곳 2개 남음");
       expect(v.text).toContain("본문에서 위치를 못 찾았습니다");
       expect(v.secondary?.disabled).toBe(true);
     });

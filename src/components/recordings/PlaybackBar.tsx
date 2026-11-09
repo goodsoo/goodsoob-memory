@@ -6,8 +6,10 @@ import { Text } from "../common/Text";
 
 type Props = {
   player: RecordingPlayer;
-  /** false 면 "현재 위치로" 버튼이 나옵니다. */
+  /** false 면 (그리고 hasActive 면) "현재 위치로" 버튼이 나옵니다. */
   following: boolean;
+  /** 돌아갈 활성 문단이 있는지. 재생 전에는 false 라 버튼을 숨깁니다. */
+  hasActive?: boolean;
   onResumeFollow: () => void;
   onOpenHelp: () => void;
 };
@@ -30,7 +32,7 @@ function rateLabel(r: number): string {
 }
 
 // 재생 막대 — 숨긴 <audio> 도 여기서 렌더한다. 위치 막대는 DS 에 Slider 가 없어 native range.
-export function PlaybackBar({ player, following, onResumeFollow, onOpenHelp }: Props) {
+export function PlaybackBar({ player, following, hasActive = true, onResumeFollow, onOpenHelp }: Props) {
   const { state } = player;
 
   if (state !== "ready") {
@@ -114,7 +116,7 @@ export function PlaybackBar({ player, following, onResumeFollow, onOpenHelp }: P
           onSelect: () => player.setRate(r),
         }))}
       />
-      {!following && (
+      {!following && hasActive && (
         <Button variant="ghost" size="sm" onClick={onResumeFollow}>
           현재 위치로
         </Button>

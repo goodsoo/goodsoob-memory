@@ -55,8 +55,8 @@ function memoTitle(t: string | undefined): string {
 }
 
 /**
- * A 표의 상태별 상태 줄 + 머리 버튼. remaining = 위치를 찾은(밑줄 친) 고칠 곳 수, null = 아직 불러오는 중.
- * unmatched = 위치를 못 찾은 고칠 곳 수 (상태 줄 개수에는 넣지 않는다).
+ * A 표의 상태별 상태 줄 + 머리 버튼. remaining = 남은 고칠 곳 전체 수 (사이드바와 같은 수, 위치 못 찾은 것 포함), null = 아직 불러오는 중.
+ * unmatched = 그중 본문에서 위치를 못 찾은 수.
  */
 export function statusView(
   item: RecordingItem,
@@ -141,8 +141,13 @@ export function statusView(
     case "review": {
       let text: string;
       if (remaining === null) text = "고칠 곳을 불러오는 중입니다.";
-      else if (remaining > 0) text = `고칠 곳 ${remaining}개 남음. 밑줄을 눌러 바꾸거나 그대로 둡니다.`;
-      else if (unmatched > 0) text = "남은 고칠 곳은 본문에서 위치를 못 찾았습니다. 맨 아래 목록에서 확인합니다.";
+      else if (remaining > 0 && remaining <= unmatched)
+        text = `고칠 곳 ${remaining}개 남음. 모두 본문에서 위치를 못 찾았습니다. 맨 아래 목록에서 확인합니다.`;
+      else if (remaining > 0)
+        text =
+          `고칠 곳 ${remaining}개 남음` +
+          (unmatched > 0 ? ` (본문에서 위치를 못 찾은 ${unmatched}개 포함)` : "") +
+          ". 밑줄을 눌러 바꾸거나 그대로 둡니다.";
       else text = "고칠 곳을 모두 확인했습니다. 보낼 메모를 고릅니다.";
       return {
         kind: "text",
@@ -152,7 +157,7 @@ export function statusView(
           action: "nextReview",
           label: "다음 고칠 곳",
           variant: "secondary",
-          disabled: !remaining || remaining <= 0,
+          disabled: remaining === null || remaining - unmatched <= 0,
         },
       };
     }

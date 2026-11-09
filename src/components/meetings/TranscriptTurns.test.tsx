@@ -219,4 +219,49 @@ describe("TranscriptTurns", () => {
     expect(screen.queryByRole("textbox")).toBeNull();
     expect(screen.getByText("계십니까?")).toBeTruthy();
   });
+
+  describe("같은 화자 이어진 문단", () => {
+    const C = "[00:00] 화자0: 첫 문단.\n\n[00:20] 화자0: 이어진 문단.\n\n[00:40] 화자1: 다른 사람.\n\n[00:50] 화자1: 또 이어짐.\n";
+    const row = (c: HTMLElement, i: number) => c.querySelector(`[data-turn-index="${i}"]`) as HTMLElement;
+
+    it("앞 턴과 화자가 같으면 data-continued, 화자가 바뀌면 아님", () => {
+      const { container } = render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      expect(row(container, 0).dataset.continued).toBeUndefined();
+      expect(row(container, 1).dataset.continued).toBe("true");
+      expect(row(container, 2).dataset.continued).toBeUndefined();
+      expect(row(container, 3).dataset.continued).toBe("true");
+    });
+
+    it("이어진 턴은 아바타 없음, 첫 턴은 아바타 있음", () => {
+      const { container } = render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      // SpeakerDot 만 rounded-full. 참석자 줄의 sm 점은 행 밖이라 행 안에서만 센다.
+      expect(row(container, 0).querySelectorAll(".rounded-full")).toHaveLength(1);
+      expect(row(container, 1).querySelectorAll(".rounded-full")).toHaveLength(0);
+    });
+
+    it("이어진 턴도 시각 클릭은 seek, 화자 변경 버튼은 접근 가능", () => {
+      const onSeek = vi.fn();
+      const onChange = vi.fn();
+      const { container } = render(<TranscriptTurns text={C} onChange={onChange} onSeek={onSeek} />);
+      fireEvent.click(screen.getByRole("button", { name: "00:20 부터 듣기" }));
+      expect(onSeek).toHaveBeenCalledWith(20, undefined);
+      const item = Array.from(row(container, 1).querySelectorAll("[data-menu-item]")).find(
+        (b) => b.textContent === "화자1",
+      )!;
+      fireEvent.click(item);
+      expect(onChange).toHaveBeenCalledWith(C.replace("[00:20] 화자0:", "[00:20] 화자1:"));
+    });
+
+    it("이어진 턴 발화 편집 aria-label 유지", () => {
+      render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      fireEvent.click(screen.getByText("이어진 문단."));
+      expect(screen.getByLabelText("화자0 00:20 발화 편집")).toBeTruthy();
+    });
+
+    it("사이에 제목 블록이 끼면 이어진 문단이 아님", () => {
+      const text = "[00:00] 화자0: 앞.\n\n## 다른 섹션\n\n[00:20] 화자0: 뒤.\n";
+      const { container } = render(<TranscriptTurns text={text} onChange={vi.fn()} />);
+      expect(row(container, 1).dataset.continued).toBeUndefined();
+    });
+  });
 });

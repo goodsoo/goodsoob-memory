@@ -545,22 +545,34 @@ export function TranscriptTurns({
         const ci = colorOf.get(b.speaker) ?? 0;
         const base = layout[bi].sectionBase;
         const seekable = !!onSeek || !!base;
+        // 바로 앞 블록이 같은 화자의 턴이면 이어진 문단 — 아바타·이름은 숨기고 (이름 변경은 hover/focus 로 노출).
+        const prevBlock = bi > 0 ? parsed.blocks[bi - 1] : undefined;
+        const continued = prevBlock?.kind === "turn" && prevBlock.speaker === b.speaker;
         return (
           <div
             key={`t${bi}`}
-            className="flex gap-3"
+            className="group flex gap-3"
             data-turn-index={ti}
+            data-continued={continued ? "true" : undefined}
             data-active={activeTurnIndex === ti ? "true" : undefined}
             style={{
-              padding: "var(--space-8) var(--space-12)",
+              padding: continued
+                ? "var(--space-4) var(--space-12) var(--space-8)"
+                : "var(--space-8) var(--space-12)",
+              // 부모 gap-4(16px) 를 되돌려 같은 화자 문단끼리는 촘촘하게.
+              marginTop: continued ? "calc(var(--space-12) * -1)" : undefined,
               borderRadius: "var(--radius-8)",
               backgroundColor: activeTurnIndex === ti ? "var(--surface)" : undefined,
             }}
           >
-            <SpeakerDot name={b.speaker} ci={ci} size="md" />
+            {continued ? (
+              <span aria-hidden className="shrink-0" style={{ width: "var(--ctl-h)" }} />
+            ) : (
+              <SpeakerDot name={b.speaker} ci={ci} size="md" />
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                {editable ? (
+                {continued && !editable ? null : editable ? (
                   <Dropdown
                     trigger={
                       <Button
@@ -568,6 +580,11 @@ export function TranscriptTurns({
                         size="sm"
                         title="이 문단의 말한 사람을 바꿉니다"
                         aria-label={`${b.time} 발화 화자 변경`}
+                        className={
+                          continued
+                            ? "opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 data-[popup-open]:opacity-100"
+                            : undefined
+                        }
                       >
                         <Text variant="label" weight="bold" as="span" className="whitespace-nowrap">
                           {b.speaker}

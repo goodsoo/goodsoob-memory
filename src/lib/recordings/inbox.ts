@@ -2,7 +2,7 @@
 import type { RecordingItem } from "./merge";
 
 export interface InboxGroups {
-  /** 처리할 것 — 행선지 미정(전사본 없음 포함). 서버 정렬(날짜 desc) 유지. */
+  /** 새 녹음 — 행선지 미정(전사본 없음 포함). 서버 정렬(날짜 desc) 유지. */
   todo: RecordingItem[];
   /** 끝난 것 — 연결됨(이사 미완료 포함) + 휴지통 메모에 연결됨. */
   done: RecordingItem[];
@@ -30,28 +30,28 @@ export function canLink(it: RecordingItem): boolean {
 /** 사이드바 행 셋째 줄 — 다음 할 일 (회색 작은 글자). */
 export function nextStepLabel(it: RecordingItem): string {
   const { destination, pipeline } = it.status;
-  if (destination === "trash") return "휴지통 메모에 연결됨";
-  if (destination === "linked" || destination === "moveIncomplete") return "연결됨";
-  if (destination === "transcriptMissing") return "전사본 없음";
+  if (destination === "trash") return "메모가 휴지통에 있음";
+  if (destination === "linked" || destination === "moveIncomplete") return "메모로 보냄";
+  if (destination === "transcriptMissing") return "기록 없음";
   switch (pipeline) {
     case "waiting":
-      return "전사 대기";
+      return "받아쓰는 중";
     case "raw":
-      return "화자 나누기";
+      return "자동 받아쓰기";
     case "processing":
-      return it.entry.job?.kind === "diarize" ? "화자 나누는 중" : "고칠 곳 찾는 중";
+      return it.entry.job?.kind === "diarize" ? "말한 사람 나누는 중" : "고칠 곳 찾는 중";
     case "error":
-      return "오류";
+      return "처리 실패";
     case "review": {
       const n = it.entry.stt.reviewLeft;
-      return n > 0 ? `고칠 곳 ${n}개` : "고칠 곳 확인";
+      return n > 0 ? `고칠 곳 ${n}개` : "고칠 곳 불러오는 중";
     }
     case "correction":
-      return "듣고 고치기";
+      return "고치는 중";
     case "corrected":
-      return "연결 대기";
+      return "보낼 준비 됨";
     case "textOnly":
-      return canLink(it) ? "연결 대기" : "텍스트만";
+      return canLink(it) ? "보낼 준비 됨" : "글만 있음";
   }
 }
 

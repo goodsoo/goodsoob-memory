@@ -3,12 +3,12 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 
 const TYPE_LABELS: Record<string, string> = {
-  A: "오인식",
+  A: "잘못 들은 말",
   B: "확인 필요",
-  C: "화자 오귀속",
+  C: "말한 사람이 틀림",
 };
 
-/** 교정 후보 하이라이트 팝오버 내용 — 원문 → 제안 · 메모 · 확신도 + 수락 / 원문 유지 / 직접 고침. */
+/** 교정 후보 하이라이트 팝오버 내용 — 원문 → 제안 · 메모 · 확신도 + 바꾸기 / 그대로 두기 / 직접 고치기. */
 export function ReviewDetail({
   highlight,
   busy,
@@ -55,17 +55,22 @@ export function ReviewDetail({
       <Text variant="caption" color="muted" as="div">
         {meta}
       </Text>
+      {item.type === "C" ? (
+        <Text variant="caption" color="secondary" as="div">
+          문단 위 이름을 눌러 말한 사람을 바꿉니다.
+        </Text>
+      ) : null}
       <div className="flex flex-wrap gap-2 pt-1">
         {replacement !== null ? (
           <Button size="sm" variant="primary" disabled={busy} onClick={onAccept}>
-            수락
+            바꾸기
           </Button>
         ) : null}
         <Button size="sm" disabled={busy} onClick={onKeep}>
-          원문 유지
+          그대로 두기
         </Button>
         <Button size="sm" variant="ghost" disabled={busy} onClick={onEdit}>
-          직접 고침
+          직접 고치기
         </Button>
       </div>
     </div>

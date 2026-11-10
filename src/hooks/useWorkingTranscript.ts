@@ -7,6 +7,7 @@ import {
   type TranscriptSource,
 } from "../api/recordings";
 import { recordingErrorMessage } from "../components/recordings/recordingLabels";
+import { emptyHistory, push, redo as redoHistory, undo as undoHistory, type TextHistory } from "../lib/recordings/textHistory";
 import { transcriptKey, useRecordingTranscript } from "./useRecordings";
 
 export const SAVE_DEBOUNCE_MS = 800;
@@ -31,14 +32,23 @@ export function useWorkingTranscript(base: string, version: string, enabled: boo
   const dirtyRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainRef = useRef<Promise<boolean>>(Promise.resolve(true));
+  const historyRef = useRef<TextHistory>(emptyHistory());
+  const [hist, setHist] = useState({ canUndo: false, canRedo: false });
+  const syncHist = useCallback(() => {
+    const h = historyRef.current;
+    setHist({ canUndo: h.past.length > 0, canRedo: h.future.length > 0 });
+  }, []);
 
   // 서버 값 반영 — 고치는 중(dirty)이면 덮지 않는다.
   useEffect(() => {
     if (!q.data || dirtyRef.current) return;
     textRef.current = q.data.text;
     mtimeRef.current = q.data.mtime;
+    // 서버 값으로 덮으면 되돌리기 기준이 사라지므로 스택을 비운다.
+    historyRef.current = emptyHistory();
+    syncHist();
     setLocal({ text: q.data.text, source: q.data.source });
-  }, [q.data]);
+  }, [q.data, syncHist]);
 
   const save = useCallback((): Promise<boolean> => {
     if (timerRef.current) {
@@ -56,20 +66,22 @@ export function useWorkingTranscript(base: string, version: string, enabled: boo
       } catch (err) {
         if (err instanceof RecordingApiError && err.code === "conflict") {
           dirtyRef.current = false;
+          historyRef.current = emptyHistory();
+          syncHist();
           await qc.refetchQueries({ queryKey: [...transcriptKey(base), version] });
-          toast.show("다른 곳에서 전사본이 바뀌어 새로 불러왔습니다. 방금 고친 곳을 다시 고치세요.", {
+          toast.show("다른 곳에서 내용이 바뀌어 새로 불러왔습니다. 방금 고친 곳을 다시 고치세요.", {
             variant: "warn",
           });
         } else {
-          toast.show(`전사본을 저장하지 못했습니다. ${recordingErrorMessage(err)}`, { variant: "down" });
+          toast.show(`고친 내용을 저장하지 못했습니다. ${recordingErrorMessage(err)}`, { variant: "down" });
         }
         return false;
       }
     });
     return chainRef.current;
-  }, [base, version, qc, toast]);
+  }, [base, version, qc, toast, syncHist]);
 
-  const setText = useCallback(
+  const apply = useCallback(
     (next: string) => {
       textRef.current = next;
       dirtyRef.current = true;
@@ -79,6 +91,40 @@ export function useWorkingTranscript(base: string, version: string, enabled: boo
     },
     [save],
   );
+
+  const setText = useCallback(
+    (next: string) => {
+      const prev = textRef.current;
+      if (prev !== null && prev !== next) {
+        historyRef.current = push(historyRef.current, prev);
+        syncHist();
+      }
+      apply(next);
+    },
+    [apply, syncHist],
+  );
+
+  const undo = useCallback((): boolean => {
+    const cur = textRef.current;
+    if (cur === null) return false;
+    const res = undoHistory(historyRef.current, cur);
+    if (!res) return false;
+    historyRef.current = res.history;
+    syncHist();
+    apply(res.text);
+    return true;
+  }, [apply, syncHist]);
+
+  const redo = useCallback((): boolean => {
+    const cur = textRef.current;
+    if (cur === null) return false;
+    const res = redoHistory(historyRef.current, cur);
+    if (!res) return false;
+    historyRef.current = res.history;
+    syncHist();
+    apply(res.text);
+    return true;
+  }, [apply, syncHist]);
 
   /** 지금 바로 저장 (수락·교정 완료 직전). 실패면 false. */
   const flush = useCallback(() => save(), [save]);
@@ -98,5 +144,9 @@ export function useWorkingTranscript(base: string, version: string, enabled: boo
     error: q.error,
     setText,
     flush,
+    undo,
+    redo,
+    canUndo: hist.canUndo,
+    canRedo: hist.canRedo,
   };
 }

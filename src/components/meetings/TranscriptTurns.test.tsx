@@ -83,11 +83,11 @@ describe("TranscriptTurns", () => {
     expect(onChange).toHaveBeenCalledWith(T.replace("[00:28] 화자1:", "[00:28] 화자0:"));
   });
 
-  it("발화 화자 메뉴 — 새 화자 추가", () => {
+  it("발화 화자 메뉴 — 새 사람 추가", () => {
     const onChange = vi.fn();
     const { container } = render(<TranscriptTurns text={T} onChange={onChange} />);
     const turn = container.querySelector('[data-turn-index="0"]') as HTMLElement;
-    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "새 화자 (화자2)")!;
+    const item = Array.from(turn.querySelectorAll("[data-menu-item]")).find((b) => b.textContent === "새 사람 (화자2)")!;
     fireEvent.click(item);
     expect(onChange).toHaveBeenCalledWith(T.replace("[00:00] 화자1:", "[00:00] 화자2:"));
   });
@@ -128,6 +128,46 @@ describe("TranscriptTurns", () => {
     fireEvent.click(mark);
     expect(onHl).toHaveBeenCalledWith("h1");
     expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("activeTurnIndex → 그 행에만 data-active", () => {
+    const { container } = render(<TranscriptTurns text={T} activeTurnIndex={1} />);
+    const active = container.querySelectorAll('[data-active="true"]');
+    expect(active).toHaveLength(1);
+    expect(active[0].getAttribute("data-turn-index")).toBe("1");
+    expect((active[0] as HTMLElement).style.backgroundColor).toBe("var(--surface)");
+  });
+
+  it("activeTurnIndex 미지정 → data-active 없음", () => {
+    const { container } = render(<TranscriptTurns text={T} />);
+    expect(container.querySelector("[data-active]")).toBeNull();
+  });
+
+  it("하이라이트 종류별 스타일 — A 물결·B 점선·C 실선, find 배경, find-active 외곽선", () => {
+    const { container } = render(
+      <TranscriptTurns
+        text={T}
+        highlights={[
+          { turnIndex: 0, start: 0, end: 1, id: "a", kind: "A" },
+          { turnIndex: 0, start: 2, end: 3, id: "b", kind: "B" },
+          { turnIndex: 1, start: 0, end: 1, id: "c", kind: "C" },
+          { turnIndex: 1, start: 2, end: 3, id: "f", kind: "find" },
+          { turnIndex: 2, start: 0, end: 1, id: "fa", kind: "find-active" },
+        ]}
+      />,
+    );
+    const el = (id: string) => container.querySelector(`[data-highlight-id="${id}"]`) as HTMLElement;
+    expect(el("a").style.textDecorationStyle).toBe("wavy");
+    expect(el("a").style.textDecorationColor).toBe("var(--warn)");
+    expect(el("b").style.textDecorationStyle).toBe("dotted");
+    expect(el("b").style.textDecorationColor).toBe("var(--sub)");
+    expect(el("c").style.textDecorationStyle).toBe("solid");
+    expect(el("c").style.textDecorationColor).toBe("var(--down)");
+    expect(el("a").style.backgroundColor).toBe("transparent");
+    expect(el("f").style.backgroundColor).toBe("var(--warn-soft)");
+    expect(el("f").style.outline).toBe("");
+    expect(el("fa").style.backgroundColor).toBe("var(--warn-soft)");
+    expect(el("fa").style.outline).toContain("var(--warn-line)");
   });
 
   it("시각 클릭 → onSeek(sec, 섹션 base)", () => {
@@ -178,5 +218,50 @@ describe("TranscriptTurns", () => {
     rerender(<TranscriptTurns text={next} onChange={onChange} editRequest={{ turnIndex: 2, nonce: 1 }} />);
     expect(screen.queryByRole("textbox")).toBeNull();
     expect(screen.getByText("계십니까?")).toBeTruthy();
+  });
+
+  describe("같은 화자 이어진 문단", () => {
+    const C = "[00:00] 화자0: 첫 문단.\n\n[00:20] 화자0: 이어진 문단.\n\n[00:40] 화자1: 다른 사람.\n\n[00:50] 화자1: 또 이어짐.\n";
+    const row = (c: HTMLElement, i: number) => c.querySelector(`[data-turn-index="${i}"]`) as HTMLElement;
+
+    it("앞 턴과 화자가 같으면 data-continued, 화자가 바뀌면 아님", () => {
+      const { container } = render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      expect(row(container, 0).dataset.continued).toBeUndefined();
+      expect(row(container, 1).dataset.continued).toBe("true");
+      expect(row(container, 2).dataset.continued).toBeUndefined();
+      expect(row(container, 3).dataset.continued).toBe("true");
+    });
+
+    it("이어진 턴은 아바타 없음, 첫 턴은 아바타 있음", () => {
+      const { container } = render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      // SpeakerDot 만 rounded-full. 참석자 줄의 sm 점은 행 밖이라 행 안에서만 센다.
+      expect(row(container, 0).querySelectorAll(".rounded-full")).toHaveLength(1);
+      expect(row(container, 1).querySelectorAll(".rounded-full")).toHaveLength(0);
+    });
+
+    it("이어진 턴도 시각 클릭은 seek, 화자 변경 버튼은 접근 가능", () => {
+      const onSeek = vi.fn();
+      const onChange = vi.fn();
+      const { container } = render(<TranscriptTurns text={C} onChange={onChange} onSeek={onSeek} />);
+      fireEvent.click(screen.getByRole("button", { name: "00:20 부터 듣기" }));
+      expect(onSeek).toHaveBeenCalledWith(20, undefined);
+      const item = Array.from(row(container, 1).querySelectorAll("[data-menu-item]")).find(
+        (b) => b.textContent === "화자1",
+      )!;
+      fireEvent.click(item);
+      expect(onChange).toHaveBeenCalledWith(C.replace("[00:20] 화자0:", "[00:20] 화자1:"));
+    });
+
+    it("이어진 턴 발화 편집 aria-label 유지", () => {
+      render(<TranscriptTurns text={C} onChange={vi.fn()} />);
+      fireEvent.click(screen.getByText("이어진 문단."));
+      expect(screen.getByLabelText("화자0 00:20 발화 편집")).toBeTruthy();
+    });
+
+    it("사이에 제목 블록이 끼면 이어진 문단이 아님", () => {
+      const text = "[00:00] 화자0: 앞.\n\n## 다른 섹션\n\n[00:20] 화자0: 뒤.\n";
+      const { container } = render(<TranscriptTurns text={text} onChange={vi.fn()} />);
+      expect(row(container, 1).dataset.continued).toBeUndefined();
+    });
   });
 });

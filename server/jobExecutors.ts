@@ -79,8 +79,11 @@ const MIN = 60_000;
 export function defaultExecutors(): StepExecutors {
   const S = join(skillDir(), "scripts");
   return {
+    // aresample async: 아이폰 m4a 는 패킷 타임스탬프에 구멍이 있어(실데이터 < 표시 길이) 그냥 디코딩하면
+    // 구멍이 이어붙어 시간이 플레이어보다 앞당겨진다. 무음으로 채워 플레이어 타임라인에 맞춘다.
+    // whisper wav(transcribe 스킬 auto_stt.sh)와 같은 옵션이어야 merge 의 화자 매칭이 맞는다.
     async toWav(m4a, wav) {
-      await run(FFMPEG, ["-y", "-loglevel", "error", "-i", m4a, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav], { timeoutMs: 30 * MIN });
+      await run(FFMPEG, ["-y", "-loglevel", "error", "-i", m4a, "-af", "aresample=async=1:first_pts=0", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav], { timeoutMs: 30 * MIN });
     },
     diarize: (wav, speakers) => run(sttPython(), [join(S, "diarize.py"), wav, String(speakers)], { timeoutMs: 4 * 60 * MIN }),
     merge: (trJson, diarTsv, names) => run(sttPython(), [join(S, "merge.py"), trJson, diarTsv, ...names], { timeoutMs: 10 * MIN }),

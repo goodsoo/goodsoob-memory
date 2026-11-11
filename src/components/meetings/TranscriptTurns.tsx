@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button, CommittedInput, Dropdown, Popover, Textarea, type DropdownItem } from "@goodsoob/ds";
+import { Avatar, Button, CommittedInput, Dropdown, Popover, Textarea, type DropdownItem } from "@goodsoob/ds";
 
 import { Text } from "../common/Text";
 import {
@@ -105,23 +105,9 @@ function highlightStyle(kind: string): React.CSSProperties {
   };
 }
 
-function SpeakerDot({ name, ci, size }: { name: string; ci: number; size: "sm" | "md" }) {
-  const px = size === "sm" ? "var(--icon-16)" : "var(--ctl-h)";
-  return (
-    <span
-      aria-hidden
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold"
-      style={{
-        width: px,
-        height: px,
-        fontSize: size === "sm" ? "var(--fs-3xs)" : "var(--fs-xs)",
-        backgroundColor: `var(--speaker-${ci}-bg)`,
-        color: `var(--speaker-${ci}-text)`,
-      }}
-    >
-      {initialOf(name)}
-    </span>
-  );
+/** 화자 아바타 — 한 전사 안 등장 순서(ci)로 --speaker-N 색을 배정. DS Avatar 순서 tint(§16). */
+function SpeakerDot({ name, ci, size }: { name: string; ci: number; size: "xs" | "sm" }) {
+  return <Avatar size={size} name={name} initials={initialOf(name)} tint="index" tintIndex={ci} />;
 }
 
 function PlainFallback({
@@ -429,7 +415,7 @@ export function TranscriptTurns({
           if (renaming === s) {
             return (
               <span key={s} className="inline-flex items-center gap-1">
-                <SpeakerDot name={s} ci={ci} size="sm" />
+                <SpeakerDot name={s} ci={ci} size="xs" />
                 <CommittedInput
                   autoFocus
                   value={s}
@@ -446,7 +432,7 @@ export function TranscriptTurns({
           }
           const label = (
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <SpeakerDot name={s} ci={ci} size="sm" />
+              <SpeakerDot name={s} ci={ci} size="xs" />
               <span style={{ color: `var(--speaker-${ci}-text)` }} className="font-semibold">
                 {s}
               </span>
@@ -566,9 +552,9 @@ export function TranscriptTurns({
             }}
           >
             {continued ? (
-              <span aria-hidden className="shrink-0" style={{ width: "var(--ctl-h)" }} />
+              <span aria-hidden className="w-6 shrink-0" />
             ) : (
-              <SpeakerDot name={b.speaker} ci={ci} size="md" />
+              <SpeakerDot name={b.speaker} ci={ci} size="sm" />
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">

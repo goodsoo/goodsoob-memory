@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Sparkles,
   Upload,
+  Mic,
 } from "lucide-react";
 
 import {
@@ -62,7 +63,6 @@ import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
 import { TranscriptView } from "./TranscriptView";
 import { TranscriptTurns } from "./TranscriptTurns";
-import { RecordingBadge } from "./RecordingBadge";
 import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
 import { MeetingExportModal } from "./MeetingExportModal";
@@ -266,6 +266,7 @@ export function MeetingForm({
   const doc = docHistory.value;
   // 턴 화면 parse memo 의존성 — 매 렌더 새 배열이면 재파싱하므로 참조 고정.
   const audioField = data?.audio;
+  const audioCount = audioField?.length ?? 0;
   const transcriptAudio = useMemo(() => audioField ?? [], [audioField]);
   const body = doc.body;
   const transcript = doc.transcript;
@@ -1230,18 +1231,24 @@ export function MeetingForm({
               backgroundColor: "var(--surface-frost)",
             }}
           >
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="min-w-0">
+            {/* 녹음 배지 = DS Tabs badge(§10-2) — 탭의 일부, 누르면 음성 기록 탭으로.
+                녹음별 이동은 탭 안 `## 시각 · base` 헤딩 링크(SectionHeadingLabel). */}
             <Tabs
               items={[
                 { key: "body", label: "메모" },
-                { key: "transcript", label: "음성 기록" },
+                {
+                  key: "transcript",
+                  label: "음성 기록",
+                  icon: audioCount > 0 ? <Mic size={14} /> : undefined,
+                  badge: audioCount,
+                },
                 { key: "summary", label: "요약" },
               ]}
               active={activeTab}
               onChange={(key) => setActiveTab(key as ActiveTab)}
               accentColor={tabAccentColor}
             />
-            <RecordingBadge audio={data?.audio ?? []} />
             </div>
             <div className="flex items-center gap-1.5 pb-1">
               {/* 탭별 액션 — 편집 토글 왼쪽. 음성 기록 업로드(편집 모드만) /

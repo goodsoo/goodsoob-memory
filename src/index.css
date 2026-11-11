@@ -481,6 +481,8 @@
     --safe-top: env(safe-area-inset-top);
     /* 모달 시트 최대 너비 — 데스크탑 중앙 다이얼로그 폭. 모든 모달 이 한 값으로 통일. */
     --modal-w: 640px;
+    /* 토스트 패널 최대폭 — 긴 문구는 이 폭에서 줄바꿈(§9-3). 뷰포트가 더 좁으면 양옆 --space-16 남기고 줄어든다. */
+    --toast-max-w: 480px;
     /* ── App-shell 레이아웃 슬롯 ── DS 가 기본값을 주고 consumer 가 앱별 override.
        override 는 consumer 의 app-local sentinel 블록(`:root { ... }`)에서 한다.
        2026-10-19 신설(제보 20261019-0953, 결정 ds-owns-all). */
@@ -490,12 +492,14 @@
        consumer 가 다른 헤더 높이를 쓸 경우 override(예: 56px dense, 64px marketing). */
     --header-h: var(--page-header-h);
 
-    /* z-index 전체 스택: dropdown < sticky < overlay < modal < popover < tooltip < toast.
-       공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신. */
-    --z-dropdown: 10;
+    /* z-index 전체 스택: sticky < overlay < modal < dropdown = popover < tooltip < toast.
+       공유 — tokens.css 에서 전량 이관(2026-09-23), accent-theme consumer 도 수신.
+       dropdown 은 body Portal 로 뜨는 표면이라 popover 와 같은 층(55) — sticky 헤더·플레이어
+       위, 모달 안에서 열어도 모달 위 (2026-11-10, 10→55: sticky 뒤로 깔리던 버그). */
     --z-sticky: 20;
     --z-overlay: 30;
     --z-modal: 50;
+    --z-dropdown: 55;
     --z-popover: 55;
     --z-tooltip: 60;
     --z-toast: 70;
@@ -525,11 +529,11 @@
     --opacity-active: 0.8;
     --opacity-overlay: 0.5;
 
-    /* z-index: dropdown < sticky < overlay < modal < popover < tooltip < toast.
+    /* z-index: sticky < overlay < modal < dropdown = popover < tooltip < toast.
        --z-sticky 는 공유 layout 블록(layout.css)에 있음. */
-    --z-dropdown: 10;
     --z-overlay: 30;
     --z-modal: 50;
+    --z-dropdown: 55;
     --z-popover: 55;
     --z-tooltip: 60;
     --z-toast: 70;

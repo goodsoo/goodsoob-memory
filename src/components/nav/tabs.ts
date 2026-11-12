@@ -1,7 +1,7 @@
-import { Sun, FileText, CheckSquare, Mic, Repeat, LayoutGrid } from "lucide-react";
+import { Sun, FileText, CheckSquare, Mic, Repeat, LayoutGrid, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type Tab = "today" | "meetings" | "todos" | "recordings" | "routines" | "portfolio";
+export type Tab = "today" | "meetings" | "todos" | "recordings" | "routines" | "portfolio" | "notebook";
 
 // 탭 메타데이터 — HeaderTabs / SidePanel / 단축키 분기에서 공유하는 단일 source.
 // 순서 = 사용 빈도 + Cmd+1.. 의미 (App.tsx 단축키가 TABS index 기반).
@@ -14,6 +14,8 @@ export const TABS: Array<{ id: Tab; label: string; icon: LucideIcon }> = [
   // 할 일/루틴은 추후 제거 예정 — 앞 4개(오늘/메모장/녹음/포트폴리오) 단축키가 고정되도록 뒤로.
   { id: "recordings", label: "녹음", icon: Mic },
   { id: "portfolio", label: "포트폴리오", icon: LayoutGrid },
+  // 노트북 = 자료에 묶인 소화물(브리핑 · 퀴즈) 뷰어 (docs/designs/notebook-tab.md), Cmd+5.
+  { id: "notebook", label: "노트북", icon: BookOpen },
   { id: "todos", label: "할 일", icon: CheckSquare },
   { id: "routines", label: "루틴", icon: Repeat },
 ];

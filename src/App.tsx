@@ -36,6 +36,7 @@ import { TasksPage } from "./pages/TasksPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { RecordingsPage } from "./pages/RecordingsPage";
 import { RecordingsSidePanel } from "./components/recordings/RecordingsSidePanel";
+import { NotebookPage, NotebookSidePanel } from "./components/notebook/NotebookTab";
 import { parseRecordingHash, recordingHash } from "./lib/recordings/hash";
 import { StyleguidePage } from "./pages/StyleguidePage";
 import { PortfolioSidePanel } from "./components/portfolio/PortfolioSidePanel";
@@ -70,6 +71,7 @@ function readTabFromHash(): Tab {
   if (h === "#todos") return "todos";
   if (h === "#routines") return "routines";
   if (h === "#portfolio") return "portfolio";
+  if (h === "#notebook") return "notebook";
   // 빈 hash = 첫 탭 ("오늘"). SIMPLIFY: "오늘" 대시보드가 default landing.
   return TABS[0].id;
 }
@@ -88,6 +90,8 @@ function readRecordingFromHash(): string | null {
 // 전환했다가 돌아와도 다시 자동 선택되지 않도록 모듈 변수로 보관. 새로고침하면
 // 모듈이 다시 import 되며 false.
 let didAutoSelectThisSession = false;
+
+const NOTEBOOK_KEY = "goodsoob:notebook";
 
 export default function App() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -138,6 +142,23 @@ function AppContent() {
   // 일기 오버레이 — null = 닫힘. 메인 "오늘 일기" 블록 + 사이드바 날짜 헤더 클릭이
   // 모두 이 한 오버레이를 연다 (캘린더 탭 폐기 후 유일한 일기 진입점).
   const [journalDate, setJournalDate] = useState<string | null>(null);
+  // 노트북 탭에서 연 노트북 폴더 (vault 상대). 마지막 선택을 localStorage 에 기억 — URL hash 는
+  // `#notebook` 하나만 쓴다 (readTabFromHash 가 모르는 hash 를 "오늘" 로 보내므로 경로를 싣지 않음).
+  const [selectedNotebook, setSelectedNotebook] = useState<string | null>(() => {
+    try {
+      return window.localStorage.getItem(NOTEBOOK_KEY);
+    } catch {
+      return null;
+    }
+  });
+  const selectNotebook = useCallback((root: string) => {
+    setSelectedNotebook(root);
+    try {
+      window.localStorage.setItem(NOTEBOOK_KEY, root);
+    } catch {
+      // private window 등 — 기억만 못 함
+    }
+  }, []);
   // 날짜 상세 모달 — null = 닫힘. "오늘" 사이드바 날짜·일정 클릭이 연다.
   // "오늘" 탭 메인창이 보여줄 날짜. 기본=오늘, 사이드바 날짜 선택 시 갱신.
   // 탭을 떠났다 돌아오면 오늘로 리셋(탭 정체성 유지) — 아래 effect.
@@ -368,7 +389,7 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // 페이지 단축키 (web·PWA 공통): Cmd+1~6 (TABS index), Cmd+\ (사이드바 토글),
+  // 페이지 단축키 (web·PWA 공통): Cmd+1~7 (TABS index), Cmd+\ (사이드바 토글),
   // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
   // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
   //    standalone PWA(홈 화면 설치)에선 앱이 받는다.
@@ -721,6 +742,8 @@ function AppContent() {
       />
     ) : tab === "recordings" ? (
       <RecordingsSidePanel selectedBase={selectedRecording} onSelect={openRecording} onClear={clearRecording} />
+    ) : tab === "notebook" ? (
+      <NotebookSidePanel selected={selectedNotebook} onSelect={selectNotebook} />
     ) : tab === "routines" ? (
       <RoutinesSidePanel
         selectedRoutineName={selectedRoutineName}
@@ -747,6 +770,9 @@ function AppContent() {
         markdownHelpOpen={markdownHelpOpen}
         onMarkdownHelpToggle={() => setMarkdownHelpOpen((v) => !v)}
       />
+    ) : tab === "notebook" ? (
+      // 노트북 탭은 휴지통 · 도움말 같은 하단 슬롯이 없다 (읽기 전용).
+      undefined
     ) : tab === "todos" ? (
       <TodosSidePanelFooter onTrashOpen={() => setTodosTrashOpen(true)} />
     ) : tab === "routines" ? (
@@ -814,6 +840,8 @@ function AppContent() {
           onSync={portfolioRunFullSync}
           syncRunning={portfolioSync.state.running}
         />
+      ) : tab === "notebook" ? (
+        <NotebookPage root={selectedNotebook} onSelect={selectNotebook} />
       ) : tab === "routines" ? (
         selectedRoutineName ? (
           <RoutineDetail

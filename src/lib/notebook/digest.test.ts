@@ -90,9 +90,41 @@ describe("parseBriefing", () => {
     expect(b.issues.filter((i) => i.kind === "unsupported")).toHaveLength(1);
   });
 
+  it("segments: 인용 번호가 원래 문장 뒤에 남는다", () => {
+    const b = parseBriefing(readme("(AI 해석) 첫 문장[^1]. 둘째 문장 [^2][^3] 끝.", `\n[^1]: a.md "x"\n[^2]: a.md "y"\n[^3]: a.md "z"\n`));
+    expect(b.claims[0].segments).toEqual([
+      { text: "첫 문장" },
+      { ref: "1" },
+      { text: ". 둘째 문장" },
+      { ref: "2" },
+      { ref: "3" },
+      { text: " 끝." },
+    ]);
+  });
+
   it("헤딩 줄은 단위가 아님", () => {
     const b = parseBriefing(readme("### 소제목\n- (내 판단) a"));
     expect(b.claims).toHaveLength(1);
+  });
+
+  it("blocks = 소제목 + 주장을 문서 순서대로 (문서형 브리핑)", () => {
+    const b = parseBriefing(
+      readme(
+        "### 시장\n\n시장은 커진다[^1]. 병원이 산다[^1].\n\n(AI 해석) 장비 시장이다.\n\n#### 세부\n\n- 불릿[^1]\n\n### 규제\n\n(내 판단) 조심",
+        `\n[^1]: sources/a.md "x"\n`,
+      ),
+    );
+    expect(
+      b.blocks.map((x) => (x.type === "heading" ? `h${x.heading.level}:${x.heading.text}` : `${x.claim.kind}:${x.claim.text}`)),
+    ).toEqual([
+      "h3:시장",
+      "source:시장은 커진다. 병원이 산다.",
+      "ai:장비 시장이다.",
+      "h4:세부",
+      "source:불릿",
+      "h3:규제",
+      "judgment:조심",
+    ]);
   });
 
   it("정의 누락 ref → missing-def, 미사용 정의 → unused-def", () => {

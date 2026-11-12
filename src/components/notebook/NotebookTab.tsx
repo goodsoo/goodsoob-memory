@@ -83,11 +83,11 @@ type PageProps = {
 
 export function NotebookPage({ root, onSelect }: PageProps) {
   const list = useNotebooks();
-  // 고른 게 없으면 첫 노트북을 연다 (목록 1개뿐인 지금 기본 동작).
-  useEffect(() => {
-    if (!root && list.data?.length) onSelect(list.data[0].root);
-  }, [root, list.data, onSelect]);
   const exists = !root || !list.data || list.data.some((n) => n.root === root);
+  // 고른 게 없거나, 기억해 둔 노트북이 사라졌으면(폴더 이동 · type 변경) 첫 노트북을 연다.
+  useEffect(() => {
+    if (list.data?.length && (!root || !exists)) onSelect(list.data[0].root);
+  }, [root, exists, list.data, onSelect]);
   const digest = useNotebookDigest(exists ? root : null);
   const title = digest.data?.title ?? list.data?.find((n) => n.root === root)?.title ?? "노트북";
 
@@ -140,7 +140,7 @@ function NotebookDetail({ digest }: { digest: NotebookDigest }) {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-5 py-6">
       <Tabs
         items={[
-          { key: "briefing", label: "브리핑", badge: digest.briefing.claims.length },
+          { key: "briefing", label: "브리핑" },
           { key: "quiz", label: "퀴즈", badge: quizCount },
           { key: "todo", label: "조사 필요", badge: digest.todos.length },
         ]}
@@ -200,23 +200,40 @@ function BriefingView({ digest, onOpenCite }: { digest: NotebookDigest; onOpenCi
   return (
     <div className="flex flex-col gap-4">
       <Text variant="caption" color="muted" as="p">
-        주장 {briefing.claims.length}개 · 인용 {stats.total}개
+        인용 {stats.total}개
         {stats.broken > 0 ? (
           <span style={{ color: "var(--down-ink)" }}> · 원문 대조 실패 {stats.broken}개</span>
         ) : stats.total > 0 ? (
           " · 모두 원문과 일치"
         ) : null}
       </Text>
-      <ul className="flex flex-col gap-2">
-        {briefing.claims.map((c) => (
-          <ClaimRow key={c.line} claim={c} digest={digest} onOpenCite={onOpenCite} />
-        ))}
-      </ul>
+      <article className="flex flex-col gap-3">
+        {briefing.blocks.map((b) =>
+          b.type === "heading" ? (
+            <BriefingHeadingRow key={`h${b.heading.line}`} level={b.heading.level} text={b.heading.text} />
+          ) : (
+            <ClaimRow key={b.claim.line} claim={b.claim} digest={digest} onOpenCite={onOpenCite} />
+          ),
+        )}
+      </article>
       <Text variant="caption" color="muted" as="p" className="pt-2" style={{ borderTop: "1px solid var(--line)" }}>
         인용 번호는 발췌가 노트북 자료 파일에 글자 그대로 있는지만 대조합니다. 자료 파일이 웹 원문과 같은지, 발췌가
         주장을 실제로 뒷받침하는지는 확인하지 않습니다.
       </Text>
     </div>
+  );
+}
+
+function BriefingHeadingRow({ level, text }: { level: number; text: string }) {
+  // ### = 주제, #### 이하 = 소주제. 첫 주제 위 여백은 article gap 이 맡는다.
+  return level <= 3 ? (
+    <Text variant="h4" as="h3" className="pt-4 first:pt-0">
+      <InlineMarkdown text={text} />
+    </Text>
+  ) : (
+    <Text variant="label" as="h4" className="pt-1" style={{ color: "var(--sub)" }}>
+      <InlineMarkdown text={text} />
+    </Text>
   );
 }
 
@@ -230,35 +247,49 @@ function ClaimRow({
   onOpenCite: (c: OpenCite) => void;
 }) {
   const prefix = KIND_PREFIX[claim.kind];
+  const body = (
+    <>
+      {prefix ? (
+        <span className="mr-1.5 text-2xs whitespace-nowrap" style={{ color: "var(--faint)" }}>
+          {prefix}
+        </span>
+      ) : null}
+      {claim.segments.map((seg, i) =>
+        "ref" in seg ? (
+          <CiteMark
+            key={i}
+            id={seg.ref}
+            def={digest.briefing.defs.get(seg.ref)}
+            status={digest.citeStatus.get(seg.ref)}
+            onOpen={onOpenCite}
+          />
+        ) : (
+          <InlineMarkdown key={i} text={seg.text} />
+        ),
+      )}
+    </>
+  );
+  // 문단 = 본문 서술 (불릿 없이). 불릿 = 목록 항목, 중첩은 들여쓰기.
+  if (!claim.bullet) {
+    return (
+      <p className="text-sm leading-7" style={{ color: KIND_COLOR[claim.kind] }}>
+        {body}
+      </p>
+    );
+  }
   return (
-    <li
-      className="flex gap-2 text-sm leading-relaxed"
+    <div
+      className="flex gap-2 text-sm leading-7"
       style={{
         color: KIND_COLOR[claim.kind],
         paddingLeft: claim.depth ? `calc(var(--space-20) * ${claim.depth})` : undefined,
       }}
     >
-      <span aria-hidden className="shrink-0 select-none" style={{ color: "var(--faint)", visibility: claim.bullet ? undefined : "hidden" }}>
+      <span aria-hidden className="shrink-0 select-none" style={{ color: "var(--faint)" }}>
         •
       </span>
-      <p className="min-w-0">
-        {prefix ? (
-          <span className="mr-1.5 text-2xs whitespace-nowrap" style={{ color: "var(--faint)" }}>
-            {prefix}
-          </span>
-        ) : null}
-        <InlineMarkdown text={claim.text} />
-        {claim.refs.map((id, i) => (
-          <CiteMark
-            key={`${id}-${i}`}
-            id={id}
-            def={digest.briefing.defs.get(id)}
-            status={digest.citeStatus.get(id)}
-            onOpen={onOpenCite}
-          />
-        ))}
-      </p>
-    </li>
+      <p className="min-w-0">{body}</p>
+    </div>
   );
 }
 
@@ -276,14 +307,14 @@ function CiteMark({
 }) {
   const broken = !def ? "각주 없음" : status?.status === "mismatch" ? "원문에서 못 찾음" : status?.status !== "ok" ? "원문 없음" : null;
   return (
-    <sup className="ml-0.5">
+    <sup>
       <button
         type="button"
         disabled={!def}
         onClick={def ? () => onOpen({ src: def.src, quote: def.quote, status }) : undefined}
         title={def ? `${def.src} · “${def.quote}”${broken ? ` · ${broken}` : ""}` : `각주 [^${id}] 정의가 없습니다`}
         aria-label={broken ? `인용 ${id}, ${broken}` : `인용 ${id}, 원문 보기`}
-        className={`rounded-sm px-0.5 text-2xs tabular-nums hover:underline ${broken ? "font-semibold" : ""}`}
+        className={`rounded-sm px-px text-2xs tabular-nums hover:underline ${broken ? "font-semibold" : ""}`}
         style={{ color: broken ? "var(--down-ink)" : "var(--faint)" }}
       >
         {broken ? `${id} ${broken}` : id}
@@ -296,8 +327,13 @@ function CiteMark({
 // 블록 요소는 풀어서 글자만 남긴다. 링크는 새 창 — hash 를 바꾸지 않게.
 const INLINE_ELEMENTS = ["p", "strong", "em", "code", "a", "del"];
 function InlineMarkdown({ text }: { text: string }) {
+  // 마크다운 파서는 앞뒤 공백을 버린다 — 인용 번호 사이 조각(" 끝.")의 띄어쓰기를 지키려고 밖에서 붙인다.
+  const lead = /^\s/.test(text) ? " " : "";
+  const trail = /\s$/.test(text) ? " " : "";
   return (
-    <ReactMarkdown
+    <>
+      {lead}
+      <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       allowedElements={INLINE_ELEMENTS}
       unwrapDisallowed
@@ -316,7 +352,9 @@ function InlineMarkdown({ text }: { text: string }) {
       }}
     >
       {text}
-    </ReactMarkdown>
+      </ReactMarkdown>
+      {trail}
+    </>
   );
 }
 

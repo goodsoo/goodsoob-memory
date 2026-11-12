@@ -18,9 +18,13 @@ export const MARKERS = {
 /** source = 각주 1개 이상 / judgment·ai = 마커 (마커가 각주보다 우선) / unsupported = 둘 다 없음 */
 export type ClaimKind = "source" | "judgment" | "ai" | "unsupported";
 
+export type ClaimSegment = { text: string } | { ref: string };
+
 export interface Claim {
   /** `[^n]` 과 마커를 지운 표시용 본문 (여러 줄은 공백 1칸으로 이음) */
   text: string;
+  /** 마커를 지운 본문을 글 · 인용 조각으로 — 인용 번호를 원래 문장 뒤에 렌더할 때 쓴다 */
+  segments: ClaimSegment[];
   refs: string[];
   kind: ClaimKind;
   /** 불릿 중첩 깊이. 문단 = 0 */
@@ -45,9 +49,20 @@ export interface BriefingIssue {
   message: string;
 }
 
+export interface BriefingHeading {
+  /** 3 = `###`, 4 = `####` … (섹션 안 소제목. H2 는 섹션 경계라 여기 안 옴) */
+  level: number;
+  text: string;
+  line: number;
+}
+
+/** 브리핑을 문서 순서대로 — 소제목과 주장 단위(문단 · 불릿)가 섞인다. */
+export type BriefingBlock = { type: "heading"; heading: BriefingHeading } | { type: "claim"; claim: Claim };
+
 export interface Briefing {
   found: boolean;
   claims: Claim[];
+  blocks: BriefingBlock[];
   defs: Map<string, FootnoteDef>;
   issues: BriefingIssue[];
 }
@@ -115,24 +130,36 @@ export function parseFootnoteDefs(md: string): {
   return { defs, issues };
 }
 
-function classify(rawText: string): { text: string; refs: string[]; kind: ClaimKind } {
+function classify(rawText: string): Pick<Claim, "text" | "refs" | "kind" | "segments"> {
   const refs = [...rawText.matchAll(REF_RE)].map((m) => m[1]);
-  let text = rawText.replace(REF_RE, "").replace(/\s+/g, " ").trim();
+  let body = rawText.replace(/\s+/g, " ").trim();
   let kind: ClaimKind = refs.length > 0 ? "source" : "unsupported";
   for (const [k, marker] of Object.entries(MARKERS) as Array<[keyof typeof MARKERS, string]>) {
-    if (text.startsWith(marker)) {
+    if (body.startsWith(marker)) {
       kind = k;
-      text = text.slice(marker.length).trim();
+      body = body.slice(marker.length).trim();
       break;
     }
   }
-  return { text, refs, kind };
+  // 인용 번호를 원래 문장 위치에 두기 위해 본문을 글 · 인용 조각으로 나눈다.
+  const segments: ClaimSegment[] = [];
+  let last = 0;
+  for (const m of body.matchAll(REF_RE)) {
+    const t = body.slice(last, m.index).replace(/\s+$/, "");
+    if (t) segments.push({ text: t });
+    segments.push({ ref: m[1] });
+    last = m.index! + m[0].length;
+  }
+  const tail = body.slice(last);
+  if (tail.trim()) segments.push({ text: tail });
+  const text = body.replace(REF_RE, "").replace(/\s+/g, " ").trim();
+  return { text, refs, kind, segments };
 }
 
 export function parseBriefing(md: string): Briefing {
   const { defs, issues } = parseFootnoteDefs(md);
   const section = extractSection(md, BRIEFING_HEADING);
-  if (!section) return { found: false, claims: [], defs, issues };
+  if (!section) return { found: false, claims: [], blocks: [], defs, issues };
 
   interface Draft {
     parts: string[];
@@ -142,6 +169,7 @@ export function parseBriefing(md: string): Briefing {
     indent: number;
   }
   const drafts: Draft[] = [];
+  const headings: BriefingHeading[] = [];
   let cur: Draft | null = null;
   // 열린 불릿들의 들여쓰기 스택 — 깊이 = 자기보다 얕은 열린 불릿 수.
   let indentStack: number[] = [];
@@ -153,6 +181,8 @@ export function parseBriefing(md: string): Briefing {
       continue;
     }
     if (HEADING_RE.test(text) || DEF_RE.test(text)) {
+      const h = text.match(/^(#{3,6})\s+(.+?)\s*#*\s*$/);
+      if (h) headings.push({ level: h[1].length, text: h[2], line });
       cur = null;
       indentStack = [];
       continue;
@@ -179,7 +209,7 @@ export function parseBriefing(md: string): Briefing {
 
   const used = new Set<string>();
   const claims: Claim[] = drafts.map((d) => {
-    const { text, refs, kind } = classify(d.parts.join(" "));
+    const { text, refs, kind, segments } = classify(d.parts.join(" "));
     for (const r of refs) {
       used.add(r);
       if (!defs.has(r) && !issues.some((i) => i.kind === "bad-def" && i.message.includes(`[^${r}]`))) {
@@ -193,7 +223,7 @@ export function parseBriefing(md: string): Briefing {
         message: `근거 없음: 각주나 ${MARKERS.judgment}/${MARKERS.ai} 마커가 필요합니다. "${text.slice(0, 40)}"`,
       });
     }
-    return { text, refs, kind, depth: d.depth, bullet: d.bullet, line: d.line };
+    return { text, refs, kind, segments, depth: d.depth, bullet: d.bullet, line: d.line };
   });
 
   for (const def of defs.values()) {
@@ -202,7 +232,11 @@ export function parseBriefing(md: string): Briefing {
     }
   }
   issues.sort((a, b) => a.line - b.line);
-  return { found: true, claims, defs, issues };
+  const blocks: BriefingBlock[] = [
+    ...headings.map((heading) => ({ type: "heading" as const, heading })),
+    ...claims.map((claim) => ({ type: "claim" as const, claim })),
+  ].sort((a, b) => (a.type === "heading" ? a.heading.line : a.claim.line) - (b.type === "heading" ? b.heading.line : b.claim.line));
+  return { found: true, claims, blocks, defs, issues };
 }
 
 export type QuoteMatch = { ok: true; rawStart: number; rawEnd: number } | { ok: false };

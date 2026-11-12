@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Alert, Button, NavItem, Tabs, useToast } from "@goodsoob/ds";
 import type { Claim, ClaimKind } from "../../lib/notebook/digest";
+import type { CiteStatus } from "../../lib/notebook/check";
 import { quizCiteKey, type NotebookDigest } from "../../api/notebook";
 import { useNotebookDigest, useNotebookFile, useNotebooks } from "../../hooks/useNotebooks";
 import { copyText } from "../../lib/clipboard";
@@ -18,7 +19,7 @@ import { EmptyState } from "../common/EmptyState";
 import { Modal } from "../common/Modal";
 import { PageHeaderBar } from "../common/PageHeaderBar";
 import { Text } from "../common/Text";
-import { CiteButton, type OpenCite } from "./CiteButton";
+import type { OpenCite } from "./CiteButton";
 import { QuizPanel } from "./QuizPanel";
 
 // ── 사이드바 ────────────────────────────────────────────────────────────────
@@ -164,9 +165,9 @@ function NotebookDetail({ digest }: { digest: NotebookDigest }) {
 
 // ── 브리핑 ──────────────────────────────────────────────────────────────────
 
-// 종류는 hue 대신 왼쪽 라벨 + 글자 세기로 구분한다 (자료 = 진하게, 판단·해석 = 보조, 근거 없음 = 흐리게).
-const KIND_LABEL: Record<ClaimKind, string> = {
-  source: "자료",
+// 브리핑은 문서처럼 읽혀야 한다. 출처는 의심이 들 때만 보는 보조 정보라 문장 끝 작은 위첨자 번호로만 두고,
+// 대조에 실패한 것만 빨간 글자로 드러낸다. 종류 라벨도 자료(기본)는 생략, 판단 · 해석 · 근거 없음만 앞에 작게.
+const KIND_PREFIX: Partial<Record<ClaimKind, string>> = {
   judgment: "내 판단",
   ai: "AI 해석",
   unsupported: "근거 없음",
@@ -206,13 +207,13 @@ function BriefingView({ digest, onOpenCite }: { digest: NotebookDigest; onOpenCi
           " · 모두 원문과 일치"
         ) : null}
       </Text>
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-2">
         {briefing.claims.map((c) => (
           <ClaimRow key={c.line} claim={c} digest={digest} onOpenCite={onOpenCite} />
         ))}
       </ul>
       <Text variant="caption" color="muted" as="p" className="pt-2" style={{ borderTop: "1px solid var(--line)" }}>
-        인용 버튼은 발췌가 노트북 자료 파일에 글자 그대로 있는지만 대조합니다. 자료 파일이 웹 원문과 같은지, 발췌가
+        인용 번호는 발췌가 노트북 자료 파일에 글자 그대로 있는지만 대조합니다. 자료 파일이 웹 원문과 같은지, 발췌가
         주장을 실제로 뒷받침하는지는 확인하지 않습니다.
       </Text>
     </div>
@@ -228,49 +229,66 @@ function ClaimRow({
   digest: NotebookDigest;
   onOpenCite: (c: OpenCite) => void;
 }) {
+  const prefix = KIND_PREFIX[claim.kind];
   return (
     <li
-      className="grid gap-3 py-2"
-      style={{ gridTemplateColumns: "4.5rem minmax(0, 1fr)" }}
+      className="flex gap-2 text-sm leading-relaxed"
+      style={{
+        color: KIND_COLOR[claim.kind],
+        paddingLeft: claim.depth ? `calc(var(--space-20) * ${claim.depth})` : undefined,
+      }}
     >
-      <span className="pt-0.5 text-2xs whitespace-nowrap" style={{ color: "var(--faint)" }}>
-        {KIND_LABEL[claim.kind]}
+      <span aria-hidden className="shrink-0 select-none" style={{ color: "var(--faint)", visibility: claim.bullet ? undefined : "hidden" }}>
+        •
       </span>
-      <div
-        className="flex min-w-0 flex-col gap-1.5"
-        style={{ paddingLeft: claim.depth ? `calc(var(--space-16) * ${claim.depth})` : undefined }}
-      >
-        <p
-          className="text-sm leading-relaxed"
-          style={{ color: KIND_COLOR[claim.kind], fontWeight: claim.kind === "source" ? 500 : 400 }}
-        >
-          <InlineMarkdown text={claim.text} />
-        </p>
-        {claim.refs.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {claim.refs.map((id, i) => {
-              const def = digest.briefing.defs.get(id);
-              if (!def) {
-                return (
-                  <Button key={`${id}-${i}`} size="sm" variant="secondary" tone="down" disabled>
-                    각주 [^{id}] 정의 없음
-                  </Button>
-                );
-              }
-              return (
-                <CiteButton
-                  key={`${id}-${i}`}
-                  src={def.src}
-                  quote={def.quote}
-                  status={digest.citeStatus.get(id)}
-                  onOpen={onOpenCite}
-                />
-              );
-            })}
-          </div>
+      <p className="min-w-0">
+        {prefix ? (
+          <span className="mr-1.5 text-2xs whitespace-nowrap" style={{ color: "var(--faint)" }}>
+            {prefix}
+          </span>
         ) : null}
-      </div>
+        <InlineMarkdown text={claim.text} />
+        {claim.refs.map((id, i) => (
+          <CiteMark
+            key={`${id}-${i}`}
+            id={id}
+            def={digest.briefing.defs.get(id)}
+            status={digest.citeStatus.get(id)}
+            onOpen={onOpenCite}
+          />
+        ))}
+      </p>
     </li>
+  );
+}
+
+/** 문장 끝 인용 위첨자. 앵커가 아니라 버튼 — 누르면 원문 열람, 올리면 경로 · 발췌. */
+function CiteMark({
+  id,
+  def,
+  status,
+  onOpen,
+}: {
+  id: string;
+  def: { src: string; quote: string } | undefined;
+  status: CiteStatus | undefined;
+  onOpen: (c: OpenCite) => void;
+}) {
+  const broken = !def ? "각주 없음" : status?.status === "mismatch" ? "원문에서 못 찾음" : status?.status !== "ok" ? "원문 없음" : null;
+  return (
+    <sup className="ml-0.5">
+      <button
+        type="button"
+        disabled={!def}
+        onClick={def ? () => onOpen({ src: def.src, quote: def.quote, status }) : undefined}
+        title={def ? `${def.src} · “${def.quote}”${broken ? ` · ${broken}` : ""}` : `각주 [^${id}] 정의가 없습니다`}
+        aria-label={broken ? `인용 ${id}, ${broken}` : `인용 ${id}, 원문 보기`}
+        className={`rounded-sm px-0.5 text-2xs tabular-nums hover:underline ${broken ? "font-semibold" : ""}`}
+        style={{ color: broken ? "var(--down-ink)" : "var(--faint)" }}
+      >
+        {broken ? `${id} ${broken}` : id}
+      </button>
+    </sup>
   );
 }
 

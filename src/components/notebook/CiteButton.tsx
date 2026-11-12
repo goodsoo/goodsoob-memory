@@ -13,6 +13,14 @@ export interface OpenCite {
 
 const baseName = (src: string) => (src.split("/").pop() ?? src).replace(/\.md$/i, "");
 
+/** 칩 라벨은 짧게 — `sources/03-xxx.md` → "자료 03". 번호 없는 파일은 파일명(길면 말줄임). 전체 경로 · 발췌는 툴팁. */
+export function citeLabel(src: string): string {
+  const name = baseName(src);
+  const num = name.match(/^(\d+)[-_ ]/)?.[1];
+  if (num) return `자료 ${num}`;
+  return name.length > 16 ? `${name.slice(0, 15)}…` : name;
+}
+
 export function CiteButton({
   src,
   quote,
@@ -25,17 +33,14 @@ export function CiteButton({
   onOpen: (c: OpenCite) => void;
 }) {
   const ok = status?.status === "ok";
-  const label = ok
-    ? baseName(src)
-    : status?.status === "mismatch"
-      ? `원문에서 못 찾음 · ${baseName(src)}`
-      : `원문 없음 · ${baseName(src)}`;
+  const short = citeLabel(src);
+  const label = ok ? short : status?.status === "mismatch" ? `원문에서 못 찾음 · ${short}` : `원문 없음 · ${short}`;
   return (
     <Button
       size="sm"
       variant="secondary"
       tone={ok ? undefined : "down"}
-      title={`“${quote}”`}
+      title={`${src} · “${quote}”`}
       onClick={() => onOpen({ src, quote, status })}
     >
       {label}

@@ -20,5 +20,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["server"]
+  "include": ["server", "scripts/verify-notebook.ts"]
 }

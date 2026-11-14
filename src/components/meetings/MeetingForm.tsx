@@ -63,11 +63,8 @@ import { saveAttachment } from "../../lib/attachments";
 import { MarkdownView } from "./MarkdownView";
 import { TranscriptView } from "./TranscriptView";
 import { TranscriptTurns } from "./TranscriptTurns";
-import { TaskAddModal } from "../tasks/TaskAddModal";
 import { MoveFolderModal } from "./MoveFolderModal";
 import { MeetingExportModal } from "./MeetingExportModal";
-import type { TaskInsert, TaskPriority } from "../../api/tasks";
-import { extractTasks } from "../../lib/vault/tasks";
 import { useViewMode } from "../../hooks/useViewMode";
 import { formatError } from "../../lib/errors";
 import { TitleConflictError } from "../../lib/vault/scan";
@@ -666,11 +663,6 @@ export function MeetingForm({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
-
-  const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskModalPrefill, setTaskModalPrefill] = useState<
-    Partial<TaskInsert>
-  >({});
 
   // beforeunload — 페이지 닫기 직전 모든 pending 변경 flush.
   // unmount 시 cleanup 은 useStateHistory 가 자체 처리하므로 여기선 listener 정리만.
@@ -1426,10 +1418,6 @@ export function MeetingForm({
                   if (newLines > prevLines) docHistory.flush();
                   setDoc("body", { ...doc, body: v });
                 }}
-                onSendLineToInbox={(lineText) => {
-                  setTaskModalPrefill(lineToTaskPrefill(lineText, meetingId));
-                  setTaskModalOpen(true);
-                }}
                 onImageAttach={onImageAttach}
               />
             ) : body.trim() === "" ? (
@@ -1443,10 +1431,6 @@ export function MeetingForm({
                     // 옵시디안 동작에 맞음 (입력처럼 coalesce 하면 직전 textarea 변경에
                     // 합쳐져 undo 가 어색해짐).
                     setDoc("body", { ...doc, body: v }, true);
-                  }}
-                  onAddTaskFromLine={(lineText) => {
-                    setTaskModalPrefill(lineToTaskPrefill(lineText, meetingId));
-                    setTaskModalOpen(true);
                   }}
                 />
               </div>
@@ -1528,10 +1512,6 @@ export function MeetingForm({
                       if (newLines > prevLines) docHistory.flush();
                       setDoc("summary", { ...doc, summary: v });
                     }}
-                    onSendLineToInbox={(lineText) => {
-                      setTaskModalPrefill(lineToTaskPrefill(lineText, meetingId));
-                      setTaskModalOpen(true);
-                    }}
                     onImageAttach={onImageAttach}
                   />
                 ) : (
@@ -1540,10 +1520,6 @@ export function MeetingForm({
                       content={summary}
                       onChange={(v) => {
                         setDoc("summary", { ...doc, summary: v }, true);
-                      }}
-                      onAddTaskFromLine={(lineText: string) => {
-                        setTaskModalPrefill(lineToTaskPrefill(lineText, meetingId));
-                        setTaskModalOpen(true);
                       }}
                     />
                   </div>
@@ -1602,11 +1578,6 @@ export function MeetingForm({
         ) : null}
         </div>
       </div>
-      <TaskAddModal
-        open={taskModalOpen}
-        onClose={() => setTaskModalOpen(false)}
-        prefill={taskModalPrefill}
-      />
       <SummaryModal
         open={summaryModalOpen}
         onClose={() => setSummaryModalOpen(false)}
@@ -1628,35 +1599,6 @@ export function MeetingForm({
       />
     </div>
   );
-}
-
-// 메모 안 한 줄 → TaskAddModal prefill. extractTasks parser 가 자연어까지 처리
-// (오늘, 내일, 월/화/일요일, 한글/압축 날짜, "오후 2시" 등).
-// 문법: `- [x] 본문 --- (날짜) (시간) #category #priority`
-//   - [x] / [ ]    = done
-//   --- 또는 —     = date/time split (앞 본문, 뒤 매칭 토큰들)
-//   #work / #meeting       = category
-//   #high / #medium / #low = priority
-// 매칭 안 되는 토큰은 모두 본문으로 (예 `[안건 1]` 같은 bracket).
-function lineToTaskPrefill(
-  lineText: string,
-  meetingUid: string,
-): Partial<TaskInsert> {
-  const items = extractTasks("inbox.md", `${lineText}\n`);
-  const item = items[0];
-  if (!item) return { source_meeting_uid: meetingUid };
-  const prefill: Partial<TaskInsert> = {
-    title: item.text,
-    done: item.done,
-    source_meeting_uid: meetingUid,
-  };
-  if (item.due) prefill.due_date = item.due;
-  if (item.time) prefill.due_time = item.time;
-  const pri = item.tags.find((t): t is TaskPriority =>
-    t === "high" || t === "medium" || t === "low",
-  );
-  if (pri) prefill.priority = pri;
-  return prefill;
 }
 
 // 본문 탭 활성 시 글자수 옆 chip — 현재 viewMode 표시 + 클릭 토글.

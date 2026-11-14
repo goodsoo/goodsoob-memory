@@ -2,7 +2,6 @@
 import type { RecordingEntry } from "../../api/recordings";
 import {
   computeStatus,
-  countsTowardToday,
   type RecordingFacts,
   type RecordingStatus,
 } from "./status";
@@ -75,10 +74,6 @@ export function mergeRecordings(
       trashedMemos: tm,
     };
   });
-}
-
-export function countTodayRecordings(items: readonly RecordingItem[]): number {
-  return items.filter((i) => countsTowardToday(i.status)).length;
 }
 
 /** 처리 중인 job 이 하나라도 있으면 true (refetchInterval 트리거). 행선지 무관. */

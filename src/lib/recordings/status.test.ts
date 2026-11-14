@@ -3,9 +3,7 @@ import {
   computeStatus,
   computeDestination,
   computePipeline,
-  countsTowardToday,
   type RecordingFacts,
-  type RecordingStatus,
 } from "./status";
 
 function facts(over: Partial<Omit<RecordingFacts, "stt">> & { stt?: Partial<RecordingFacts["stt"]> } = {}): RecordingFacts {
@@ -71,33 +69,3 @@ describe("파이프라인 축 (위에서부터 첫 일치)", () => {
   });
 });
 
-describe("countsTowardToday (오늘 블록 N)", () => {
-  const dests = ["linked", "moveIncomplete", "trash", "undecided", "transcriptMissing"] as const;
-  const pipes = ["textOnly", "processing", "error", "review", "correction", "corrected", "raw", "waiting"] as const;
-
-  it("전 조합 표", () => {
-    for (const destination of dests) {
-      for (const pipeline of pipes) {
-        const s: RecordingStatus = { destination, pipeline };
-        const always = pipeline === "error" || pipeline === "review" || pipeline === "correction";
-        const undecidedActionable =
-          destination === "undecided" && (pipeline === "corrected" || pipeline === "raw");
-        expect(countsTowardToday(s), `${destination}/${pipeline}`).toBe(always || undecidedActionable);
-      }
-    }
-  });
-  it("미정 + 텍스트만·전사 대기·처리 중은 제외", () => {
-    for (const pipeline of ["textOnly", "waiting", "processing"] as const) {
-      expect(countsTowardToday({ destination: "undecided", pipeline })).toBe(false);
-    }
-  });
-  it("연결됨 + 리뷰 대기는 포함 (행선지 무관)", () => {
-    expect(countsTowardToday({ destination: "linked", pipeline: "review" })).toBe(true);
-  });
-  it("facts 로부터 end-to-end", () => {
-    expect(countsTowardToday(computeStatus(facts({ stt: { done: true } })))).toBe(true); // 미정+초벌
-    expect(countsTowardToday(computeStatus(facts()))).toBe(false); // 미정+전사 대기
-    expect(countsTowardToday(computeStatus(facts({ linked: true, stt: { moved: true, diarized: true } })))).toBe(true);
-    expect(countsTowardToday(computeStatus(facts({ linked: true, stt: { moved: true, done: true } })))).toBe(false); // 연결됨 교정본
-  });
-});

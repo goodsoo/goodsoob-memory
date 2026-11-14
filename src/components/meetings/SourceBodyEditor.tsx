@@ -8,7 +8,6 @@ import {
   Minus,
   Table,
   Link,
-  Plus,
 } from "lucide-react";
 import {
   inferLineKinds,
@@ -36,9 +35,6 @@ import {
 type Props = {
   content: string;
   onChange: (next: string) => void;
-  // cursor 가 - [ ] 라인 위에서 ⌘⏎ 누르면 그 라인 텍스트를 부모에게 전달.
-  // 부모 (MeetingForm) 가 TaskAddModal prefill 로 띄움. 일방향 복제 — 메모 라인은 그대로.
-  onSendLineToInbox?: (lineText: string) => void;
   // 일기/메모/task description 등 다른 소비처에서 폰트·placeholder·blur 핸들러를
   // 갈아끼우려고 추가. 기본값 유지 시 MeetingForm 사용감 변함 없음.
   placeholder?: string;
@@ -71,7 +67,6 @@ type SlashState = {
 export function SourceBodyEditor({
   content,
   onChange,
-  onSendLineToInbox,
   placeholder = "메모 내용을 적어주세요...",
   className,
   textareaRef: externalTextareaRef,
@@ -447,20 +442,6 @@ export function SourceBodyEditor({
       return;
     }
     const mod = e.metaKey || e.ctrlKey;
-    // ⌘⏎ — cursor 라인이 - [ ] 면 그 라인 텍스트 inbox 로 보내기 (일방향 복제)
-    if (mod && e.key === "Enter" && !e.shiftKey && !e.altKey && onSendLineToInbox) {
-      const value = ta.value;
-      const pos = ta.selectionStart ?? 0;
-      const lineStart = value.lastIndexOf("\n", pos - 1) + 1;
-      const lineEndIdx = value.indexOf("\n", pos);
-      const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
-      const lineText = value.slice(lineStart, lineEnd);
-      if (/^\s*-\s\[[ x]\]\s/.test(lineText)) {
-        e.preventDefault();
-        onSendLineToInbox(lineText);
-        return;
-      }
-    }
     // ⌘B / ⌘I / ⌘E — bold / italic / inline-code wrap toggle
     if (
       mod && !e.shiftKey && !e.altKey &&
@@ -608,16 +589,6 @@ export function SourceBodyEditor({
             // wrap 된 줄은 측정한 px height 그대로 — textarea 의 visual line top 과 정렬.
             heightPx={lineHeights[i] ?? LINE_HEIGHT_PX}
             onClick={() => focusLine(i)}
-            onAddTodo={
-              kind.type === "checkbox" && onSendLineToInbox
-                ? () => {
-                    // 해당 줄의 raw text 만 추출 — 보기 모드 + 버튼과 동일 시그니처.
-                    const lines = draft.split("\n");
-                    const lineText = lines[i] ?? "";
-                    if (lineText) onSendLineToInbox(lineText);
-                  }
-                : undefined
-            }
           />
         ))}
       </div>
@@ -801,31 +772,23 @@ function GutterMarker({
   active,
   heightPx,
   onClick,
-  onAddTodo,
 }: {
   kind: LineKind;
   active: boolean;
   // mirror 측정 결과 — source line 이 wrap 되면 여러 visual line 의 합계 px.
   heightPx: number;
   onClick: () => void;
-  // checkbox 라인 + onSendLineToInbox 둘 다 있을 때만 전달 — hover 시 글리프 swap.
-  onAddTodo?: () => void;
 }) {
   const label = labelForKind(kind);
   const depth =
     "depth" in kind && typeof kind.depth === "number" ? kind.depth : 0;
-  const canAddTodo = !!onAddTodo;
 
   return (
     <div
       title={label || "이 줄로 이동"}
       onClick={onClick}
       data-gutter-marker
-      // group/gutter + relative: + 버튼이 gutter 의 visual-left 왼쪽 (= 본문 wrapper
-      //   px-6 padding 영역) 에 absolute 로 떠오름. 글리프는 그대로 보임.
-      // before:* — invisible hit-area 24px 좌측 확장. gutter row 와 + 버튼 사이 갭에서
-      //   마우스가 group-hover off 되던 깜빡임 차단.
-      className="group/gutter relative flex cursor-pointer justify-center before:absolute before:left-[-1.5rem] before:top-0 before:h-full before:w-6 before:content-['']"
+      className="relative flex cursor-pointer justify-center"
       style={{
         height: `${heightPx}px`,
         lineHeight: LINE_HEIGHT,
@@ -857,36 +820,6 @@ function GutterMarker({
           </span>
         ) : null}
       </span>
-      {canAddTodo ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddTodo!();
-          }}
-          title="할 일로 추가"
-          aria-label="할 일로 추가"
-          // gutter 의 좌측 외부 (본문 wrapper 의 px-6 padding 영역) — 보기 모드와 동일 위치.
-          // minHeight: 0 은 글로벌 `button { min-height: 44px }` (index.css) 우회.
-          className="absolute opacity-0 transition-opacity hover:opacity-100 group-hover/gutter:opacity-100 focus-visible:opacity-100"
-          style={{
-            left: "-1.5rem",
-            top: "5px",
-            width: "1rem",
-            height: "1rem",
-            minHeight: 0,
-            padding: 0,
-            lineHeight: 1,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "0.25rem",
-            color: "var(--sub)",
-          }}
-        >
-          <Plus size={14} strokeWidth={2} aria-hidden />
-        </button>
-      ) : null}
     </div>
   );
 }

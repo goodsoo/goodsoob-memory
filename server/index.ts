@@ -221,7 +221,7 @@ async function handle(req: Request): Promise<Response> {
   }
 
   // ── 정적 서빙 + SPA fallback ────────────────────────────────────────────────
-  // hash 라우팅(#today, #meeting-{uid})이라 fragment 는 서버에 안 온다.
+  // hash 라우팅(#meetings, #meeting-{uid})이라 fragment 는 서버에 안 온다.
   // 규칙: dist/ 밑(root 든 하위 든)에 실제 파일이 있으면 그걸 서빙(manifest.json·
   // sw.js·icons·favicon — T4 가 추가), 없으면 SPA shell(index.html).
   if (req.method === "GET") {

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  BookOpen,
   LayoutGrid,
-  CheckSquare,
   FileText,
   Search,
   Star,
@@ -16,7 +14,7 @@ import { Input } from "@goodsoob/ds";
 import { Text } from "../common/Text";
 
 // 옵시디안 quick switcher (Cmd+P) 패턴 — vault 4 도메인 통합 검색.
-// meeting / task / portfolio / journal 결과 한 list, 행에 도메인 chip + 매칭 highlight.
+// meeting / portfolio 결과 한 list, 행에 도메인 chip + 매칭 highlight.
 // 선택 시 도메인별 라우팅 콜백 발사. 모달은 어디서든 발사 가능.
 
 type Props = {
@@ -123,7 +121,7 @@ export function QuickSwitcher({ open, onClose, onSelect }: Props) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="메모 · 할 일 · 포트폴리오 · 일기 검색..."
+            placeholder="메모 · 포트폴리오 검색..."
             className="flex-1 text-sm"
             style={{ color: "var(--ink)" }}
           />
@@ -294,26 +292,11 @@ function domainMeta(d: SearchDomain): {
         color: "var(--accent-ink)",
         bg: "var(--accent-soft)",
       };
-    case "task":
-      return {
-        label: "할 일",
-        icon: CheckSquare,
-        // tasks 의 work category 와 같은 톤 (주황). 시각 통일.
-        color: "var(--cat-work)",
-        bg: "var(--surface)",
-      };
     case "portfolio":
       return {
         label: "포트폴리오",
         icon: LayoutGrid,
         color: "var(--cat-uiux)",
-        bg: "var(--surface)",
-      };
-    case "journal":
-      return {
-        label: "일기",
-        icon: BookOpen,
-        color: "var(--cat-other)",
         bg: "var(--surface)",
       };
   }
@@ -362,9 +345,7 @@ function search(entries: SearchEntry[], query: string): Result[] {
 
 const DOMAIN_ORDER: Record<SearchDomain, number> = {
   meeting: 0,
-  journal: 1,
-  task: 2,
-  portfolio: 3,
+  portfolio: 1,
 };
 
 function excerpt(body: string, matchIdx: number, matchLen: number): string {

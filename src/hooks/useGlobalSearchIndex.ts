@@ -1,26 +1,22 @@
-// 통합 검색 인덱스 — QuickSwitcher (Cmd+P) 가 사용. 4 도메인 (meeting / task /
-// portfolio / journal) 의 entry 를 단일 array 로 반환. modal open 시 enabled=true
+// 통합 검색 인덱스 — QuickSwitcher (Cmd+P) 가 사용. 2 도메인 (meeting / portfolio)
+// 의 entry 를 단일 array 로 반환. modal open 시 enabled=true
 // 로 lazy fetch. 검색 자체는 indexOf — 1MB 미만 vault 에서 sub-millisecond.
 //
 // 도메인별 본문 정책:
 //   - meeting: 메인 파일 본문 (transcript/summary sidecar 는 제외 — 첫 발사 비용 절감)
-//   - task: title 만 (vault inbox.md 한 줄)
 //   - portfolio: frontmatter title + impact_summary + tags + project (body 제외 — 첫 발사 비용 절감)
-//   - journal: 전체 content (날짜별 단일 파일, list 가 이미 본문 포함)
 // 본문 검색 부족 시 사용자 dogfood 후 확장.
 
 import { useQuery } from "@tanstack/react-query";
-import { useJournals } from "./useJournals";
 import { useMeetings } from "./useMeetings";
 import { usePortfolioWorks } from "./usePortfolio";
-import { useTasks } from "./useTasks";
 import { useVault } from "../lib/vault/useVault";
 
-export type SearchDomain = "meeting" | "task" | "portfolio" | "journal";
+export type SearchDomain = "meeting" | "portfolio";
 
 export type SearchEntry = {
   domain: SearchDomain;
-  // 도메인별 id — 라우팅 시 사용. meeting=uid, task=id, portfolio=prSlug, journal=date
+  // 도메인별 id — 라우팅 시 사용. meeting=uid, portfolio=prSlug
   id: string;
   title: string;
   body: string;
@@ -34,15 +30,9 @@ const indexKey = ["global-search-index"] as const;
 export function useGlobalSearchIndex(enabled: boolean) {
   const { adapter, isReady } = useVault();
   const meetings = useMeetings();
-  const tasks = useTasks();
   const portfolio = usePortfolioWorks();
-  const journals = useJournals();
 
-  const sourcesReady =
-    meetings.isSuccess &&
-    tasks.isSuccess &&
-    portfolio.isSuccess &&
-    journals.isSuccess;
+  const sourcesReady = meetings.isSuccess && portfolio.isSuccess;
 
   return useQuery({
     queryKey: indexKey,
@@ -75,24 +65,6 @@ export function useGlobalSearchIndex(enabled: boolean) {
         }
       }
 
-      // tasks — deleted 제외. cancelled/done 은 포함 (이력 검색 가능).
-      for (const t of tasks.data ?? []) {
-        if (t.deleted) continue;
-        const status = t.cancelled
-          ? "취소됨"
-          : t.done
-            ? "완료"
-            : t.due_date ?? null;
-        entries.push({
-          domain: "task",
-          id: t.id,
-          title: t.title,
-          body: "",
-          metaLabel: status,
-          pinned: false,
-        });
-      }
-
       // portfolio — body 안 읽음 (PR 카드 100+ 가능, 첫 발사 비용 절감).
       // github_title + impact_summary 가 검색 대상. body 검색은 follow-up.
       for (const p of portfolio.data ?? []) {
@@ -104,18 +76,6 @@ export function useGlobalSearchIndex(enabled: boolean) {
           title: fm.github_title || p.prSlug,
           body: searchBody,
           metaLabel: fm.category ?? null,
-          pinned: false,
-        });
-      }
-
-      // journals — list 가 이미 content 포함 (listJournals).
-      for (const j of journals.data ?? []) {
-        entries.push({
-          domain: "journal",
-          id: j.date,
-          title: j.date,
-          body: j.content,
-          metaLabel: null,
           pinned: false,
         });
       }

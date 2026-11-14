@@ -4,7 +4,6 @@ import { parseBase } from "./base";
 import {
   anyProcessing,
   collectKnownBases,
-  countTodayRecordings,
   mergeRecordings,
   needsMoveRepair,
   rankLinkCandidates,
@@ -95,25 +94,6 @@ describe("mergeRecordings", () => {
   it("moved 인데 어디에도 없고 orphan=false → 전사본 없음", () => {
     const [it] = mergeRecordings([entry(B, { stt: { ...NO_STT, moved: true }, orphan: false })], [], []);
     expect(it.status.destination).toBe("transcriptMissing");
-  });
-});
-
-describe("countTodayRecordings", () => {
-  it("미정+초벌/교정본 + 행선지 무관 오류/리뷰/교정 대기, 텍스트만·전사 대기·처리 중 제외", () => {
-    const items = mergeRecordings(
-      [
-        entry("20261028-0900", { stt: { ...NO_STT, done: true } }), // 미정 초벌 → O
-        entry("20261028-1000", { hasTxt: true }), // 미정 교정본 → O
-        entry("20261028-1100"), // 전사 대기 → X
-        entry("20261028-1200", { hasM4a: false, hasTxt: true }), // 텍스트만 → X
-        entry("20261028-1300", { job: { state: "running", pidAlive: true } }), // 처리 중 → X
-        entry("20261028-1500", { stt: { ...NO_STT, moved: true, done: true, diarized: true } }), // 연결됨 교정 대기 → O
-        entry("20261028-1600", { job: { state: "running", pidAlive: false } }), // 죽은 job = 오류 → O
-      ],
-      [memo("m", { audio: ["20261028-1500"] })],
-      [],
-    );
-    expect(countTodayRecordings(items)).toBe(4);
   });
 });
 

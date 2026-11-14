@@ -21,7 +21,6 @@ import { flushMeetingDoc, resetMeetingDoc } from "../components/meetings/docRese
 import {
   anyProcessing,
   collectKnownBases,
-  countTodayRecordings,
   mergeRecordings,
   type RecordingItem,
 } from "../lib/recordings/merge";
@@ -64,12 +63,6 @@ export function useRecordings() {
     error: q.error ?? meetingsQ.error,
     refetch: q.refetch,
   };
-}
-
-/** 오늘 대시보드 "처리할 녹음 N개". 로딩 중·실패면 0 (줄 숨김). */
-export function useTodayRecordingCount(): number {
-  const { items } = useRecordings();
-  return items ? countTodayRecordings(items) : 0;
 }
 
 export const transcriptKey = (base: string) => ["recordingTranscript", base] as const;

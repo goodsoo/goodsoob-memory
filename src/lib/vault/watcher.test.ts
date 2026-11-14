@@ -29,7 +29,8 @@ describe("VaultWatcher", () => {
       JSON.stringify((c[0] as { queryKey: unknown }).queryKey),
     );
     expect(calls.some((c) => c.includes("meetings"))).toBe(true);
-    expect(calls.some((c) => c.includes("todos"))).toBe(true);
+    // 할 일 탭 은퇴 — 메모 변경이 todos 를 더 이상 건드리지 않는다.
+    expect(calls.some((c) => c.includes("todos"))).toBe(false);
 
     watcher.stop();
   });

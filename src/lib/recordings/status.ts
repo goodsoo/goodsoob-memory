@@ -74,10 +74,3 @@ export function computeStatus(f: RecordingFacts): RecordingStatus {
   return { destination: computeDestination(f), pipeline: computePipeline(f) };
 }
 
-// 오늘 블록 "처리할 녹음 N": 행선지 미정 + (텍스트만·전사 대기·처리 중 제외),
-// 또는 행선지 무관하게 오류·리뷰 대기·교정 대기.
-export function countsTowardToday(s: RecordingStatus): boolean {
-  if (s.pipeline === "error" || s.pipeline === "review" || s.pipeline === "correction") return true;
-  if (s.destination !== "undecided") return false;
-  return s.pipeline === "corrected" || s.pipeline === "raw";
-}

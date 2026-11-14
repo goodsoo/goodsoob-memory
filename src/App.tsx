@@ -6,7 +6,6 @@ import { ToastProvider, useToast, TooltipProvider } from "@goodsoob/ds";
 import { TABS, type Tab } from "./components/nav/tabs";
 import { MeetingForm } from "./components/meetings/MeetingForm";
 import { QuickSwitcher } from "./components/meetings/QuickSwitcher";
-import { TaskAddModal } from "./components/tasks/TaskAddModal";
 import { TrashModal } from "./components/meetings/TrashModal";
 import { PortfolioTrashModal } from "./components/portfolio/PortfolioTrashModal";
 import { PortfolioGuideModal } from "./components/portfolio/PortfolioGuideModal";
@@ -14,25 +13,13 @@ import {
   MeetingsSidePanel,
   MeetingsSidePanelFooter,
   PortfolioSidePanelFooter,
-  TodosSidePanel,
-  TodosSidePanelFooter,
-  RoutinesSidePanel,
-  RoutinesSidePanelFooter,
-  type TaskStatusFilter,
 } from "./components/nav/SidePanel";
-import { useTaskSort } from "./hooks/useTaskSort";
 import { usePortfolioSort } from "./hooks/usePortfolioSort";
 import { usePortfolioCategoryFilter } from "./hooks/usePortfolioCategoryFilter";
-import type { TaskInsert } from "./api/tasks";
-import { TodosTrashModal } from "./components/tasks/TodosTrashModal";
 import { Text } from "./components/common/Text";
 import { EmptyState } from "./components/common/EmptyState";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { PageHeaderBar } from "./components/common/PageHeaderBar";
-import { TodayPage } from "./pages/TodayPage";
-import { TodayAgendaPanel } from "./components/today/TodayAgendaPanel";
-import { JournalOverlay } from "./components/calendar/JournalOverlay";
-import { TasksPage } from "./pages/TasksPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { RecordingsPage } from "./pages/RecordingsPage";
 import { RecordingsSidePanel } from "./components/recordings/RecordingsSidePanel";
@@ -42,7 +29,6 @@ import { StyleguidePage } from "./pages/StyleguidePage";
 import { PortfolioSidePanel } from "./components/portfolio/PortfolioSidePanel";
 import { InstallGuideModal } from "./components/portfolio/InstallGuideModal";
 import { AuthGuideModal } from "./components/portfolio/AuthGuideModal";
-import { RoutineDetail } from "./components/routines/RoutineDetail";
 import type { SourceFilter } from "./components/portfolio/PortfolioSourceTree";
 import {
   useGhSync,
@@ -54,8 +40,6 @@ import { useMeetings, useCreateMeeting, useDeleteMeeting } from "./hooks/useMeet
 import { useMeetingSort } from "./hooks/useMeetingSort";
 import { buildMeetingSortComparator } from "./lib/meetingSort";
 import { meetingFolder } from "./api/meetings";
-import { useJournals } from "./hooks/useJournals";
-import { useTasks } from "./hooks/useTasks";
 import { useVault } from "./lib/vault/useVault";
 import { maybeAutoBackup } from "./lib/backup";
 import { DrawerProvider, useDrawer } from "./hooks/useDrawer";
@@ -66,13 +50,10 @@ function readTabFromHash(): Tab {
   const h = window.location.hash;
   if (h.startsWith("#meeting-")) return "meetings";
   if (h === "#recordings" || h.startsWith("#recording-")) return "recordings";
-  if (h === "#today") return "today";
   if (h === "#meetings") return "meetings";
-  if (h === "#todos") return "todos";
-  if (h === "#routines") return "routines";
   if (h === "#portfolio") return "portfolio";
   if (h === "#notebook") return "notebook";
-  // 빈 hash = 첫 탭 ("오늘"). SIMPLIFY: "오늘" 대시보드가 default landing.
+  // 빈 hash · 모르는 hash = 첫 탭 (메모장). 은퇴한 #today / #todos / #routines 도 여기로 온다.
   return TABS[0].id;
 }
 
@@ -139,11 +120,8 @@ function AppContent() {
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(() =>
     readMeetingFromHash(),
   );
-  // 일기 오버레이 — null = 닫힘. 메인 "오늘 일기" 블록 + 사이드바 날짜 헤더 클릭이
-  // 모두 이 한 오버레이를 연다 (캘린더 탭 폐기 후 유일한 일기 진입점).
-  const [journalDate, setJournalDate] = useState<string | null>(null);
   // 노트북 탭에서 연 노트북 폴더 (vault 상대). 마지막 선택을 localStorage 에 기억 — URL hash 는
-  // `#notebook` 하나만 쓴다 (readTabFromHash 가 모르는 hash 를 "오늘" 로 보내므로 경로를 싣지 않음).
+  // `#notebook` 하나만 쓴다 (readTabFromHash 가 모르는 hash 를 첫 탭으로 보내므로 경로를 싣지 않음).
   const [selectedNotebook, setSelectedNotebook] = useState<string | null>(() => {
     try {
       return window.localStorage.getItem(NOTEBOOK_KEY);
@@ -159,49 +137,17 @@ function AppContent() {
       // private window 등 — 기억만 못 함
     }
   }, []);
-  // 날짜 상세 모달 — null = 닫힘. "오늘" 사이드바 날짜·일정 클릭이 연다.
-  // "오늘" 탭 메인창이 보여줄 날짜. 기본=오늘, 사이드바 날짜 선택 시 갱신.
-  // 탭을 떠났다 돌아오면 오늘로 리셋(탭 정체성 유지) — 아래 effect.
-  const [selectedDay, setSelectedDay] = useState<string>(() => todayIso());
   // 녹음 탭에서 보고 있는 녹음 base. 메모 선택과 같은 방식으로 탭 전환에도 보존.
   const [selectedRecording, setSelectedRecording] = useState<string | null>(() =>
     readRecordingFromHash(),
   );
-  const [taskStatus, setTaskStatus] = useState<TaskStatusFilter>("all");
-  // 선택된 할 일 프로젝트 파일(`tasks/{이름}.md`). null = 전체.
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [taskSortKey, setTaskSortKey] = useTaskSort();
   const [portfolioFilter, setPortfolioFilter] = useState<SourceFilter>({
     kind: "all",
   });
-  // 할 일 탭 안 routine 선택 — null = 태스크 필터 모드 (기존 TasksPage).
-  const [selectedRoutineName, setSelectedRoutineName] = useState<string | null>(null);
-  // task/routine 추가 모달 — App.tsx 가 owner. RoutineDetail / TasksPage 어느 쪽이
-  // 마운트되어도 사이드바 + 가 trigger 하면 보임. event detail 로 type/prefill 받음.
-  const [taskAddOpen, setTaskAddOpen] = useState(false);
-  const [taskAddPrefill, setTaskAddPrefill] = useState<Partial<TaskInsert> | undefined>(undefined);
-  const [taskAddType, setTaskAddType] = useState<"task" | "routine">("task");
-
-  useEffect(() => {
-    function handler(e: Event) {
-      const detail = (e as CustomEvent).detail as
-        | { type?: "task" | "routine"; prefill?: Partial<TaskInsert> }
-        | undefined;
-      setTaskAddType(detail?.type ?? "task");
-      setTaskAddPrefill(detail?.prefill ?? {});
-      setTaskAddOpen(true);
-    }
-    window.addEventListener("todos:add-request", handler);
-    return () => window.removeEventListener("todos:add-request", handler);
-  }, []);
-  // 오늘 대시보드/사이드바의 task 클릭으로 진입 시 TasksPage 가 한 번 scroll 후 clear.
-  const [scrollToTaskId, setScrollToTaskId] = useState<string | null>(null);
   const [portfolioSortKey, setPortfolioSortKey] = usePortfolioSort();
   const portfolioCategoryFilter = usePortfolioCategoryFilter();
-  // 휴지통은 overlay — utility 액션이라 SettingsModal 과 같은 패턴.
-  // 탭별 1 trash — 할 일 탭은 태스크/루틴 둘 다 chip 으로 구분한 단일 flat 리스트.
+  // 휴지통은 overlay — utility 액션이라 SettingsModal 과 같은 패턴. 탭별 1 trash.
   const [trashOpen, setTrashOpen] = useState(false);
-  const [todosTrashOpen, setTodosTrashOpen] = useState(false);
   const [portfolioTrashOpen, setPortfolioTrashOpen] = useState(false);
   const [portfolioGuideOpen, setPortfolioGuideOpen] = useState(false);
   // 옵시디안 quick switcher (Cmd+P). 메모장 탭에 한정하지 않고 어디서든 발사 가능 —
@@ -589,57 +535,6 @@ function AppContent() {
     }
   }
 
-  // "오늘" 대시보드의 "새 노트" — root 폴더에 생성 후 메모장 탭으로 이동.
-  async function createNoteFromToday() {
-    if (createMeetingMutation.isPending) return;
-    try {
-      const created = await createMeetingMutation.mutateAsync({
-        title: null,
-        date: todayIso(),
-        time: null,
-        attendees: null,
-        content: "",
-        summary: null,
-        folder: "",
-      });
-      requestMeetingReveal("");
-      openMeeting(created.uid);
-    } catch {
-      toast.show("노트 생성에 실패했습니다. 잠시 후 다시 시도하세요.", { variant: "down" });
-    }
-  }
-
-  // 일기 오버레이 열기 — 메인 "오늘 일기" (date=오늘) + 날짜 상세 모달의 일기 진입.
-  function openJournal(date: string) {
-    setJournalDate(date);
-  }
-
-  // "오늘" 탭에서 날짜 선택 — 메인창을 그 날 day-view 로 전환 (모달 아님).
-  function openDay(date: string) {
-    setSelectedDay(date);
-  }
-
-  // "오늘" 탭에 (재)진입하면 selectedDay 를 오늘로 리셋 — 다른 날을 보던 채로 탭을
-  // 떠났다 돌아왔을 때 탭이 늘 "오늘"에서 시작하도록. 탭 안에서의 날짜 선택은 유지.
-  useEffect(() => {
-    if (tab === "today") setSelectedDay(todayIso());
-  }, [tab]);
-
-  function openTask(id: string) {
-    drawer.close();
-    setTab("todos");
-    // 클릭한 task 가 현재 필터(cancelled view, 특정 카테고리 등) 밖이면 안 보임 →
-    // 필터 reset 후 scroll. 사용자는 "그 task 로 이동" 의도가 명확.
-    setTaskStatus("all");
-    setSelectedProject(null);
-    // 루틴 상세를 보던 중이면 일반 태스크 목록으로 빠져나와야 클릭한 task 가 보임.
-    setSelectedRoutineName(null);
-    setScrollToTaskId(id);
-    if (window.location.hash !== "#todos") {
-      window.history.pushState({ tab: "todos" }, "", "#todos");
-    }
-  }
-
   function closeMeeting() {
     if (window.history.state?.meetingId) {
       window.history.back();
@@ -718,11 +613,7 @@ function AppContent() {
 
   // Side panel per tab (모바일에선 drawer, 데스크탑에선 3-pane 왼쪽 컬럼).
   const sidePanel =
-    tab === "today" ? (
-      // "오늘" 사이드바 = 미니 월 그리드 + 다가오는 일정. 날짜 선택 시 메인창이
-      // 그 날 day-view 로 전환(openDay → selectedDay). 다른 탭과 동일한 사이드바→메인.
-      <TodayAgendaPanel onOpenDay={openDay} selectedDay={selectedDay} />
-    ) : tab === "meetings" ? (
+    tab === "meetings" ? (
       <MeetingsSidePanel
         selectedId={selectedMeetingId}
         onSelect={openMeeting}
@@ -733,22 +624,10 @@ function AppContent() {
         markdownHelpOpen={markdownHelpOpen}
         onMarkdownHelpClose={() => setMarkdownHelpOpen(false)}
       />
-    ) : tab === "todos" ? (
-      <TodosSidePanel
-        statusFilter={taskStatus}
-        onStatusChange={setTaskStatus}
-        selectedProject={selectedProject}
-        onSelectProject={setSelectedProject}
-      />
     ) : tab === "recordings" ? (
       <RecordingsSidePanel selectedBase={selectedRecording} onSelect={openRecording} onClear={clearRecording} />
     ) : tab === "notebook" ? (
       <NotebookSidePanel selected={selectedNotebook} onSelect={selectNotebook} />
-    ) : tab === "routines" ? (
-      <RoutinesSidePanel
-        selectedRoutineName={selectedRoutineName}
-        onSelectRoutine={setSelectedRoutineName}
-      />
     ) : tab === "portfolio" ? (
       <PortfolioSidePanel
         activeFilter={portfolioFilter}
@@ -773,10 +652,6 @@ function AppContent() {
     ) : tab === "notebook" ? (
       // 노트북 탭은 휴지통 · 도움말 같은 하단 슬롯이 없다 (읽기 전용).
       undefined
-    ) : tab === "todos" ? (
-      <TodosSidePanelFooter onTrashOpen={() => setTodosTrashOpen(true)} />
-    ) : tab === "routines" ? (
-      <RoutinesSidePanelFooter onTrashOpen={() => setTodosTrashOpen(true)} />
     ) : tab === "portfolio" ? (
       <PortfolioSidePanelFooter
         onTrashOpen={() => setPortfolioTrashOpen(true)}
@@ -795,16 +670,7 @@ function AppContent() {
       onOpenSearch={() => setQuickSwitcherOpen(true)}
     >
       <PrefetchWarmup />
-      {tab === "today" ? (
-        <TodayPage
-          selectedDay={selectedDay}
-          onReturnToday={() => setSelectedDay(todayIso())}
-          onOpenMeeting={openMeeting}
-          onOpenTask={openTask}
-          onCreateNote={() => void createNoteFromToday()}
-          onOpenRecordings={() => changeTab("recordings")}
-        />
-      ) : tab === "recordings" ? (
+      {tab === "recordings" ? (
         <RecordingsPage
           selectedBase={selectedRecording}
           onSelect={openRecording}
@@ -840,34 +706,12 @@ function AppContent() {
           onSync={portfolioRunFullSync}
           syncRunning={portfolioSync.state.running}
         />
-      ) : tab === "notebook" ? (
-        <NotebookPage root={selectedNotebook} onSelect={selectNotebook} />
-      ) : tab === "routines" ? (
-        selectedRoutineName ? (
-          <RoutineDetail
-            name={selectedRoutineName}
-            onClose={() => setSelectedRoutineName(null)}
-          />
-        ) : (
-          <RoutinesEmpty />
-        )
       ) : (
-        <TasksPage
-          statusFilter={taskStatus}
-          projectFilter={selectedProject}
-          sortKey={taskSortKey}
-          onSortKeyChange={setTaskSortKey}
-          scrollToTaskId={scrollToTaskId}
-          onScrollHandled={() => setScrollToTaskId(null)}
-        />
+        <NotebookPage root={selectedNotebook} onSelect={selectNotebook} />
       )}
       <TrashModal
         open={trashOpen}
         onClose={() => setTrashOpen(false)}
-      />
-      <TodosTrashModal
-        open={todosTrashOpen}
-        onClose={() => setTodosTrashOpen(false)}
       />
       <PortfolioTrashModal
         open={portfolioTrashOpen}
@@ -907,14 +751,6 @@ function AppContent() {
             case "meeting":
               openMeeting(entry.id);
               return;
-            case "task":
-              openTask(entry.id);
-              return;
-            case "journal":
-              // 일기 = 그 날짜 일기 오버레이 바로 열기 (캘린더 탭 폐기 후 단일 진입점).
-              drawer.close();
-              openJournal(entry.id);
-              return;
             case "portfolio":
               // 포트폴리오 탭으로 이동. 카드 정확 위치 scroll 은 follow-up (PortfolioPage
               // 가 scrollToSlug prop 받는 구조로 확장 필요).
@@ -927,39 +763,14 @@ function AppContent() {
           }
         }}
       />
-      <TaskAddModal
-        open={taskAddOpen}
-        onClose={() => setTaskAddOpen(false)}
-        defaultType={taskAddType}
-        prefill={taskAddPrefill}
-      />
-      <JournalOverlay
-        open={journalDate !== null}
-        date={journalDate ?? todayIso()}
-        onClose={() => setJournalDate(null)}
-      />
     </AppShell>
   );
 }
 
-// 루틴 탭 본문 — 선택된 루틴이 없을 때. 사이드바에서 루틴을 고르거나 새로 추가.
-function RoutinesEmpty() {
-  return (
-    <div className="flex h-full items-center justify-center p-6">
-      <EmptyState
-        title="루틴"
-        description="왼쪽에서 루틴을 선택하거나 + 로 새 루틴을 추가하세요."
-      />
-    </div>
-  );
-}
-
-// vault ready 직후 캘린더/포트폴리오 진입에 필요한 쿼리들을 background 로 워밍.
+// vault ready 직후 포트폴리오 진입에 필요한 쿼리들을 background 로 워밍.
 // 메모장 사이드바가 useMeetings 를 항상 띄워 메모장이 빠른 것과 같은 메커니즘.
 // 컴포넌트 mount 는 안 함 — query cache 만 채움 → 진입 시 cache hit, 메모리 부담 0.
 function PrefetchWarmup() {
-  useJournals();
-  useTasks();
   usePortfolioWorks();
   useManualFolders();
   return null;

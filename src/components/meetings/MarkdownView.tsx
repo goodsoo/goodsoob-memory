@@ -1,5 +1,4 @@
 import { cloneElement, createContext, isValidElement, useContext, useMemo, type ReactNode } from "react";
-import { Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -33,10 +32,6 @@ type Props = {
   content: string;
   // body source 직접 mutation — 체크박스 클릭 토글용. 없으면 read-only.
   onChange?: (next: string) => void;
-  // task 라인 우측 hover 시 노출되는 "할 일 추가" 버튼 콜백. 라인 raw 텍스트
-  // (`- [ ] foo --- 내일 #work` 형식) 그대로 넘김 — 편집 모드 ⌘Enter 와 동일
-  // 시그니처라 부모는 같은 핸들러 (lineToTaskPrefill → TaskAddModal) 로 연결한다.
-  onAddTaskFromLine?: (lineText: string) => void;
 };
 
 // pre 안쪽 code 인지 추적 — 4-space indented block 은 language class 가 없어
@@ -83,7 +78,7 @@ function visitForCheckbox(
   return node;
 }
 
-export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
+export function MarkdownView({ content, onChange }: Props) {
   // VaultContext 는 provider 밖에서도 null 로 안전 — 테스트 환경 (jsdom) 호환.
   const vaultCtx = useContext(VaultContext);
   const vaultRoot = vaultCtx?.vaultRoot ?? null;
@@ -179,44 +174,7 @@ export function MarkdownView({ content, onChange, onAddTaskFromLine }: Props) {
               // items-start + [&>span>p]:my-0: 여러 줄 task 도 체크박스가 첫 줄 앞에
               //        붙도록 top-align. mt-[5px] 가 (line-height 26 - checkbox 16) / 2
               //        — 첫 줄 텍스트의 vertical center 와 정렬.
-              // group + relative: 좌측 gutter 영역 (li.visual-left 의 -1.5rem 위치 = 본문
-              //   wrapper 의 px-6 padding 안) 에 absolute "+" 버튼. li 내부 inline flow
-              //   는 그대로, 버튼은 hover 시에만 노출.
-              // before:* — invisible hit-area 24px 좌측 확장. li 와 + 버튼 사이 갭에서
-              //   마우스가 group-hover off 되던 깜빡임 차단.
-              <li className="task-list-item group relative -ml-6 flex list-none items-start gap-2 [&>span>p]:my-0 before:absolute before:left-[-1.5rem] before:top-0 before:h-full before:w-6 before:content-['']">
-                {onAddTaskFromLine ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const end = content.indexOf("\n", offset);
-                      const lineText = content.slice(offset, end === -1 ? undefined : end);
-                      onAddTaskFromLine(lineText);
-                    }}
-                    title="할 일로 추가"
-                    aria-label="할 일로 추가"
-                    className="absolute opacity-0 transition-opacity hover:opacity-100 group-hover:opacity-100 focus-visible:opacity-100"
-                    // size 를 inline 으로 박아 cascade 충돌 차단. minHeight: 0 은 글로벌
-                    // `button { min-height: 44px }` (index.css) 우회 — 안 풀면 button 이
-                    // 두 줄 높이로 부풂.
-                    style={{
-                      left: "-1.5rem",
-                      top: "5px",
-                      width: "1rem",
-                      height: "1rem",
-                      minHeight: 0,
-                      padding: 0,
-                      lineHeight: 1,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: "0.25rem",
-                      color: "var(--sub)",
-                    }}
-                  >
-                    <Plus size={14} strokeWidth={2} aria-hidden />
-                  </button>
-                ) : null}
+              <li className="task-list-item -ml-6 flex list-none items-start gap-2 [&>span>p]:my-0">
                 <input
                   type="checkbox"
                   checked={checked}

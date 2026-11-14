@@ -171,7 +171,6 @@ export function useDeleteMeetingFolder() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: meetingsKey });
       qc.invalidateQueries({ queryKey: deletedMeetingsKey });
-      qc.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 }
@@ -248,7 +247,6 @@ export function useCreateMeeting() {
         prev ? [created, ...prev] : [created],
       );
       qc.setQueryData(meetingKey(created.uid), created);
-      qc.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 }
@@ -294,7 +292,6 @@ export function useUpdateMeeting(uid: string) {
       qc.setQueryData<Meeting[]>(meetingsKey, (prev) =>
         prev?.map((m) => (m.uid === uid ? updated : m)),
       );
-      qc.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 }
@@ -380,7 +377,6 @@ export function useDeleteMeeting() {
       );
       qc.removeQueries({ queryKey: meetingKey(uid) });
       qc.invalidateQueries({ queryKey: deletedMeetingsKey });
-      qc.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 }
@@ -399,7 +395,6 @@ export function useRestoreMeeting() {
         prev ? [restored, ...prev] : [restored],
       );
       qc.setQueryData(meetingKey(restored.uid), restored);
-      qc.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 }

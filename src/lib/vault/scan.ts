@@ -5,8 +5,6 @@ import {
   patchFrontmatter,
   patchBody,
 } from "./parser";
-import { extractTasks, type TaskItem } from "./tasks";
-import { buildEventLine, SCHEDULE_PATH } from "./schedule";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types — UI/hooks 가 다루는 형태
@@ -38,17 +36,6 @@ export interface Meeting extends MeetingMeta {
   // 요약 sidecar (`.summary.md`) 의 raw 마크다운 본문. 외부 Claude 응답이 그대로 들어옴.
   // UI 에서 본문과 동일한 SourceBodyEditor 로 편집. 빈 string 면 sidecar 파일 없음.
   summary: string;
-}
-
-export interface JournalMeta {
-  id: string; // file path
-  uid: string; // frontmatter `id` 영구 식별자 (uuid). 메모와 동일 모델.
-  date: string;
-  mtime: number;
-}
-
-export interface Journal extends JournalMeta {
-  content: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -91,8 +78,7 @@ export function isSyncNoiseFile(path: string): boolean {
 
 // 메모장은 vault(= brain) 폴더 **전체**를 노트로 띄운다 — 특정 `notes/` 하위가
 // 아니라 root 재귀. 단 "앱/시스템 소유" 네임스페이스는 노트가 아니다:
-//   - `_` 로 시작하는 세그먼트 = 앱 소유(`_portfolio` / `_tasks` / `_journals` /
-//     `_routines`) 또는 자산(`_attachments`) / 비공개(`_sensitive`).
+//   - `_` 로 시작하는 세그먼트 = 앱 소유(`_portfolio` 등) 또는 자산(`_attachments`) / 비공개(`_sensitive`).
 //   - `.` 로 시작하는 세그먼트 = dot (`.git` / `.backups` / `.trash` …).
 // 사람이 만든 brain 폴더(`development` / `me` / `work` …)는 전부 노트.
 // 경로 어느 세그먼트든 `_`/`.` 로 시작하면 노트에서 제외 (nested `foo/_attachments/...` 포함).
@@ -206,24 +192,6 @@ function transcriptOrSummaryBody(raw: string): string {
   return parseVaultFile(raw).body;
 }
 
-export function fileToJournal(
-  filePath: string,
-  raw: string,
-  mtime: number,
-): Journal {
-  const file = parseVaultFile(raw);
-  const fm = file.frontmatter;
-  const uid = fmString(fm.id);
-  if (!uid) throw new Error(`missing frontmatter id: ${filePath}`);
-  return {
-    id: filePath,
-    uid,
-    date: fmString(fm.date) ?? filePathToDate(filePath),
-    mtime,
-    content: file.body,
-  };
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Build Meeting → 3 raw files
 
@@ -262,18 +230,6 @@ export function meetingToSummaryRaw(meeting: Meeting): string {
   return meeting.summary.endsWith("\n") ? meeting.summary : `${meeting.summary}\n`;
 }
 
-export function journalToRaw(journal: Journal): string {
-  const frontmatter: Record<string, unknown> = {
-    id: journal.uid, // 메모와 동일 — 영구 식별자.
-    date: journal.date,
-  };
-  return serializeVaultFile({
-    raw: "",
-    frontmatter,
-    body: journal.content,
-  });
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Patch helpers — 부분 patch. meetings.ts api 가 사용.
 
@@ -308,12 +264,6 @@ export function slugify(title: string): string {
 function filePathToTitle(filePath: string): string {
   const base = filePath.split("/").pop() ?? filePath;
   return base.replace(/\.md$/, "");
-}
-
-function filePathToDate(filePath: string): string {
-  const base = filePath.split("/").pop() ?? filePath;
-  const m = base.match(/^(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : "";
 }
 
 // 메모 경로에서 폴더 부분 추출 (vault root 기준). `foo.md` → `""`,
@@ -521,10 +471,6 @@ export async function renameMeetingFiles(
   }
 }
 
-export function journalPath(date: string): string {
-  return `_journals/${date}.md`;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Scan operations
 
@@ -638,51 +584,6 @@ export async function dedupeUids(
   }
 }
 
-export async function scanJournals(adapter: VaultAdapter): Promise<JournalMeta[]> {
-  const files = await adapter.list("_journals");
-  const results: JournalMeta[] = [];
-  for (const path of files) {
-    if (!path.endsWith(".md")) continue;
-    if (isSyncNoiseFile(path)) continue;
-    try {
-      const raw = await adapter.read(path);
-      const meta = await adapter.readMeta(path);
-      const j = fileToJournal(path, raw, meta.mtime);
-      results.push({ id: j.id, uid: j.uid, date: j.date, mtime: j.mtime });
-    } catch (err) {
-      console.warn(`[scanJournals] skip ${path}:`, err);
-    }
-  }
-  results.sort((a, b) => b.date.localeCompare(a.date));
-  return results;
-}
-
-// 할 일 = `_tasks/` 폴더의 프로젝트별 md 파일들. `_tasks/inbox.md` = 미분류.
-// 폴더 전체를 가로질러 스캔 — 각 TaskItem 의 source.file 이 프로젝트(파일)를 가리킴.
-// `_` prefix = 앱 소유 네임스페이스 (메모장 노트 스캔에서 자동 제외).
-export const TASKS_DIR = "_tasks";
-
-export async function scanAllTasks(adapter: VaultAdapter): Promise<TaskItem[]> {
-  let files: string[];
-  try {
-    files = await adapter.list(TASKS_DIR);
-  } catch {
-    return [];
-  }
-  const items: TaskItem[] = [];
-  for (const path of files) {
-    if (!path.endsWith(".md")) continue;
-    if (isSyncNoiseFile(path)) continue;
-    try {
-      const raw = await adapter.read(path);
-      items.push(...extractTasks(path, raw));
-    } catch (err) {
-      console.warn(`[scanAllTasks] skip ${path}:`, err);
-    }
-  }
-  return items;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Trash (soft delete: .trash/ 폴더로 이동, 옵시디안 호환)
 
@@ -730,15 +631,9 @@ export async function restoreFromTrash(
     /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-/,
     "",
   );
-  // 원본 폴더 구조 추정: 순수 YYYY-MM-DD.md 는 일기, 그 외는 메모.
-  // 메모는 이제 brain root 전체가 대상이고 trash 이름에 원본 폴더가 안 남으므로
+  // 메모는 brain root 전체가 대상이고 trash 이름에 원본 폴더가 안 남으므로
   // root 로 복원 (복원 후 사용자가 원하는 폴더로 이동).
-  let target: string;
-  if (base.match(/^\d{4}-\d{2}-\d{2}\.md$/)) {
-    target = `_journals/${base}`;
-  } else {
-    target = base;
-  }
+  const target = base;
   // 충돌 회피
   let n = 2;
   let candidate = target;
@@ -780,93 +675,5 @@ export async function ensureVaultStructure(
   // 메모장은 brain root 전체를 노트로 쓴다 — `notes/` 전용 폴더를 더 만들지 않는다.
   // 새 노트 기본 저장 위치 = `inbox/` (brain 의 미분류 캡처 폴더).
   await adapter.mkdir("inbox");
-  await adapter.mkdir("_journals"); // 앱 소유 (일기)
-  await adapter.mkdir(TASKS_DIR); // V0.8 — 할 일 프로젝트 파일들의 집 (_tasks)
   // portfolio 폴더(_portfolio)는 첫 sync 때 생성 — 여기서 미리 만들지 않음.
-  // V0.8 lazy migration — 옛 루트 inbox.md 를 _tasks/ + _schedule.md 로 가른다.
-  // (idempotent: 루트 inbox.md 가 없으면 즉시 반환.)
-  await migrateRootInbox(adapter);
-  if (!(await adapter.exists(`${TASKS_DIR}/inbox.md`))) {
-    await adapter.write(`${TASKS_DIR}/inbox.md`, "# 미분류\n");
-  }
-}
-
-// V0.8 모델 분리 마이그레이션 — 첫 read 시 1회. 옛 루트 `inbox.md` 한 파일에
-// 섞여 있던 할 일 + 일정을 가른다 (V0.7.1 date-prefix→uid 같은 lazy 패턴):
-//   - `#schedule` + 날짜 라인 → `schedule.md` 로 이동 (체크박스 제거, 날짜-우선
-//     이벤트 포맷으로 재직렬화).
-//   - 그 외 모든 라인 → `tasks/inbox.md` 로 이동 (할 일 라인은 카테고리 태그
-//     `#work`/`#schedule`/`#other` 만 제거, 체크박스·텍스트·날짜·기타 태그 보존.
-//     헤더·빈 메모 등 비-태스크 라인은 그대로 보존 — 데이터 손실 방지).
-// 끝에 루트 inbox.md 삭제 = 마이그레이션 완료 표식 (재실행 시 early-return).
-//
-// 동시성 가드: React StrictMode 는 dev 에서 init effect 를 이중 마운트해
-// ensureVaultStructure → migrateRootInbox 를 동시 2회 호출한다. 락이 없으면 두 run 이
-// 같은 루트 inbox.md 를 읽고 둘 다 tasks/inbox.md 에 써(두 번째가 append) 내용이
-// 중복된다. root 경로별 in-flight promise 로 동시 호출이 단일 실행을 공유하게 한다.
-const migrateInFlight = new Map<string, Promise<void>>();
-
-export function migrateRootInbox(adapter: VaultAdapter): Promise<void> {
-  const root = adapter.getRoot() ?? "";
-  let p = migrateInFlight.get(root);
-  if (!p) {
-    p = doMigrateRootInbox(adapter).finally(() => migrateInFlight.delete(root));
-    migrateInFlight.set(root, p);
-  }
-  return p;
-}
-
-async function doMigrateRootInbox(adapter: VaultAdapter): Promise<void> {
-  const ROOT = "inbox.md";
-  if (!(await adapter.exists(ROOT))) return;
-  const raw = await adapter.read(ROOT);
-  const lines = raw.split("\n");
-
-  // 라인별 파싱 결과 — task 라인의 line→TaskItem 매핑.
-  const items = extractTasks(ROOT, raw);
-  const byLine = new Map(items.map((it) => [it.source.line, it]));
-
-  const eventLines: string[] = [];
-  const keptLines: string[] = [];
-  for (let i = 0; i < lines.length; i++) {
-    const item = byLine.get(i);
-    if (item && item.tags.includes("schedule") && item.due) {
-      // 일정 → schedule.md 이벤트 (체크박스 없음, 날짜-우선).
-      eventLines.push(
-        buildEventLine({
-          start: item.due,
-          end: item.end ?? null,
-          time: item.time ?? null,
-          text: item.text,
-        }),
-      );
-      continue;
-    }
-    // 그 외 — 카테고리 태그만 제거하고 라인 보존 (task 든 비-task 든).
-    keptLines.push(lines[i].replace(/\s#(?:work|schedule|other)\b/g, ""));
-  }
-
-  // schedule.md 에 추출 이벤트 append (기존 내용 보존).
-  if (eventLines.length) {
-    const existing = (await adapter.exists(SCHEDULE_PATH))
-      ? await adapter.read(SCHEDULE_PATH)
-      : "# 일정\n";
-    await adapter.write(
-      SCHEDULE_PATH,
-      `${existing.replace(/\n+$/, "")}\n${eventLines.join("\n")}\n`,
-    );
-  }
-
-  // tasks/inbox.md 작성 (이미 있으면 append — 부분 실패 재실행 안전).
-  const target = `${TASKS_DIR}/inbox.md`;
-  const keptContent = keptLines.join("\n").replace(/\n+$/, "") + "\n";
-  if (await adapter.exists(target)) {
-    const existing = await adapter.read(target);
-    await adapter.write(target, `${existing.replace(/\n+$/, "")}\n${keptContent}`);
-  } else {
-    await adapter.write(target, keptContent);
-  }
-
-  // 루트 inbox.md 제거 — 마이그레이션 완료.
-  await adapter.delete(ROOT);
 }

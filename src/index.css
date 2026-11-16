@@ -283,7 +283,7 @@
     /* growth 승격 도메인색(dark) — growth 다크 오버라이드값(시각 회귀 0) */
     --miss: #e35555;
     --rank-bronze: #c1803f; --rank-silver: #cbd0d6; --rank-gold: #ffcf3f;
-    --cal-sat: #2f8fff; --cal-sun: #f06060; --cal-today-bg: rgba(47, 143, 255, 0.07);
+    --cal-sat: #2f8fff; --cal-sun: #f06060; --cal-today-bg: rgba(47, 143, 255, 0.10); /* 다크도 라이트와 같은 10% (D19 앱 적용 결정, growth 에서 promote 2026-11-16) */
     --write: #c9a24b;
     --offline-bg: #7a3a00; --offline-fg: #ffd7a8;
     --bg-hud: #161b24;

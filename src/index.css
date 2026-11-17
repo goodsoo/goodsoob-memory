@@ -511,6 +511,9 @@
     /* Pane.Split 목록 폭 enum (R11, §28) — narrow=조밀 목록, medium=표준 목록. */
     --pane-list-narrow: 280px;
     --pane-list-medium: 360px;
+    /* Page.Grid 칸 최소폭 enum (§28, 제보 #226) — sm=지표 카드, md=내용 카드. */
+    --page-grid-min-sm: 240px;
+    --page-grid-min-md: 320px;
     /* ── App-shell 레이아웃 슬롯 ── DS 가 기본값을 주고 consumer 가 앱별 override.
        override 는 consumer 의 app-local sentinel 블록(`:root { ... }`)에서 한다.
        2026-10-19 신설(제보 20261019-0953, 결정 ds-owns-all). */

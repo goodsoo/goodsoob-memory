@@ -437,8 +437,12 @@
     --icon-24: 24px;  /* 큰 아이콘 */
 
     /* ── Control height (responsive) ── var(--ctl-h) 쓰는 버튼·아이콘버튼은
-       데스크탑 28 / 터치 44 로 자동 적응. 하단 @media (pointer: coarse) 참조. */
+       데스크탑 28 / 터치 32 로 자동 적응. 하단 @media (pointer: coarse) 참조.
+       터치 44 는 '보이는 높이'가 아니라 '누르는 영역' — --touch-target 으로 분리(2026-11-18). */
     --ctl-h: 28px;
+    /* 터치 기기 누르는 영역 최소치(Apple HIG 44pt). 버튼 ::before 가 이 높이까지 투명하게 넓힌다.
+       Primer control.minTarget.coarse(44)와 같은 구조 — 보이는 크기와 누르는 크기를 분리. */
+    --touch-target: 44px;
     /* 입력 전용 높이 — Input·Select·Textarea·SearchField. 버튼(--ctl-h 28)보다 크게(터치 여유·growth 9개월 실사용). 2026-09-26 신설(제보 input-field-height-token). */
     --field-h: 38px;
     /* Field horizontal 레이아웃 라벨 고정 너비 — Field.tsx horizontal 모드 참조(growth mgr-field 80px 실사용값 흡수). */
@@ -482,10 +486,11 @@
     --fw-bold: 700;
   }
 
-  /* 터치 기기 = 컨트롤 높이를 44 로. Apple HIG 최소 터치 타깃. */
+  /* 터치 기기 = 버튼 높이 32(웹 DS 기본 크기 — Primer medium 32 · shadcn sm 32), 입력 44.
+     버튼을 44 로 키우면 헤더·툴바가 깨진다(2026-11-18 tower PWA). 44 는 누르는 영역(--touch-target)으로만. */
   @media (pointer: coarse) {
     :root {
-      --ctl-h: 44px;
+      --ctl-h: 32px;
       --field-h: 44px;
     }
   }

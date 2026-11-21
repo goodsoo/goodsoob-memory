@@ -48,7 +48,7 @@ export function PageHeaderBar({
             <Button
               variant="icon"
               onClick={sidebarToggle.toggle}
-              title={sidebarToggle.collapsed ? "사이드바 열기 (⌘\\)" : "사이드바 닫기 (⌘\\)"}
+              title={sidebarToggle.collapsed ? "사이드바 열기 (⌘B)" : "사이드바 닫기 (⌘B)"}
               aria-label={sidebarToggle.collapsed ? "사이드바 열기" : "사이드바 닫기"}
               className="hidden lg:inline-flex"
               style={{ color: "var(--sub)" }}

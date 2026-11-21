@@ -20,13 +20,13 @@
     "src/index.css": {
       "type": "blocks",
       "blocks": {
-        "color": "90047d9e6d5e07829d1d19b8ae1fc436fcf9dd54b76711b9617105d6b2e2302c",
+        "color": "389522a98c55f8f0fc8db026958105fb9144c83de3d035daa3e8ffca6ab38035",
         "shadcn-alias": "2f59a9ca190984adeb2e3fc0023970fd4ea19de6defc69b1383406052c2bde8d",
         "tokens-theme": "c6ad990784a246c51e1071301a4cb1f702d7daa41f0a78699fec4e846497d501",
         "tokens": "3b5cd6bf9753c345c13306beda4fe49bee14ce072e87f8ac8337f3174882f028",
-        "system": "01263a7c23b2732c5d4ed6a70b6e5f7e9111000ea4f2ac56e0ecf604ad64f27b",
+        "system": "16f090e05e83dbe27d4b02c0ae7fa6cf32bfe9e1d5c6bd4f347884ea9da2c497",
         "tokens-scale": "cabbb744f33df744e02ecacedab5dbee91d1f53bc817ec4f0abeb19a04a1b47d",
-        "layout": "6318a4ce295ee3c8d32f7f097051bc9304f9d0bc928ca8a27b5deafe2aa00f0d",
+        "layout": "d70c50e260f5474cb7b9cdb368c499599aff881dc512e34b473709f0ba2689c4",
         "tailwind-color-bridge": "57b0379b3d0feb815262e4955c08bdca62d73ed36bddc4fe32856e956a6f1013",
         "tailwind-utilities": "59b9036729839a570924cba91c3e7bcd52700557ed52b79fd9eb4e1b4a6d8013"
       }

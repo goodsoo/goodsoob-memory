@@ -288,6 +288,39 @@
     --offline-bg: #7a3a00; --offline-fg: #ffd7a8;
     --bg-hud: #161b24;
   }
+
+  /* ── 다크 흑백 변형 data-accent="mono" (제보 #281, 2026-11-21) — DS 가 소유·검증하는 공식 변형.
+     <html data-theme="dark" data-accent="mono"> 로 켠다. 라이트에선 선택자가 안 맞아 무효(라이트 그대로).
+     바뀌는 토큰만 담는다: 캔버스 순수 검정 · 면/선/글자 중립 회색(다크 기본의 푸른 기 제거) · accent 흰색.
+     유색 solid 위 글자(--on-accent)는 이 변형에서만 검정으로 반전 — 흰 accent 위 흰 글자 방지.
+     상태색(ok/warn/down 등)·도메인색은 그대로(위 다크값 상속). 근거·대비 수치 = docs/palette-unification.md.
+     값 근거: 글자·btn-primary = 다크 기본값과 상대휘도가 같은 중립 회색, 선 = 다크 기본 선/면 대비(1.37/1.21/1.77)와
+     맞춘 흰색 알파, 면 = 검정 캔버스 위 3단(제보 앱 ANMU 의 #0a0a0a~#1c1c1f 대역을 중립화). */
+  :root[data-theme="dark"][data-accent="mono"] {
+    --surface: #111111;
+    --surface-2: #1c1c1c;
+    --surface-3: #262626;
+    --line: rgba(255, 255, 255, 0.12);
+    --line-2: rgba(255, 255, 255, 0.08);
+    --line-3: rgba(255, 255, 255, 0.18);
+    --ink: #f1f1f1;
+    --sub: #b7b7b7;
+    --faint: #848484;
+    --dim: #646464;
+    --ghost: #414141;
+    --accent: #ffffff;
+    --accent-2: #d6d6d6;
+    --accent-soft: #2e2e2e;
+    --accent-line: #5a5a5a;
+    --accent-ink: #ffffff;
+    --btn-primary: #e4e4e4;
+    --on-accent: #000000;
+
+    --bg: #000000;
+    --bg-overlay: rgba(0, 0, 0, 0.92);
+    --surface-frost: rgba(17, 17, 17, 0.65);
+    --bg-hud: #111111;
+  }
 /* DESIGN-SYSTEM:color END */
 
 /* DESIGN-SYSTEM:shadcn-alias START — managed by goodsoob-design-system, do not edit */
@@ -511,6 +544,11 @@
     --safe-top: env(safe-area-inset-top);
     /* 모달 시트 최대 너비 — 데스크탑 중앙 다이얼로그 폭. 모든 모달 이 한 값으로 통일. */
     --modal-w: 640px;
+    /* Modal variant="side" 서랍 폭(제보 #282) — 기본 320 · sm 280 · lg 400. 실제 폭 = min(토큰, 85vw)
+       (좁은 화면에서 scrim 을 눌러 닫을 15% 띠를 남김). 사이드바 폭 토큰은 DS 에 없어 신설. */
+    --modal-side-w: 320px;
+    --modal-side-w-sm: 280px;
+    --modal-side-w-lg: 400px;
     /* 토스트 패널 최대폭 — 긴 문구는 이 폭에서 줄바꿈(§9-3). 뷰포트가 더 좁으면 양옆 --space-16 남기고 줄어든다. */
     --toast-max-w: 480px;
     /* Pane.Split 목록 폭 enum (R11, §28) — narrow=조밀 목록, medium=표준 목록. */
@@ -590,6 +628,13 @@
   :root[data-theme="dark"] {
     --text-inverse: #1d1d1f;
     --focus-ring: #60a5fa;
+  }
+
+  /* 다크 흑백 변형 (제보 #281) — 포커스 링 흰 계열(검정 캔버스 16.7:1 · surface-2 13.5:1),
+     text-inverse(btn-primary 위 글자) 중립화. 정의·근거 = color.css 같은 선택자 블록. */
+  :root[data-theme="dark"][data-accent="mono"] {
+    --text-inverse: #1d1d1d;
+    --focus-ring: #e5e5e5;
   }
 /* DESIGN-SYSTEM:system END */
 

@@ -562,6 +562,8 @@
        2026-10-19 신설(제보 20261019-0953, 결정 ds-owns-all). */
     /* 페이지 컨테이너 최대폭 — main/article 의 max-width. 넓은 마케팅 레이아웃은 1440px 등으로 override. */
     --page-max: 1200px;
+    /* 좁은 페이지 최대폭 — 목록·설정형 화면(Page width="narrow", §28, 제보 #291). anmu 휴지통 실사용값. */
+    --page-max-narrow: 900px;
     /* sticky 헤더 높이 — 단일출처: DS Header 실제 높이(--page-header-h, scale.css)를 참조.
        consumer 가 다른 헤더 높이를 쓸 경우 override(예: 56px dense, 64px marketing). */
     --header-h: var(--page-header-h);

@@ -335,15 +335,18 @@ function AppContent() {
     return () => window.removeEventListener("keydown", blockNavKeys);
   }, []);
 
-  // 페이지 단축키 (web·PWA 공통): Cmd+1~7 (TABS index), Cmd+\ (사이드바 토글),
+  // 페이지 단축키 (web·PWA 공통): Cmd+1~7 (TABS index), Cmd+B (사이드바 토글),
   // Cmd+P (퀵스위처). 탭 순서 바뀌면 단축키 의미도 자동 swap (오늘 첫번째 → Cmd+1=오늘).
   // ⚠️ 일반 브라우저 탭은 Cmd+숫자·Cmd+P 를 브라우저가 먼저 가로챌 수 있음 —
   //    standalone PWA(홈 화면 설치)에선 앱이 받는다.
+  // DS 단축키 관례(components.md §3-2): 사이드바 = ⌘B, 로컬 우선 — 키를 직접 쓰는 영역
+  // (SourceBodyEditor 의 ⌘B 볼드 등)이 preventDefault 하면 전역은 양보. IME 조합 중 무시.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
-      // Cmd+\ — 사이드바 collapse 토글 (input/textarea 안에서도 동작)
-      if (e.key === "\\") {
+      // Cmd+B — 사이드바 collapse 토글 (input/textarea 안에서도 동작, 에디터 볼드엔 양보)
+      if (e.code === "KeyB") {
         e.preventDefault();
         sidebar.toggle();
         return;

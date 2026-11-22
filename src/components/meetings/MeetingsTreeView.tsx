@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import type { Meeting } from "../../api/meetings";
 import {
@@ -8,7 +8,8 @@ import {
   type MeetingsFolderNode,
 } from "../../lib/meetingsTree";
 import { formatDisplayDate } from "../../lib/dates";
-import { Input, NavItem } from "@goodsoob/ds";
+import { Button, ContextMenu, Dropdown, Input, NavItem } from "@goodsoob/ds";
+import { TreeMenuContext } from "./MeetingMenuItems";
 
 const FOLDER_EXPAND_KEY = "goodsoob:meetingFolderExpandedV2";
 // 트리 펼침 상태를 localStorage 에 저장. "collapsed" set 이 아니라 "expanded" set 으로
@@ -47,8 +48,7 @@ const FOLDER_PATH_MIME = "text/x-goodsoob-folder-path";
 // 진짜 payload 는 dataTransfer 에서 읽고, 이 state 는 시각 강조(드래그 dim / drop
 // 가능 여부) 전용 — React 가 reconciliation 으로 갱신해도 native drag 에 영향 X.
 type DragItem =
-  | { kind: "meeting"; uid: string }
-  | { kind: "folder"; path: string };
+  { kind: "meeting"; uid: string } | { kind: "folder"; path: string };
 
 // 행 시각 단위.
 const INDENT_UNIT = 16;
@@ -73,10 +73,6 @@ type Props = {
   onEditingFolderChange?: (value: string) => void;
   onEditingFolderCommit?: () => void;
   onEditingFolderCancel?: () => void;
-  // 컨텍스트 메뉴 (메모 우클릭) — 메모 ID 와 위치 전달.
-  onContextMenu: (meetingId: string, x: number, y: number) => void;
-  // 폴더 우클릭. folder = meetings-relative path (e.g. "work" or "work/2026").
-  onFolderContextMenu: (folder: string, x: number, y: number) => void;
   // DnD 메모 이동 — 메모를 폴더에 drop 시 호출. folder 빈 문자열 = root.
   onMoveDrop: (uid: string, folder: string) => void;
   // DnD 폴더 이동 — 폴더를 다른 폴더(또는 root)에 drop 시 호출. destParent "" = root.
@@ -101,15 +97,15 @@ export function MeetingsTreeView({
   onEditingFolderChange,
   onEditingFolderCommit,
   onEditingFolderCancel,
-  onContextMenu,
-  onFolderContextMenu,
   onMoveDrop,
   onFolderMoveDrop,
   revealPath,
   revealNonce,
 }: Props) {
   const folderExpandKey = FOLDER_EXPAND_KEY;
-  const [expanded, setExpanded] = useState<Set<string>>(() => loadExpanded(folderExpandKey));
+  const [expanded, setExpanded] = useState<Set<string>>(() =>
+    loadExpanded(folderExpandKey),
+  );
   const [dropTarget, setDropTarget] = useState<string | null>(null); // 강조 중인 폴더 path
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
 
@@ -184,9 +180,7 @@ export function MeetingsTreeView({
   function handleDragOverFolder(e: React.DragEvent, folder: string) {
     e.preventDefault();
     const allowed =
-      dragItem?.kind === "folder"
-        ? canDropFolder(dragItem.path, folder)
-        : true;
+      dragItem?.kind === "folder" ? canDropFolder(dragItem.path, folder) : true;
     e.dataTransfer.dropEffect = allowed ? "move" : "none";
     if (dropTarget !== folder) setDropTarget(folder);
   }
@@ -203,14 +197,14 @@ export function MeetingsTreeView({
     setDragItem(null);
     if (folderPath) {
       // 자기 자신·자손·현재 부모(no-op) drop 은 무시 (가드는 backend 에도 있음).
-      if (canDropFolder(folderPath, folder)) onFolderMoveDrop(folderPath, folder);
+      if (canDropFolder(folderPath, folder))
+        onFolderMoveDrop(folderPath, folder);
       return;
     }
     if (uid) onMoveDrop(uid, folder);
   }
 
-  const isEmpty =
-    tree.rootMeetings.length === 0 && tree.folders.length === 0;
+  const isEmpty = tree.rootMeetings.length === 0 && tree.folders.length === 0;
   if (isEmpty) return null;
 
   // 항상 폴더 먼저, 메모 다음. root 메모를 별도 "기타" 그룹으로 묶지 않고 그냥
@@ -235,8 +229,6 @@ export function MeetingsTreeView({
           onEditingFolderCancel={onEditingFolderCancel}
           onToggle={toggleFolder}
           onSelect={onSelect}
-          onContextMenu={onContextMenu}
-          onFolderContextMenu={onFolderContextMenu}
           onDragStart={handleDragStart}
           onDragStartFolder={handleDragStartFolder}
           onDragEnd={handleDragEnd}
@@ -271,9 +263,10 @@ export function MeetingsTreeView({
               depth={0}
               selected={m.uid === selectedUid}
               isContextTarget={m.id === contextMeetingId}
-              isDragging={dragItem?.kind === "meeting" && dragItem.uid === m.uid}
+              isDragging={
+                dragItem?.kind === "meeting" && dragItem.uid === m.uid
+              }
               onClick={() => onSelect(m.uid)}
-              onContextMenu={onContextMenu}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             />
@@ -289,7 +282,6 @@ export function MeetingsTreeView({
             isContextTarget={m.id === contextMeetingId}
             isDragging={dragItem?.kind === "meeting" && dragItem.uid === m.uid}
             onClick={() => onSelect(m.uid)}
-            onContextMenu={onContextMenu}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           />
@@ -368,8 +360,6 @@ function FolderItem({
   onEditingFolderCancel,
   onToggle,
   onSelect,
-  onContextMenu,
-  onFolderContextMenu,
   onDragStart,
   onDragStartFolder,
   onDragEnd,
@@ -392,8 +382,6 @@ function FolderItem({
   onEditingFolderCancel?: () => void;
   onToggle: (path: string) => void;
   onSelect: (uid: string) => void;
-  onContextMenu: (meetingId: string, x: number, y: number) => void;
-  onFolderContextMenu: (folder: string, x: number, y: number) => void;
   onDragStart: (e: React.DragEvent, uid: string) => void;
   onDragStartFolder: (e: React.DragEvent, path: string) => void;
   onDragEnd: () => void;
@@ -405,6 +393,7 @@ function FolderItem({
   const isCollapsed = !expanded.has(node.path);
   const isDropTarget = dropTarget === node.path;
   const isContextTarget = contextFolder === node.path;
+  const menus = useContext(TreeMenuContext);
   // 끌고 있는 게 이 폴더 자신이면 dim. drop 가능 여부 — 폴더 드래그면 cycle/no-op
   // 가드(canDropFolder), 메모 드래그면 항상 가능.
   const isBeingDragged =
@@ -430,77 +419,89 @@ function FolderItem({
           onCancel={onEditingFolderCancel}
         />
       ) : (
-        <NavItem
-          draggable
-          onClick={() => onToggle(node.path)}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            onFolderContextMenu(node.path, e.clientX, e.clientY);
-          }}
-          onDragStart={(e) => onDragStartFolder(e, node.path)}
-          onDragEnd={onDragEnd}
-          onDragOver={(e) => onDragOverFolder(e, node.path)}
-          onDragLeave={() => onDragLeaveFolder(node.path)}
-          onDrop={(e) => onDropFolder(e, node.path)}
-          icon={
-            isCollapsed ? (
-              <ChevronRight className="h-3 w-3" style={{ color: "var(--sub)" }} />
-            ) : (
-              <ChevronDown className="h-3 w-3" style={{ color: "var(--sub)" }} />
-            )
-          }
-          trailing={
-            // hover (또는 컨텍스트 메뉴 열림) 시 우측 … 버튼 — 우클릭과 동일 메뉴를
-            // 버튼 아래로 연다. nested button 회피 위해 span + onMouseDown (행 toggle 과 분리).
-            <span
-              role="button"
-              aria-label="폴더 메뉴"
-              title="폴더 메뉴"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                onFolderContextMenu(node.path, r.left, r.bottom + 2);
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className={`h-4 w-4 items-center justify-center rounded group-hover:inline-flex ${
-                isContextTarget ? "inline-flex" : "hidden"
-              }`}
-              style={{ color: "var(--faint)" }}
+        // group·relative = 행 hover 시 … 버튼 노출 + 그 버튼을 행 우측에 겹쳐 둠.
+        // … 버튼은 NavItem(<button>) 밖 형제 — 버튼 중첩 회피, 행 toggle 과 분리.
+        <div className="group relative">
+          <ContextMenu
+            className="block"
+            menuLabel="폴더 메뉴"
+            items={menus?.folderMenu(node.path) ?? []}
+            onOpenChange={(o) => menus?.onFolderMenuOpenChange(node.path, o)}
+          >
+            <NavItem
+              draggable
+              onClick={() => onToggle(node.path)}
+              onDragStart={(e) => onDragStartFolder(e, node.path)}
+              onDragEnd={onDragEnd}
+              onDragOver={(e) => onDragOverFolder(e, node.path)}
+              onDragLeave={() => onDragLeaveFolder(node.path)}
+              onDrop={(e) => onDropFolder(e, node.path)}
+              icon={
+                isCollapsed ? (
+                  <ChevronRight
+                    className="h-3 w-3"
+                    style={{ color: "var(--sub)" }}
+                  />
+                ) : (
+                  <ChevronDown
+                    className="h-3 w-3"
+                    style={{ color: "var(--sub)" }}
+                  />
+                )
+              }
+              // … 버튼 자리 확보(실제 버튼은 아래 Dropdown 이 행 위에 겹쳐 그린다).
+              trailing={<span className="inline-block h-4 w-4" aria-hidden />}
+              className="rounded py-1 pr-2"
+              style={
+                {
+                  paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
+                  color: "var(--sub)",
+                  opacity: isBeingDragged ? 0.5 : 1,
+                  backgroundColor: activeAllowed
+                    ? "var(--surface-3)"
+                    : undefined,
+                  // valid = primary 점선, blocked(자기·자손·현재 부모) = red 점선 + not-allowed.
+                  outline: activeAllowed
+                    ? "1px dashed var(--btn-primary)"
+                    : activeBlocked
+                      ? "1px dashed var(--down-ink)"
+                      : undefined,
+                  outlineOffset: "-2px",
+                  cursor: activeBlocked ? "not-allowed" : undefined,
+                  boxShadow: isContextTarget
+                    ? "inset 0 0 0 1.5px var(--focus-ring)"
+                    : undefined,
+                  WebkitUserDrag: "element",
+                  userSelect: "none",
+                } as React.CSSProperties
+              }
             >
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </span>
-          }
-          className="group rounded py-1 pr-2"
-          style={
-            {
-              paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
-              color: "var(--sub)",
-              opacity: isBeingDragged ? 0.5 : 1,
-              backgroundColor: activeAllowed
-                ? "var(--surface-3)"
-                : undefined,
-              // valid = primary 점선, blocked(자기·자손·현재 부모) = red 점선 + not-allowed.
-              outline: activeAllowed
-                ? "1px dashed var(--btn-primary)"
-                : activeBlocked
-                  ? "1px dashed var(--down-ink)"
-                  : undefined,
-              outlineOffset: "-2px",
-              cursor: activeBlocked ? "not-allowed" : undefined,
-              boxShadow: isContextTarget
-                ? "inset 0 0 0 1.5px var(--focus-ring)"
-                : undefined,
-              WebkitUserDrag: "element",
-              userSelect: "none",
-            } as React.CSSProperties
-          }
-        >
-          {node.name}
-        </NavItem>
+              {node.name}
+            </NavItem>
+          </ContextMenu>
+          {/* hover(또는 메뉴 열림) 시 … 버튼 — 우클릭과 같은 항목을 버튼 아래로 연다. */}
+          <div
+            className={`absolute top-1/2 right-1 -translate-y-1/2 group-hover:inline-flex ${
+              isContextTarget ? "inline-flex" : "hidden"
+            }`}
+          >
+            <Dropdown
+              onOpenChange={(o) => menus?.onFolderMenuOpenChange(node.path, o)}
+              trigger={
+                <Button
+                  variant="ghost"
+                  iconOnly
+                  aria-label="폴더 메뉴"
+                  title="폴더 메뉴"
+                  style={{ color: "var(--faint)" }}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </Button>
+              }
+              items={menus?.folderMenu(node.path) ?? []}
+            />
+          </div>
+        </div>
       )}
       {!isCollapsed ? (
         <div
@@ -544,8 +545,6 @@ function FolderItem({
                 onEditingFolderCancel={onEditingFolderCancel}
                 onToggle={onToggle}
                 onSelect={onSelect}
-                onContextMenu={onContextMenu}
-                onFolderContextMenu={onFolderContextMenu}
                 onDragStart={onDragStart}
                 onDragStartFolder={onDragStartFolder}
                 onDragEnd={onDragEnd}
@@ -561,9 +560,10 @@ function FolderItem({
                 depth={depth + 1}
                 selected={m.uid === selectedUid}
                 isContextTarget={m.id === contextMeetingId}
-                isDragging={dragItem?.kind === "meeting" && dragItem.uid === m.uid}
+                isDragging={
+                  dragItem?.kind === "meeting" && dragItem.uid === m.uid
+                }
                 onClick={() => onSelect(m.uid)}
-                onContextMenu={onContextMenu}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
               />
@@ -659,7 +659,6 @@ function MeetingRow({
   isContextTarget,
   isDragging,
   onClick,
-  onContextMenu,
   onDragStart,
   onDragEnd,
 }: {
@@ -669,47 +668,50 @@ function MeetingRow({
   isContextTarget: boolean;
   isDragging: boolean;
   onClick: () => void;
-  onContextMenu: (meetingId: string, x: number, y: number) => void;
   onDragStart: (e: React.DragEvent, uid: string) => void;
   onDragEnd: () => void;
 }) {
   // button 자체는 ROW_BASE_PAD_LEFT 만 — 클릭존은 아이콘부터 시작.
   // depth 별 indent 는 부모 폴더의 children wrapper paddingLeft 가 누적.
   const meta = formatMeetingMeta(meeting);
+  const menus = useContext(TreeMenuContext);
   return (
     <li className="list-none">
-      <NavItem
-        draggable
-        active={selected}
-        reserveIcon
-        onClick={onClick}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          onContextMenu(meeting.id, e.clientX, e.clientY);
-        }}
-        onDragStart={(e) => onDragStart(e, meeting.uid)}
-        onDragEnd={onDragEnd}
-        trailing={
-          meta ? (
-            <span className="whitespace-nowrap tabular-nums">{meta}</span>
-          ) : undefined
-        }
-        className="rounded py-1 pr-2"
-        style={
-          {
-            paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
-            color: "var(--ink)",
-            opacity: isDragging ? 0.5 : 1,
-            boxShadow: isContextTarget
-              ? "inset 0 0 0 1.5px var(--focus-ring)"
-              : undefined,
-            WebkitUserDrag: "element",
-            userSelect: "none",
-          } as React.CSSProperties
-        }
+      <ContextMenu
+        className="block"
+        menuLabel="메모 메뉴"
+        items={menus?.meetingMenu(meeting) ?? []}
+        onOpenChange={(o) => menus?.onMeetingMenuOpenChange(meeting.id, o)}
       >
-        {meeting.title?.trim() || "(제목 없음)"}
-      </NavItem>
+        <NavItem
+          draggable
+          active={selected}
+          reserveIcon
+          onClick={onClick}
+          onDragStart={(e) => onDragStart(e, meeting.uid)}
+          onDragEnd={onDragEnd}
+          trailing={
+            meta ? (
+              <span className="whitespace-nowrap tabular-nums">{meta}</span>
+            ) : undefined
+          }
+          className="rounded py-1 pr-2"
+          style={
+            {
+              paddingLeft: `${ROW_BASE_PAD_LEFT}px`,
+              color: "var(--ink)",
+              opacity: isDragging ? 0.5 : 1,
+              boxShadow: isContextTarget
+                ? "inset 0 0 0 1.5px var(--focus-ring)"
+                : undefined,
+              WebkitUserDrag: "element",
+              userSelect: "none",
+            } as React.CSSProperties
+          }
+        >
+          {meeting.title?.trim() || "(제목 없음)"}
+        </NavItem>
+      </ContextMenu>
     </li>
   );
 }

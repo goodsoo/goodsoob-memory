@@ -13,6 +13,7 @@ import {
   getMeeting,
   deleteMeeting,
   undoDeleteMeeting,
+  restoreMeeting,
   listDeletedMeetings,
 } from "./meetings";
 import { createMemoryAdapter } from "../lib/vault/adapter";
@@ -321,5 +322,51 @@ describe("frontmatter audio", () => {
     expect(restored.audio).toEqual(["rec-1", "2026"]);
     expect(await adapter.exists("inbox/a.md")).toBe(true);
     expect(await adapter.exists(trashId)).toBe(false);
+  });
+});
+
+describe("휴지통 복원 — 원래 폴더로 (trashed_from)", () => {
+  const raw = (id: string) => `---\nid: ${id}\n---\n본문\n`;
+
+  it("지울 때 원래 경로를 기록하고, 휴지통 복원이 그 폴더로 되돌린다(기록은 지움)", async () => {
+    const adapter = createMemoryAdapter();
+    adapter.setRoot("/vault");
+    await adapter.write("work/proj/a.md", raw("u-1"));
+    await adapter.write("work/proj/a.transcript.md", "전사\n");
+    const trashId = await deleteMeeting(adapter, "work/proj/a.md");
+    expect(await adapter.read(trashId)).toContain("trashed_from: work/proj/a.md");
+
+    const restored = await restoreMeeting(adapter, trashId);
+    expect(restored.id).toBe("work/proj/a.md");
+    expect(await adapter.exists("work/proj/a.transcript.md")).toBe(true);
+    expect(await adapter.read("work/proj/a.md")).not.toContain("trashed_from");
+  });
+
+  it("원래 자리에 다른 파일이 생겼으면 root 로(충돌 회피)", async () => {
+    const adapter = createMemoryAdapter();
+    adapter.setRoot("/vault");
+    await adapter.write("work/a.md", raw("u-1"));
+    const trashId = await deleteMeeting(adapter, "work/a.md");
+    await adapter.write("work/a.md", raw("u-2"));
+    const restored = await restoreMeeting(adapter, trashId);
+    expect(restored.id).toBe("a.md");
+    expect(await adapter.read("a.md")).not.toContain("trashed_from");
+  });
+
+  it("기록 없는 옛 휴지통 항목은 예전처럼 root 로", async () => {
+    const adapter = createMemoryAdapter();
+    adapter.setRoot("/vault");
+    await adapter.write(".trash/2026-01-01T00-00-00-old.md", raw("u-9"));
+    const restored = await restoreMeeting(adapter, ".trash/2026-01-01T00-00-00-old.md");
+    expect(restored.id).toBe("old.md");
+  });
+
+  it("frontmatter 가 손상된 메모는 기록하지 않는다(손상분 보존) → root 복원", async () => {
+    const adapter = createMemoryAdapter();
+    adapter.setRoot("/vault");
+    const broken = "---\nid: [u-1\n---\n본문\n";
+    await adapter.write("work/b.md", broken);
+    const trashId = await deleteMeeting(adapter, "work/b.md");
+    expect(await adapter.read(trashId)).toBe(broken);
   });
 });

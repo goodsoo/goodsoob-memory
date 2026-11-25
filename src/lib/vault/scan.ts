@@ -631,8 +631,9 @@ export async function restoreFromTrash(
     /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-/,
     "",
   );
-  // 메모는 brain root 전체가 대상이고 trash 이름에 원본 폴더가 안 남으므로
-  // root 로 복원 (복원 후 사용자가 원하는 폴더로 이동).
+  // trash 이름에 원본 폴더가 안 남으므로 여기선 root 로 복원한다. 메모는 api/meetings.ts
+  // restoreMeetingTo 가 frontmatter `trashed_from` 으로 원래 폴더를 먼저 시도하고, 기록이
+  // 없거나(2026-11-25 전 항목) 자리가 찼을 때만 이 root 복원으로 폴백한다.
   const target = base;
   // 충돌 회피
   let n = 2;

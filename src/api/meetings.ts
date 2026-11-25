@@ -1,4 +1,5 @@
 import type { VaultAdapter } from "../lib/vault/adapter";
+import { patchFrontmatter, splitFrontmatter } from "../lib/vault/parser";
 import {
   computeMovedMeetingPath,
   computeRenamedMeetingPath,
@@ -286,6 +287,7 @@ export async function deleteMeeting(
 ): Promise<string> {
   const stamp = freshStamp();
   const trashId = await trashFileWithStamp(adapter, id, stamp);
+  await stampTrashedFrom(adapter, trashId, id);
   const tPath = transcriptPath(id);
   if (await adapter.exists(tPath)) {
     await trashFileWithStamp(adapter, tPath, stamp);
@@ -297,46 +299,67 @@ export async function deleteMeeting(
   return trashId;
 }
 
-export async function restoreMeeting(
-  adapter: VaultAdapter,
-  trashId: string,
-): Promise<Meeting> {
-  // 메인 파일 복원
-  const restoredPath = await restoreFromTrash(adapter, trashId);
-  // 같은 stamp 의 sidecar 도 복원 시도
-  const stampMatch = trashId.match(
-    /^\.trash\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})-(.+)\.md$/,
-  );
-  if (stampMatch) {
-    const [, stamp, base] = stampMatch;
-    for (const suffix of ["transcript", "summary"]) {
-      const sidecarTrash = `.trash/${stamp}-${base}.${suffix}.md`;
-      if (await adapter.exists(sidecarTrash)) {
-        await restoreFromTrash(adapter, sidecarTrash);
-      }
-    }
-  }
-  return readFullMeeting(adapter, restoredPath);
+// 휴지통 → 원래 자리 복원을 위한 원래 경로 기록. 휴지통 파일 이름(.trash/<stamp>-<base>.md)엔
+// 원래 폴더가 안 남으므로, 옮긴 직후 휴지통 쪽 파일 frontmatter 에 `trashed_from: <원래 경로>` 를
+// 적어 둔다(파일에 붙어 다님 — 휴지통 이름 규칙·목록 파서 무변경). 복원 시 읽고 지운다.
+// frontmatter 가 손상돼 있으면 적지 않는다(patchFrontmatter 가 손상분을 비워 버리므로) → root 복원.
+const TRASHED_FROM = "trashed_from";
+
+function frontmatterIntact(raw: string): boolean {
+  if (!raw.startsWith("---")) return true; // frontmatter 없음 — 새로 붙여도 안전
+  return Object.keys(splitFrontmatter(raw).frontmatter).length > 0;
 }
 
-// 되돌리기(방금 지운 메모) — 휴지통 복원(restoreMeeting)은 원래 폴더를 모르니 root 로 돌리지만,
-// 되돌리기는 지운 직후라 원래 경로를 안다 → 그 자리로 되돌린다(DS U2 "누르면 실제로 되돌아가야").
-// 원래 자리에 이미 다른 파일이 생겼으면 일반 복원(root, 충돌 회피)으로 대체.
-export async function undoDeleteMeeting(
+async function stampTrashedFrom(adapter: VaultAdapter, trashId: string, originalPath: string) {
+  try {
+    const raw = await adapter.read(trashId);
+    if (!frontmatterIntact(raw)) return;
+    await adapter.write(trashId, patchFrontmatter(raw, { [TRASHED_FROM]: originalPath }));
+  } catch {
+    // 기록 실패해도 삭제 자체는 성공 — 복원 때 root 로 폴백.
+  }
+}
+
+async function readTrashedFrom(adapter: VaultAdapter, trashId: string): Promise<string | null> {
+  try {
+    const v = splitFrontmatter(await adapter.read(trashId)).frontmatter[TRASHED_FROM];
+    return typeof v === "string" && v.endsWith(".md") && !v.startsWith(".trash/") ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+async function clearTrashedFrom(adapter: VaultAdapter, path: string) {
+  const raw = await adapter.read(path);
+  if (!(TRASHED_FROM in splitFrontmatter(raw).frontmatter)) return;
+  await adapter.write(path, patchFrontmatter(raw, { [TRASHED_FROM]: undefined }));
+}
+
+/**
+ * 휴지통 → 복원. 원래 경로를 알면(trashed_from 기록, 또는 되돌리기가 넘긴 경로) 그 자리로,
+ * 모르거나 그 자리에 이미 다른 파일이 있으면 root(충돌 회피 이름)로. sidecar 도 같은 규칙.
+ */
+async function restoreMeetingTo(
   adapter: VaultAdapter,
   trashId: string,
-  originalPath: string,
+  originalPath: string | null,
 ): Promise<Meeting> {
-  if (await adapter.exists(originalPath)) return restoreMeeting(adapter, trashId);
-  const dir = originalPath.includes("/") ? originalPath.slice(0, originalPath.lastIndexOf("/")) : "";
-  if (dir) await adapter.mkdir(dir);
-  await adapter.rename(trashId, originalPath);
+  let restoredPath: string;
+  if (originalPath && !(await adapter.exists(originalPath))) {
+    const dir = originalPath.includes("/") ? originalPath.slice(0, originalPath.lastIndexOf("/")) : "";
+    if (dir) await adapter.mkdir(dir);
+    await adapter.rename(trashId, originalPath);
+    restoredPath = originalPath;
+  } else {
+    restoredPath = await restoreFromTrash(adapter, trashId);
+  }
+  // 같은 stamp 의 sidecar — 메인이 간 자리 옆으로(이미 있으면 root)
   const stampMatch = trashId.match(
     /^\.trash\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})-(.+)\.md$/,
   );
   if (stampMatch) {
     const [, stamp, base] = stampMatch;
-    const targets = { transcript: transcriptPath(originalPath), summary: summaryPath(originalPath) };
+    const targets = { transcript: transcriptPath(restoredPath), summary: summaryPath(restoredPath) };
     for (const suffix of ["transcript", "summary"] as const) {
       const sidecarTrash = `.trash/${stamp}-${base}.${suffix}.md`;
       if (!(await adapter.exists(sidecarTrash))) continue;
@@ -344,7 +367,25 @@ export async function undoDeleteMeeting(
       else await adapter.rename(sidecarTrash, targets[suffix]);
     }
   }
-  return readFullMeeting(adapter, originalPath);
+  await clearTrashedFrom(adapter, restoredPath);
+  return readFullMeeting(adapter, restoredPath);
+}
+
+// 휴지통 화면의 복원 — 기록된 원래 경로로(2026-11-25 전에 지운 항목은 기록이 없어 root).
+export async function restoreMeeting(
+  adapter: VaultAdapter,
+  trashId: string,
+): Promise<Meeting> {
+  return restoreMeetingTo(adapter, trashId, await readTrashedFrom(adapter, trashId));
+}
+
+// 되돌리기(방금 지운 메모) — 지운 쪽이 원래 경로를 직접 안다(frontmatter 기록 실패에도 정확).
+export async function undoDeleteMeeting(
+  adapter: VaultAdapter,
+  trashId: string,
+  originalPath: string,
+): Promise<Meeting> {
+  return restoreMeetingTo(adapter, trashId, originalPath);
 }
 
 // 영구 삭제 (휴지통에서만) — 메인 + 같은 stamp sidecar 도 함께 삭제

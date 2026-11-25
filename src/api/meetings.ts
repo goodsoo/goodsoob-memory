@@ -278,13 +278,14 @@ export async function updateMeeting(
   return readFullMeeting(adapter, currentId);
 }
 
-// Soft delete: 메인 + sidecar 다 같은 stamp 로 .trash/ 이동
+// Soft delete: 메인 + sidecar 다 같은 stamp 로 .trash/ 이동.
+// 반환 = 메인 파일의 휴지통 경로(= restoreMeeting 의 trashId) — 되돌리기 토스트가 쓴다.
 export async function deleteMeeting(
   adapter: VaultAdapter,
   id: string,
-): Promise<void> {
+): Promise<string> {
   const stamp = freshStamp();
-  await trashFileWithStamp(adapter, id, stamp);
+  const trashId = await trashFileWithStamp(adapter, id, stamp);
   const tPath = transcriptPath(id);
   if (await adapter.exists(tPath)) {
     await trashFileWithStamp(adapter, tPath, stamp);
@@ -293,6 +294,7 @@ export async function deleteMeeting(
   if (await adapter.exists(sPath)) {
     await trashFileWithStamp(adapter, sPath, stamp);
   }
+  return trashId;
 }
 
 export async function restoreMeeting(
@@ -315,6 +317,34 @@ export async function restoreMeeting(
     }
   }
   return readFullMeeting(adapter, restoredPath);
+}
+
+// 되돌리기(방금 지운 메모) — 휴지통 복원(restoreMeeting)은 원래 폴더를 모르니 root 로 돌리지만,
+// 되돌리기는 지운 직후라 원래 경로를 안다 → 그 자리로 되돌린다(DS U2 "누르면 실제로 되돌아가야").
+// 원래 자리에 이미 다른 파일이 생겼으면 일반 복원(root, 충돌 회피)으로 대체.
+export async function undoDeleteMeeting(
+  adapter: VaultAdapter,
+  trashId: string,
+  originalPath: string,
+): Promise<Meeting> {
+  if (await adapter.exists(originalPath)) return restoreMeeting(adapter, trashId);
+  const dir = originalPath.includes("/") ? originalPath.slice(0, originalPath.lastIndexOf("/")) : "";
+  if (dir) await adapter.mkdir(dir);
+  await adapter.rename(trashId, originalPath);
+  const stampMatch = trashId.match(
+    /^\.trash\/(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})-(.+)\.md$/,
+  );
+  if (stampMatch) {
+    const [, stamp, base] = stampMatch;
+    const targets = { transcript: transcriptPath(originalPath), summary: summaryPath(originalPath) };
+    for (const suffix of ["transcript", "summary"] as const) {
+      const sidecarTrash = `.trash/${stamp}-${base}.${suffix}.md`;
+      if (!(await adapter.exists(sidecarTrash))) continue;
+      if (await adapter.exists(targets[suffix])) await restoreFromTrash(adapter, sidecarTrash);
+      else await adapter.rename(sidecarTrash, targets[suffix]);
+    }
+  }
+  return readFullMeeting(adapter, originalPath);
 }
 
 // 영구 삭제 (휴지통에서만) — 메인 + 같은 stamp sidecar 도 함께 삭제

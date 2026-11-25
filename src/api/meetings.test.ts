@@ -12,6 +12,7 @@ import {
   updateMeeting,
   getMeeting,
   deleteMeeting,
+  undoDeleteMeeting,
   listDeletedMeetings,
 } from "./meetings";
 import { createMemoryAdapter } from "../lib/vault/adapter";
@@ -310,8 +311,15 @@ describe("frontmatter audio", () => {
     expect(await adapter.read("inbox/a.md")).toContain("audio:");
     expect(await adapter.read("inbox/b.md")).not.toContain("audio");
 
-    await deleteMeeting(adapter, "inbox/a.md");
+    const trashId = await deleteMeeting(adapter, "inbox/a.md");
     const trashed = await listDeletedMeetings(adapter);
     expect(trashed[0].audio).toEqual(["rec-1", "2026"]);
+    // 되돌리기 토스트(DS U2): deleteMeeting 이 돌려준 trashId 로 바로 복원된다.
+    expect(trashId).toBe(trashed[0].id);
+    // 되돌리기는 원래 폴더 자리로(휴지통 복원은 root).
+    const restored = await undoDeleteMeeting(adapter, trashId, "inbox/a.md");
+    expect(restored.audio).toEqual(["rec-1", "2026"]);
+    expect(await adapter.exists("inbox/a.md")).toBe(true);
+    expect(await adapter.exists(trashId)).toBe(false);
   });
 });

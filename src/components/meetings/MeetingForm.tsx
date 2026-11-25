@@ -30,7 +30,6 @@ import {
   useMeeting,
   useMeetings,
   useUpdateMeeting,
-  useDeleteMeeting,
   useMoveMeeting,
   useTogglePinMeeting,
 } from "../../hooks/useMeetings";
@@ -53,6 +52,7 @@ import { EmptyState } from "../common/EmptyState";
 import { SummaryModal } from "./SummaryModal";
 import { MeetingActionMenu } from "./MeetingActionMenu";
 import { useToast } from "@goodsoob/ds";
+import { useTrashMeetingWithUndo } from "../../hooks/useTrashMeetingWithUndo";
 import { AttendeeTagInput } from "./AttendeeTagInput";
 import { SourceBodyEditor } from "./SourceBodyEditor";
 import { FindBar } from "./FindBar";
@@ -133,7 +133,7 @@ export function MeetingForm({
   const { data, isLoading, error, refetch } = useMeeting(meetingId);
   const meetingsQ = useMeetings();
   const updateMutation = useUpdateMeeting(meetingId);
-  const deleteMutation = useDeleteMeeting();
+  const trashMeeting = useTrashMeetingWithUndo();
   const togglePinMutation = useTogglePinMeeting();
   const moveMutation = useMoveMeeting();
   const [moveOpen, setMoveOpen] = useState(false);
@@ -792,7 +792,7 @@ export function MeetingForm({
 
   async function handleDelete() {
     if (!data) return;
-    if (!window.confirm("이 메모를 휴지통으로 옮길까요?")) return;
+    // 확인창 없음 — 휴지통 이동은 되돌릴 수 있어 되돌리기 토스트로 대신(DS U2).
     // 삭제 전 옛 list 에서 다음 메모 capture. mutate 의 onSuccess 가 cache 의 list
     // 에서 deleted 를 즉시 filter 하므로 await 후엔 idx 가 무의미 — pre-capture 필수.
     // caller 가 사이드바 정렬/폴더 위계 알아서 결정 (computeNextAfterDelete). 미제공
@@ -807,7 +807,7 @@ export function MeetingForm({
         idx >= 0 ? (list[idx + 1]?.uid ?? list[idx - 1]?.uid ?? null) : null;
     }
     try {
-      await deleteMutation.mutateAsync(data.uid);
+      await trashMeeting.trash(data.uid);
       if (onAfterDelete) {
         onAfterDelete(nextUid);
       } else {
@@ -1065,7 +1065,7 @@ export function MeetingForm({
             onExport={() => setExportOpen(true)}
             onError={setActionError}
             onDelete={handleDelete}
-            deleteDisabled={deleteMutation.isPending}
+            deleteDisabled={trashMeeting.isPending}
           />
         }
       />

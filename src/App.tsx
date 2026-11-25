@@ -36,7 +36,8 @@ import {
   usePortfolioWorks,
 } from "./hooks/usePortfolio";
 import { GhAuthError, GhNotInstalledError } from "./lib/portfolio/gh";
-import { useMeetings, useCreateMeeting, useDeleteMeeting } from "./hooks/useMeetings";
+import { useMeetings, useCreateMeeting } from "./hooks/useMeetings";
+import { useTrashMeetingWithUndo } from "./hooks/useTrashMeetingWithUndo";
 import { useMeetingSort } from "./hooks/useMeetingSort";
 import { buildMeetingSortComparator } from "./lib/meetingSort";
 import { meetingFolder } from "./api/meetings";
@@ -201,7 +202,7 @@ function AppContent() {
   );
   const sidebar = useSidebarCollapsed();
   const createMeetingMutation = useCreateMeeting();
-  const deleteMeetingMutation = useDeleteMeeting();
+  const trashMeeting = useTrashMeetingWithUndo();
   // 폴더 자동 펼침 신호 — App 이 단일 소유. nonce 증가 → MeetingsSidePanel →
   // MeetingsTreeView 가 그 폴더(+조상)를 collapsed 에서 제거. Cmd+N(아래)·사이드바
   // "+"·폴더 생성 모두 requestMeetingReveal 로 모여 트리거.
@@ -412,14 +413,14 @@ function AppContent() {
 
     async function handleDelete() {
       if (!selectedMeetingId) return;
-      if (deleteMeetingMutation.isPending) return;
-      if (!window.confirm("이 메모를 휴지통으로 옮길까요?")) return;
+      if (trashMeeting.isPending) return;
+      // 확인창 없음 — 휴지통 이동은 되돌릴 수 있어 되돌리기 토스트로 대신(DS U2).
       // 삭제 전 옛 list 에서 다음 메모 capture. mutate 의 onSuccess 가 cache 의 list
       // 에서 deleted 를 즉시 filter 하므로 await 후엔 idx 가 무의미 — pre-capture 필수.
       // 같은 폴더 안 → 부모 폴더 재귀 (사이드바 정렬 적용).
       const nextUid = findDeleteNeighbor(selectedMeetingId);
       try {
-        await deleteMeetingMutation.mutateAsync(selectedMeetingId);
+        await trashMeeting.trash(selectedMeetingId, { onRestored: openMeeting });
         if (nextUid) {
           openMeeting(nextUid);
         } else {

@@ -15,6 +15,7 @@ import {
   purgeMeeting,
   renameMeetingFolder,
   restoreMeeting,
+  undoDeleteMeeting,
   updateMeeting,
   type Meeting,
   type MeetingCreateInput,
@@ -367,11 +368,11 @@ export function useDeleteMeeting() {
     mutationFn: async (uid: string) => {
       const path = uidToPath(qc, uid);
       if (!path) throw new Error(`meeting not found: uid=${uid}`);
-      await deleteMeeting(adapter, path);
+      const trashId = await deleteMeeting(adapter, path);
       markMeetingSelfWrite(watcher, path);
-      return uid;
+      return { uid, trashId, path };
     },
-    onSuccess: (uid) => {
+    onSuccess: ({ uid }) => {
       qc.setQueryData<Meeting[]>(meetingsKey, (prev) =>
         prev?.filter((m) => m.uid !== uid),
       );
@@ -393,6 +394,26 @@ export function useRestoreMeeting() {
       );
       qc.setQueryData<Meeting[]>(meetingsKey, (prev) =>
         prev ? [restored, ...prev] : [restored],
+      );
+      qc.setQueryData(meetingKey(restored.uid), restored);
+    },
+  });
+}
+
+/** 방금 지운 메모를 원래 자리로 — 되돌리기 토스트 전용(useTrashMeetingWithUndo). */
+export function useUndoDeleteMeeting() {
+  const { adapter } = useVault();
+  const qc = useQueryClient();
+  return useMutation({
+    scope: VAULT_WRITE_SCOPE,
+    mutationFn: ({ trashId, path }: { trashId: string; path: string }) =>
+      undoDeleteMeeting(adapter, trashId, path),
+    onSuccess: (restored, { trashId }) => {
+      qc.setQueryData<Meeting[]>(deletedMeetingsKey, (prev) =>
+        prev?.filter((m) => m.id !== trashId),
+      );
+      qc.setQueryData<Meeting[]>(meetingsKey, (prev) =>
+        prev ? [restored, ...prev.filter((m) => m.uid !== restored.uid)] : [restored],
       );
       qc.setQueryData(meetingKey(restored.uid), restored);
     },

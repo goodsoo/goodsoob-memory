@@ -23,7 +23,6 @@ import {
   useMeetingFolders,
   useCreateMeeting,
   useCreateMeetingFolder,
-  useDeleteMeeting,
   useDeleteMeetingFolder,
   useGetFullMeeting,
   useMoveMeeting,
@@ -58,6 +57,7 @@ import { Button } from "../common/Button";
 import { Text } from "../common/Text";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { useToast } from "@goodsoob/ds";
+import { useTrashMeetingWithUndo } from "../../hooks/useTrashMeetingWithUndo";
 
 /* ── Meetings Side Panel ── */
 
@@ -91,7 +91,7 @@ export function MeetingsSidePanel({
   const createMutation = useCreateMeeting();
   const createFolderMutation = useCreateMeetingFolder();
   const deleteFolderMutation = useDeleteMeetingFolder();
-  const deleteMeetingMutation = useDeleteMeeting();
+  const trashMeeting = useTrashMeetingWithUndo();
   const renameFolderMutation = useRenameMeetingFolder();
   const moveMutation = useMoveMeeting();
   const moveFolderMutation = useMoveMeetingFolder();
@@ -116,12 +116,6 @@ export function MeetingsSidePanel({
     folder: string;
     total: number;
     pinned: number;
-  } | null>(null);
-  // 메모 삭제 confirm target. window.confirm 은 브라우저/WebView 에서 신뢰 못해
-  // ConfirmDialog 모달 경유 (폴더 삭제와 동일 패턴).
-  const [deleteMeetingTarget, setDeleteMeetingTarget] = useState<{
-    uid: string;
-    title: string;
   } | null>(null);
   // 내보내기 섹션 선택 모달 target — full Meeting fetch 후 set.
   const [exportTarget, setExportTarget] = useState<MeetingMarkdownInput | null>(
@@ -319,12 +313,10 @@ export function MeetingsSidePanel({
     }
   }
 
-  async function performDeleteMeeting() {
-    if (!deleteMeetingTarget) return;
-    const { uid } = deleteMeetingTarget;
-    setDeleteMeetingTarget(null);
+  // 확인창 없음 — 휴지통 이동은 되돌릴 수 있어 되돌리기 토스트로 대신(DS U2).
+  async function performDeleteMeeting(uid: string) {
     try {
-      await deleteMeetingMutation.mutateAsync(uid);
+      await trashMeeting.trash(uid, { onRestored: onSelect });
       // 삭제한 게 현재 선택 메모면 선택 해제 (App 의 hash 정리 effect 가 이어받음).
       if (selectedId === uid) onDeselect?.();
     } catch (e) {
@@ -351,16 +343,12 @@ export function MeetingsSidePanel({
     meetingMenu: (m) =>
       meetingMenuEntries({
         pinned: m.pinned ?? false,
-        deleteDisabled: deleteMeetingMutation.isPending,
+        deleteDisabled: trashMeeting.isPending,
         onTogglePin: () => void handleTogglePin(m.uid, !m.pinned),
         onMove: () => setMoveModalFor(m.id),
         onCopy: () => void handleCopyMeeting(m.uid),
         onExport: () => void handleExportMeeting(m.uid),
-        onDelete: () =>
-          setDeleteMeetingTarget({
-            uid: m.uid,
-            title: m.title?.trim() || "(제목 없음)",
-          }),
+        onDelete: () => void performDeleteMeeting(m.uid),
       }),
     folderMenu: (folder) =>
       folderMenuEntries({
@@ -536,20 +524,6 @@ export function MeetingsSidePanel({
         onCancel={() => setDeleteFolderTarget(null)}
       />
 
-      <ConfirmDialog
-        open={deleteMeetingTarget !== null}
-        title={
-          deleteMeetingTarget
-            ? `'${deleteMeetingTarget.title}' 메모를 휴지통으로 옮길까요?`
-            : ""
-        }
-        message="휴지통에서 다시 복원할 수 있습니다."
-        confirmLabel="삭제"
-        danger
-        busy={deleteMeetingMutation.isPending}
-        onConfirm={() => void performDeleteMeeting()}
-        onCancel={() => setDeleteMeetingTarget(null)}
-      />
     </div>
   );
 }
